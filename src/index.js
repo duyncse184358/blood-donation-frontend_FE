@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+import './index.css'; // Đảm bảo file CSS này tồn tại
+import App from './App'; // Kiểm tra lại file App của bạn có phải là App.js hay App.jsx
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
