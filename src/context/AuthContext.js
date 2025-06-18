@@ -1,114 +1,140 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import * as authService from '../services/authService'; // Sử dụng * as để import tất cả exports
+// src/context/AuthContext.js
+import React, { createContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import { login as authLoginService } from '../services/authService';
 
-export const AuthContext = createContext(null);
+export const AuthContext = createContext();
+
+const roleIdToName = {
+  1: 'Admin',
+  2: 'Staff',
+  3: 'Member',
+};
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null); // Lưu thông tin người dùng đã giải mã từ token
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Hàm trợ giúp để lấy vai trò từ decodedToken, xử lý các tên claim khác nhau
-  const getRoleFromDecodedToken = (token) => {
-    // Thử lấy 'role' theo tên mặc định hoặc tên tùy chỉnh nếu có
-    let role = token.role || token['role'] || token.Role; 
-    
-    // Nếu vẫn không tìm thấy, thử lấy theo URI chuẩn của ClaimTypes.Role trong .NET
-    // Đây là ClaimTypes.Role của .NET
-    if (!role) {
-      role = token['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-    }
-    
-    // Trả về vai trò hoặc 'User' nếu không tìm thấy để tránh lỗi undefined
-    return role || 'User'; 
-  };
+  const decodeAndSetUser = (token) => {
+    try {
+      const decodedToken = jwtDecode(token);
 
-  // Hàm cập nhật trạng thái đăng nhập, được bọc trong useCallback để đảm bảo ổn định
-  const updateAuthStatus = useCallback(() => {
-    const token = localStorage.getItem('jwtToken');
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-
-        if (decodedToken.exp < currentTime) {
-          console.log("Token đã hết hạn.");
-          authService.logout();
-          setIsAuthenticated(false);
-          setUser(null);
-        } else {
-          setIsAuthenticated(true);
-          setUser({ // Trích xuất thông tin cần thiết từ decodedToken
-            userId: decodedToken.user_id, // Đảm bảo claim 'user_id' được cấu hình trong JWT ở Backend
-            username: decodedToken.unique_name, // 'unique_name' thường là username
-            email: decodedToken.email,
-            role: getRoleFromDecodedToken(decodedToken) // Sử dụng hàm trợ giúp để lấy vai trò
-          });
-        }
-      } catch (error) {
-        // Lỗi giải mã token hoặc token không hợp lệ
-        console.error("Lỗi giải mã token hoặc truy cập thuộc tính trong updateAuthStatus:", error);
-        authService.logout(); // Xóa token lỗi
+      if (decodedToken.exp * 1000 < Date.now()) {
+        localStorage.removeItem('jwtToken');
+        sessionStorage.removeItem('jwtToken');
         setIsAuthenticated(false);
         setUser(null);
+        return null;
       }
+
+      let userRole = decodedToken.role ||
+        decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+        roleIdToName[decodedToken.roleid] ||
+        roleIdToName[decodedToken.RoleId] ||
+        'Member';
+
+      const userId = decodedToken.userId || decodedToken.user_id || decodedToken.sub;
+      const username = decodedToken.username || decodedToken.unique_name || decodedToken.name || decodedToken.email;
+      const email = decodedToken.email;
+
+      const userObject = {
+        userId: userId,
+        username: username,
+        email: email,
+        role: userRole,
+        exp: decodedToken.exp,
+      };
+
+      setIsAuthenticated(true);
+      setUser(userObject);
+      return userObject;
+
+    } catch (error) {
+      setIsAuthenticated(false);
+      setUser(null);
+      localStorage.removeItem('jwtToken');
+      sessionStorage.removeItem('jwtToken');
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    // Lấy token ưu tiên sessionStorage, sau đó localStorage
+    const token = sessionStorage.getItem('jwtToken') || localStorage.getItem('jwtToken');
+    if (token) {
+      decodeAndSetUser(token);
     } else {
       setIsAuthenticated(false);
       setUser(null);
     }
-  }, []); // Dependencies rỗng vì nó chỉ phụ thuộc vào các setters (ổn định) và localStorage
+    setLoading(false);
 
-  // Hàm đăng nhập, được bọc trong useCallback để đảm bảo ổn định
-  const login = useCallback(async (email, password) => {
-    try {
-      // authService.login giờ đây trả về TRỰC TIẾP CHUỖI TOKEN
-      const token = await authService.login(email, password); 
-      localStorage.setItem('jwtToken', token); // Lưu token nhận được
-
-      const decodedToken = jwtDecode(token); // Giải mã token để lấy thông tin user
-
-      setIsAuthenticated(true);
-      setUser({
-        userId: decodedToken.user_id,
-        username: decodedToken.unique_name,
-        email: decodedToken.email,
-        role: getRoleFromDecodedToken(decodedToken)
-      });
-      // Trả về một đối tượng chứa thông tin user đã giải mã cho component gọi (Login.jsx)
-      return { token: token, user: {
-        userId: decodedToken.user_id,
-        username: decodedToken.unique_name,
-        email: decodedToken.email,
-        role: getRoleFromDecodedToken(decodedToken)
-      }};
-    } catch (error) {
-      console.error("Lỗi đăng nhập AuthContext:", error);
-      setIsAuthenticated(false);
-      setUser(null);
-      throw error; // Ném lỗi để component gọi có thể xử lý
-    }
-  }, []); // Dependencies rỗng vì nó chỉ phụ thuộc vào authService và các setters (đã ổn định)
-
-  // Hàm đăng xuất
-  const logout = useCallback(() => { // Cũng bọc logout trong useCallback
-    authService.logout();
-    setIsAuthenticated(false);
-    setUser(null);
-  }, []); // Dependencies rỗng
-
-  // Lắng nghe sự kiện 'authChange' và kiểm tra trạng thái khi component mount
-  useEffect(() => {
-    updateAuthStatus(); // Kiểm tra trạng thái khi component mount
-
-    window.addEventListener('authChange', updateAuthStatus);
+    // Xóa token khi tắt tab/trình duyệt (không xóa khi reload)
+    let timeoutId = null;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // Delay một chút để phân biệt reload và đóng tab
+        timeoutId = setTimeout(() => {
+          localStorage.removeItem('jwtToken');
+          sessionStorage.removeItem('jwtToken');
+        }, 500);
+      } else if (document.visibilityState === 'visible') {
+        // Nếu reload, hủy xóa token
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('authChange', updateAuthStatus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [updateAuthStatus]); // Đã thêm updateAuthStatus vào dependency array
+  }, []);
+
+  const login = async (email, password) => {
+    setLoading(true);
+    try {
+      const token = await authLoginService(email, password);
+      localStorage.setItem('jwtToken', token);
+      sessionStorage.setItem('jwtToken', token);
+      const user = decodeAndSetUser(token);
+      return { success: true, user: user };
+    } catch (error) {
+      setIsAuthenticated(false);
+      setUser(null);
+      localStorage.removeItem('jwtToken');
+      sessionStorage.removeItem('jwtToken');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('jwtToken');
+    sessionStorage.removeItem('jwtToken');
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
+  const isAdmin = user?.role === 'Admin';
+  const isStaff = user?.role === 'Staff';
+  const isMember = user?.role === 'Member' || user?.role === 'User';
+
+  const authContextValue = {
+    isAuthenticated,
+    user,
+    loading,
+    login,
+    logout,
+    isAdmin,
+    isStaff,
+    isMember,
+  };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );
