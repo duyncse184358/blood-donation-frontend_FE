@@ -1,25 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react'; // Đã bỏ useContext khỏi destructuring
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext'; // Import AuthContext
-import { User, LogOut, Settings } from 'lucide-react'; // Import icons cho user profile
-import './Navbar.css'; // File CSS cho Navbar
+import useAuth from '../../hooks/useAuth';
+import { User, LogOut, Settings, Bell, Heart } from 'lucide-react';
+
+import './Navbar.css';
 
 function Navbar() {
-    // Sử dụng React.useContext thay vì useContext trực tiếp để tránh cảnh báo linter
-    const { isAuthenticated, logout, user } = React.useContext(AuthContext); 
+    const { isAuthenticated, logout, user, isAdmin, isStaff, isMember } = useAuth();
     const navigate = useNavigate();
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    const profileMenuRef = useRef(null); // Ref để đóng dropdown khi click ra ngoài
+    const profileMenuRef = useRef(null);
 
     const handleLogout = () => {
-        logout(); // Gọi hàm logout từ AuthContext
-        setIsProfileMenuOpen(false); // Đóng menu sau khi đăng xuất
-        navigate('/login'); // Điều hướng về trang đăng nhập
+        logout();
+        setIsProfileMenuOpen(false);
+        navigate('/login');
     };
 
     const handleViewProfile = () => {
-        setIsProfileMenuOpen(false); // Đóng menu
-        navigate('/profile'); // Điều hướng đến trang hồ sơ người dùng (cần tạo route này)
+        setIsProfileMenuOpen(false);
+        // Điều hướng đến trang hồ sơ phù hợp với vai trò
+        if (isAdmin) navigate('/admin/profile');
+        else if (isStaff) navigate('/staff/profile');
+        else if (isMember) navigate('/member/profile');
+        else navigate('/');
+    };
+
+    const handleViewNotifications = () => {
+        // Điều hướng đến trang thông báo
+        navigate('/notifications');
     };
 
     // Đóng dropdown khi click ra ngoài
@@ -29,56 +38,97 @@ function Navbar() {
                 setIsProfileMenuOpen(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
 
+    // Helper để hiển thị vai trò tiếng Việt
+    const getUserRoleDisplay = () => {
+        if (!user || !user.role) return '';
+        switch (user.role) {
+            case 'Member':
+                return 'Người hiến máu';
+            case 'Admin':
+                return 'Quản trị viên';
+            case 'Staff':
+                return 'Nhân viên';
+            default:
+                return '';
+        }
+    };
+
     return (
         <nav className="navbar-custom">
-            <div className="navbar-content-wrapper">
-                {/* Phần điều hướng chính (căn giữa) */}
-                <ul className='nav-links-center'>
+            <div className="navbar-container">
+                {/* Brand/Logo Section */}
+                <div className="navbar-brand">
+                    <Heart size={24} color="#F8D347" fill="#F8D347" className="brand-icon" />
+                    <Link to="/" className="brand-text">Hiến Máu Nhân Ái</Link>
+                </div>
+
+                {/* Main Navigation Links */}
+                <ul className="nav-links">
                     <li><Link to="/" className="nav-item-link">Trang chủ</Link></li>
                     <li><Link to="/blog" className="nav-item-link">Blog</Link></li>
-                    <li><Link to="/documentation" className="nav-item-link">Tài liệu</Link></li>
-                    {isAuthenticated && (
-                        <>
-                            {/* Bạn có thể thêm các link dashboard tùy theo role ở đây nếu muốn */}
-                            <li><Link to="/dashboard" className="nav-item-link">Dashboard</Link></li>
-                        </>
+                    <li><Link to="/docs" className="nav-item-link">Tài liệu hiến máu</Link></li>
+                    {isAdmin && (
+                        <li><Link to="/admin/dashboard" className="nav-item-link">Dashboard Admin</Link></li>
+                    )}
+                    {isStaff && (
+                        <li><Link to="/staff/dashboard" className="nav-item-link">Dashboard Nhân viên</Link></li>
+                    )}
+                    {isMember && (
+                        <li><Link to="/member/dashboard" className="nav-item-link">Dashboard Thành viên</Link></li>
                     )}
                 </ul>
 
-                {/* Phần nút đăng nhập/profile (căn phải) */}
-                <div className="navbar-actions">
+                {/* User Actions */}
+                <div className="navbar-actions-right">
                     {isAuthenticated ? (
-                        <div className="user-profile-wrapper" ref={profileMenuRef}>
-                            <button 
-                                className="user-avatar-button" 
-                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                                aria-expanded={isProfileMenuOpen}
-                                aria-label="Menu người dùng"
+                        <>
+                            {/* Notification Bell */}
+                            <button
+                                className="notification-bell-button"
+                                onClick={handleViewNotifications}
+                                aria-label="Thông báo của tôi"
                             >
-                                <User size={24} color="#dc3545" strokeWidth={2.5} /> {/* Icon người dùng */}
-                                {/* Hiển thị tên người dùng nếu có */}
-                                {user && <span className="user-name-display d-none d-md-inline ms-2">{user.username || user.email}</span>}
+                                <Bell size={24} color="#fff" />
+                                <span className="notification-badge">2</span>
                             </button>
-                            {isProfileMenuOpen && (
-                                <div className="profile-dropdown-menu">
-                                    <button onClick={handleViewProfile} className="dropdown-item">
-                                        <Settings size={18} className="me-2"/> Hồ sơ của tôi
-                                    </button>
-                                    <button onClick={handleLogout} className="dropdown-item">
-                                        <LogOut size={18} className="me-2"/> Đăng xuất
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+
+                            {/* User Profile Dropdown */}
+                            <div
+  className={`user-profile-wrapper${isProfileMenuOpen ? ' open' : ''}`}
+  ref={profileMenuRef}
+>
+                                <button
+                                    className="user-profile-button"
+                                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                    aria-expanded={isProfileMenuOpen}
+                                    aria-label="Menu người dùng"
+                                >
+                                    <User size={24} color="#dc3545" fill="#dc3545" className="user-icon" />
+                                    <div className="user-info">
+                                        <span className="user-name">{user.username || user.email || 'Nguyễn Văn A'}</span>
+                                        <span className="user-role">({getUserRoleDisplay()})</span>
+                                    </div>
+                                </button>
+                                {isProfileMenuOpen && (
+                                    <div className="profile-dropdown-menu">
+                                        <button onClick={handleViewProfile} className="dropdown-item">
+                                            <Settings size={18} className="me-2" /> Hồ sơ của tôi
+                                        </button>
+                                        <button onClick={handleLogout} className="dropdown-item">
+                                            <LogOut size={18} className="me-2" /> Đăng xuất
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     ) : (
-                        <Link to="/login" className="btn btn-login">Đăng nhập</Link>
+                        <Link to="/login" className="btn-login">Đăng nhập</Link>
                     )}
                 </div>
             </div>

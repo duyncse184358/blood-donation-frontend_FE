@@ -1,22 +1,200 @@
-.app-footer {
-    background-color: #343a40; /* Màu tối Bootstrap */
-    color: white;
-    padding: 2rem 1rem;
-    margin-top: auto; /* Đẩy footer xuống cuối trang */
+/* src/components/Footer/Footer.css */
+
+.footer-container {
+    background: linear-gradient(to right, #dc3545, #c82333); /* Deep red gradient */
+    color: #f8f9fa; /* Off-white text for contrast */
+    padding-top: 50px;
+    font-family: 'Inter', sans-serif;
+    border-top: 5px solid #bd2130; /* A darker red border top */
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15); /* Shadow for a lifted effect */
 }
 
-.app-footer .container {
-    max-width: 960px;
-    margin: 0 auto;
+.footer-content {
+    display: flex;
+    flex-wrap: wrap; /* Allows sections to wrap on smaller screens */
+    justify-content: space-between; /* Spreads sections out */
+    padding-bottom: 30px;
+    gap: 30px; /* Space between columns */
+    max-width: 1200px; /* Max width for consistency with other content */
+    margin: 0 auto; /* Center content */
 }
 
-.app-footer p {
-    margin-bottom: 0.5rem;
+.footer-section {
+    flex: 1; /* Allow sections to grow */
+    min-width: 250px; /* Minimum width before wrapping */
+    padding: 0 15px; /* Internal padding for columns */
+}
+
+.footer-brand {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.footer-heart-icon {
+    color: #ffcccc; /* Lighter red for the heart icon */
+    margin-bottom: 10px;
+    animation: pulse 1.5s infinite ease-in-out; /* Gentle pulse */
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+.footer-brand-name {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.footer-copyright {
     font-size: 0.9rem;
+    color: rgba(248, 249, 250, 0.7); /* Slightly transparent */
 }
 
-.app-footer .contact-info {
-    margin-top: 1rem;
+.footer-heading {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 8px; /* Space for underline effect */
+}
+
+/* Underline effect for headings */
+.footer-heading::after {
+    content: '';
+    display: block;
+    width: 50px; /* Short underline */
+    height: 3px;
+    background-color: #ffcccc; /* Lighter red for underline */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    border-radius: 2px;
+}
+
+/* Contact Info List */
+.footer-contact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-contact-list li {
+    display: flex;
+    align-items: flex-start; /* Align icon with text top */
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    color: #f8f9fa;
+}
+
+.contact-icon {
+    color: #ffcccc; /* Lighter red for contact icons */
+    margin-right: 10px;
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    margin-top: 3px; /* Adjust vertical alignment */
+}
+
+.contact-text {
+    flex-grow: 1;
+}
+
+/* Quick Links List */
+.footer-link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-link-list li {
+    margin-bottom: 8px;
+}
+
+.footer-link {
+    color: #f8f9fa;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.footer-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* Bottom Bar for copyright */
+.footer-bottom-bar {
+    background-color: #a71d2a; /* Darker shade of red */
+    color: rgba(248, 249, 250, 0.8);
+    text-align: center;
+    padding: 15px 20px;
     font-size: 0.85rem;
-    color: #bbb;
+    border-top: 1px solid #bd2130; /* Separator line */
+}
+
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column; /* Stack sections vertically */
+        align-items: center; /* Center items when stacked */
+        padding-bottom: 20px;
+    }
+
+    .footer-section {
+        min-width: unset; /* Remove min-width on small screens */
+        width: 100%; /* Take full width */
+        text-align: center; /* Center text for stacked sections */
+        margin-bottom: 30px; /* Space between stacked sections */
+    }
+
+    .footer-section:last-child {
+        margin-bottom: 0; /* No bottom margin for the very last section */
+    }
+
+    .footer-brand {
+        align-items: center; /* Center brand content */
+    }
+
+    .footer-heading {
+        text-align: center; /* Center heading when section is centered */
+        padding-bottom: 5px;
+    }
+    .footer-heading::after {
+        left: 50%; /* Center underline */
+        transform: translateX(-50%);
+    }
+
+    .footer-contact-list,
+    .footer-link-list {
+        text-align: center; /* Center list items */
+    }
+    .footer-contact-list li {
+        justify-content: center; /* Center icon and text */
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-container {
+        padding-top: 30px;
+    }
+    .footer-brand-name {
+        font-size: 1.4rem;
+    }
+    .footer-heading {
+        font-size: 1.2rem;
+    }
+    .footer-contact-list li,
+    .footer-link-list li {
+        font-size: 0.9rem;
+    }
+    .footer-bottom-bar {
+        padding: 10px 15px;
+        font-size: 0.8rem;
+    }
 }
