@@ -1,0 +1,280 @@
+/* MemberDashboard.css */
+
+/* General Styling */
+.member-dashboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.member-dashboard-main {
+    flex: 1;
+    background: linear-gradient(to bottom right, #f7f7f7, #e9ecef);
+    padding: 60px 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.dashboard-header {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #dc3545; /* Red accent */
+    text-align: center;
+    margin-bottom: 40px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Notification Cards Section */
+.notification-cards-section {
+    margin-bottom: 50px;
+}
+
+.notification-card-base {
+    border-radius: 15px;
+    padding: 25px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-decoration: none; /* Remove underline for Link */
+}
+.notification-card-base:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+}
+
+.notification-card-base .content {
+    flex-grow: 1;
+}
+
+.notification-card-base .icon-wrapper {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+.notification-card-base .icon-wrapper svg {
+    color: white;
+    font-size: 2.5rem;
+}
+
+.notification-card-base .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.notification-card-base .description {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+.notification-card-base .count {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-left: 20px;
+    flex-shrink: 0;
+    background-color: rgba(255, 255, 255, 0.3);
+    padding: 8px 15px;
+    border-radius: 20px;
+}
+.notification-card-base .detail-button {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+    margin-left: 20px;
+}
+.notification-card-base .detail-button:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Specific Notification Card Styles */
+.emergency-notification-card {
+    background: linear-gradient(to right, #dc3545, #c82333); /* Red gradient */
+}
+
+.general-notification-card {
+    background: linear-gradient(to right, #007bff, #0056b3); /* Blue gradient */
+}
+
+
+/* Feature Cards Grid */
+.feature-card-grid {
+    margin-top: 40px;
+}
+
+.feature-card {
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-decoration: none; /* Remove underline for Link */
+    color: white; /* Changed text color to white for better contrast on colored backgrounds */
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+}
+
+.feature-icon-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white for icon background */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.feature-icon-circle svg {
+    color: white; /* Icons remain white */
+    font-size: 2.5rem;
+}
+
+.feature-card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white; /* Changed to white */
+    margin-bottom: 10px;
+}
+
+.feature-card-text {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9); /* Lighter white for description */
+    line-height: 1.5;
+    flex-grow: 1; /* Allows text to take available space */
+    margin-bottom: 20px;
+}
+
+.feature-card-button {
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white button */
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5); /* Subtle white border */
+    border-radius: 5px; /* Less rounded corners as per screenshot */
+    padding: 10px 25px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: none; /* No box-shadow for button */
+    width: 100%;
+}
+
+.feature-card-button:hover {
+    background-color: rgba(255, 255, 255, 0.4); /* More opaque on hover */
+    transform: translateY(-2px);
+    border-color: white; /* Solid white border on hover */
+}
+
+/* Specific Feature Card Backgrounds - Matching screenshot colors */
+.feature-card.profile { background: linear-gradient(to right, #007bff, #0056b3); } /* Blue */
+.feature-card.donate { background: linear-gradient(to right, #dc3545, #c82333); } /* Red */
+.feature-card.history { background: linear-gradient(to right, #28a745, #218838); } /* Green */
+.feature-card.emergency-notif { background: linear-gradient(to right, #ffc107, #e0a800); } /* Yellow/Orange */
+.feature-card.respond { background: linear-gradient(to right, #6f42c1, #563d7c); } /* Purple (similar to screenshot) */
+.feature-card.reminder { background: linear-gradient(to right, #17a2b8, #138496); } /* Teal (similar to screenshot) */
+
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .dashboard-header {
+        font-size: 2.2rem;
+    }
+    .notification-card-base {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+    }
+    .notification-card-base .icon-wrapper {
+        margin-bottom: 15px;
+        margin-right: 0;
+    }
+    .notification-card-base .title {
+        font-size: 1.3rem;
+    }
+    .notification-card-base .description {
+        font-size: 0.9rem;
+    }
+    .notification-card-base .count,
+    .notification-card-base .detail-button {
+        margin-top: 15px;
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+    }
+    .feature-card-title {
+        font-size: 1.3rem;
+    }
+    .feature-card-text {
+        font-size: 0.9rem;
+    }
+    .feature-card-button {
+        padding: 8px 20px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .member-dashboard-main {
+        padding: 30px 15px;
+    }
+    .dashboard-header {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+    }
+    .notification-cards-section {
+        margin-bottom: 30px;
+    }
+    .notification-card-base {
+        padding: 15px;
+    }
+    .notification-card-base .icon-wrapper svg {
+        font-size: 2rem;
+    }
+    .notification-card-base .title {
+        font-size: 1.1rem;
+    }
+    .notification-card-base .count {
+        font-size: 1rem;
+        padding: 6px 12px;
+    }
+    .feature-card {
+        padding: 20px;
+    }
+    .feature-icon-circle {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 15px;
+    }
+    .feature-icon-circle svg {
+        font-size: 2rem;
+    }
+    .feature-card-title {
+        font-size: 1.2rem;
+    }
+    .feature-card-text {
+        font-size: 0.85rem;
+    }
+    .feature-card-button {
+        padding: 7px 15px;
+        font-size: 0.8rem;
+    }
+}
