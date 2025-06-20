@@ -11,6 +11,7 @@ import BloodInventoryManager from './BloodInventoryManager';
 import BloodDiscardForm from './BloodDiscardForm';
 import DonorSearch from './DonorSearch';
 import NotificationForm from './NotificationForm'; // Hiển thị danh sách notification + nút tạo
+import ProfileUpdate from '../Member/ProfileUpdate'; // Thêm dòng này
 
 const TABS = [
   { key: 'emergency', label: 'Tạo yêu cầu máu khẩn cấp', icon: 'fa-solid fa-triangle-exclamation' },
@@ -19,7 +20,8 @@ const TABS = [
   { key: 'inventory', label: 'Quản lý kho máu', icon: 'fa-solid fa-warehouse' },
   { key: 'discard', label: 'Ghi nhận loại bỏ máu', icon: 'fa-solid fa-trash-can' },
   { key: 'search', label: 'Tìm kiếm người hiến phù hợp', icon: 'fa-solid fa-magnifying-glass-location' },
-  { key: 'notification', label: 'Quản lý thông báo', icon: 'fa-solid fa-bell' }
+  { key: 'notification', label: 'Quản lý thông báo', icon: 'fa-solid fa-bell' },
+  { key: 'profile', label: 'Cập nhật hồ sơ cá nhân', icon: 'fa-solid fa-user-pen' } // Thêm tab cập nhật hồ sơ
 ];
 
 function StaffDashboard() {
@@ -101,6 +103,13 @@ function StaffDashboard() {
             <section>
               <h4 className="mb-3 text-warning"><i className="fa-solid fa-bell me-2"></i>Quản lý thông báo</h4>
               <NotificationForm />
+            </section>
+          )}
+
+          {activeTab === 'profile' && (
+            <section>
+              <h4 className="mb-3 text-info"><i className="fa-solid fa-user-pen me-2"></i>Cập nhật hồ sơ cá nhân</h4>
+              <ProfileUpdate />
             </section>
           )}
         </div>

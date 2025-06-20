@@ -2,63 +2,91 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Import các trang chính của ứng dụng
-import HomePage from './pages/Home/HomePage'; // Đảm bảo HomePage nằm trong src/pages/Home/
-import LoginPage from './components/Auth/Login'; // Đảm bảo Login.js nằm trong src/components/Auth/
-import RegisterPage from './components/Auth/Register'; // Đảm bảo Register.js nằm trong src/components/Auth/
-import ForgotPassword from './components/Auth/ForgotPassword'; // Đảm bảo ForgotPassword.js nằm trong src/components/Auth/
+import HomePage from './pages/Home/HomePage';
+import LoginPage from './components/Auth/Login.jsx'; 
+import RegisterPage from './components/Auth/Register';
+import ForgotPasswordPage from './components/Auth/ForgotPassword'; 
 
 // Import các trang placeholder
-import BlogPage from './pages/BlogPage'; // Cần tạo file này
-import DocumentationPage from './pages/DocumentationPage'; // Cần tạo file này
-import NotFoundPage from './pages/NotFoundPage'; // Cần tạo file này
+import BlogPage from './pages/BlogPage';
+import DocumentationPage from './pages/DocumentationPage';
+import NotFoundPage from './pages/NotFoundPage';
 
-// Các trang hoặc components khác (hiện đang comment out, bật khi cần)
-// import DashboardPage from './components/Home/Dashboard'; // Trang sau khi đăng nhập thành công
-// import UserProfile from './components/User/UserProfile'; // Trang hồ sơ người dùng
-// import ManageUsers from './components/Admin/ManageUsers'; // Trang quản lý người dùng (Admin)
-// import ManageRoles from './components/Admin/ManageRoles'; // Trang quản lý vai trò (Admin)
+// Import trang quản lý chiến dịch (Admin)
 
+// Import các trang mới dành cho Member
+import MemberDashboardPage from './pages/Member/MemberDashboard'; 
+import RegisterDonationPage from './pages/Member/RegisterDonation'; 
+import DonationHistoryPage from './pages/Member/DonationHistory'; 
+import RemindersPage from './pages/Member/Reminders'; 
+import ProfileUpdatePage from './pages/Member/ProfileUpdate';
 
-// Import AuthContext và PrivateRoute
-import { AuthProvider } from './context/AuthContext'; // Đảm bảo AuthContext.js nằm trong src/context/
-import PrivateRoute from './components/Router/PrivateRoute'; // Đảm bảo PrivateRoute.js nằm trong src/components/Shared/
+// Import các trang thông báo mới
+import MemberNotificationsPage from './pages/Member/Notifications'; // Thông báo chung cho Member
+import EmergencyNotificationsPage from './pages/Member/EmergencyNotifications'; // Thông báo khẩn cấp cho Member
 
-// Import CSS chung
-import './styles/App.css'; // Đảm bảo App.css nằm trong src/styles/
+// Staff
+import StaffDashboardpage from './pages/Staff/StaffDashboard.jsx';
+import NotificationForm from './pages/Staff/NotificationForm.jsx';
+import NotificationSend from './pages/Staff/NotificationSend.jsx';
+
+// Admin
+import AdminDashboardPage from './pages/Admin/DashboardPage.jsx';
+
+import NotificationSendAdmin from './pages/Admin/NotificationSend.jsx';
+import ManageUserAccount from './pages/Admin/ManageUserAccount.jsx';
+
+// AuthContext và PrivateRoute
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/Router/PrivateRoute';
+import './styles/App.css'; 
 
 function App() {
     return (
         <Router>
-            {/* Bọc toàn bộ ứng dụng bằng AuthProvider để quản lý trạng thái đăng nhập */}
-            <AuthProvider> 
+            <AuthProvider>
                 <div className="App">
                     <Routes>
-                        {/* Public Routes (Không yêu cầu đăng nhập) */}
+                        {/* Public Routes */}
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
-                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                         <Route path="/blog" element={<BlogPage />} />
                         <Route path="/documentation" element={<DocumentationPage />} />
-
-                        {/* Private Routes (Yêu cầu đăng nhập) */}
-                        <Route element={<PrivateRoute />}>
-                            {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
-                            {/* <Route path="/profile" element={<UserProfile />} /> */}
-                            {/* Thêm các PrivateRoute khác cho người dùng thông thường (Member, Staff) */}
-                        </Route>
-
-                        {/* Admin Routes (Yêu cầu đăng nhập và có vai trò Admin) */}
-                        <Route element={<PrivateRoute roles={['Admin']} />}>
-                            {/* <Route path="/admin/users" element={<ManageUsers />} /> */}
-                            {/* <Route path="/admin/roles" element={<ManageRoles />} /> */}
-                            {/* Thêm các PrivateRoute khác cho Admin */}
-                        </Route>
-                        
-                        {/* Route cho trường hợp không có quyền truy cập */}
                         <Route path="/unauthorized" element={<h2>Bạn không có quyền truy cập trang này.</h2>} />
 
-                        {/* Fallback Route (Xử lý các URL không khớp - trang 404) */}
+                        {/* Private Routes */}
+                        <Route element={<PrivateRoute />}>
+                            <Route path="/notifications" element={<MemberNotificationsPage />} />
+                        </Route>
+
+                        {/* Member Routes */}
+                        <Route element={<PrivateRoute roles={['Member', 'User']} />}> 
+                            <Route path="/member/dashboard" element={<MemberDashboardPage />} />
+                            <Route path="/member/register-donation" element={<RegisterDonationPage />} />
+                            <Route path="/member/donation-history" element={<DonationHistoryPage />} />
+                            <Route path="/member/reminders" element={<RemindersPage />} />
+                            <Route path="/member/profile" element={<ProfileUpdatePage />} />
+                            <Route path="/member/emergency-notifications" element={<EmergencyNotificationsPage />} />
+                        </Route>
+
+                        {/* Staff Routes */}
+                        <Route element={<PrivateRoute roles={['Staff']} />}>
+                            <Route path="/staff/dashboard" element={<StaffDashboardpage />} />
+                            <Route path="/staff/notifications" element={<NotificationForm />} />
+                            <Route path="/staff/notification-send" element={<NotificationSend />} />
+                        </Route>
+
+                        {/* Admin Routes */}
+                        <Route element={<PrivateRoute roles={['Admin']} />}>
+                            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                           
+                            <Route path="/admin/notification-send" element={<NotificationSendAdmin />} />
+                            <Route path="/admin/manage-users" element={<ManageUserAccount />} />
+                        </Route>
+                        
+                        {/* Fallback Route */}
                         <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                 </div>

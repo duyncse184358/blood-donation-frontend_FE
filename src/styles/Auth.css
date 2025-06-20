@@ -107,10 +107,7 @@
     padding-top: 1.5rem; /* Adjusted top padding to match new header */
 }
 
-/* Auth Form Body: Container for form elements */
-.auth-form-body {
-    /* No specific styles needed here, relies on child elements */
-}
+
 
 /* Form Group Labels */
 .auth-form-body .form-label {

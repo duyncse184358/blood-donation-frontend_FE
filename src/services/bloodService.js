@@ -1,27 +1,5 @@
 // src/services/bloodService.js
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000/api';
-
-const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('jwtToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
+import api from './Api';
 
 // --- BLOOD UNIT API CALLS ---
 
@@ -72,8 +50,6 @@ export const getBloodUnitsByBloodTypeId = async (bloodTypeId) => {
     }
 };
 
-// ... Thêm các hàm POST, PUT, DELETE cho BloodUnit nếu có trong backend của bạn
-
 // --- BLOOD COMPONENT API CALLS ---
 
 /**
@@ -106,8 +82,6 @@ export const getBloodComponentById = async (componentId) => {
         throw new Error(errorMessage);
     }
 };
-
-// ... Thêm các hàm POST, PUT, DELETE cho BloodComponent nếu có trong backend của bạn
 
 // --- BLOOD TYPE API CALLS ---
 
@@ -142,4 +116,4 @@ export const getBloodTypeById = async (bloodTypeId) => {
     }
 };
 
-// ... Thêm các hàm POST, PUT, DELETE cho BloodType nếu có trong backend của bạn
+// --- Bạn có thể bổ sung thêm các hàm POST, PUT, DELETE nếu backend hỗ trợ ---

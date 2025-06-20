@@ -76,7 +76,7 @@ function Navbar() {
                     <ul className="nav-links">
                         <li><Link to="/" className="nav-item-link">Trang chủ</Link></li>
                         <li><Link to="/blog" className="nav-item-link">Blog</Link></li>
-                        <li><Link to="/docs" className="nav-item-link">Tài liệu hiến máu</Link></li>
+                        <li><Link to="/documentation" className="nav-item-link">Tài liệu hiến máu</Link></li>
                         {isAdmin && (
                             <li><Link to="/admin/dashboard" className="nav-item-link">Dashboard Admin</Link></li>
                         )}

@@ -1,114 +1,312 @@
 /* src/styles/Register.css */
 
-/* Specific styles for the register form */
-
-/* Register Button */
-.register-form .btn-primary {
-    padding: 1rem 2rem; /* Generous padding for prominent buttons */
-    font-size: 1.15rem; /* Slightly larger font size */
-    font-weight: 700; /* Bolder text */
-    border-radius: 12px; /* More rounded buttons */
-    border: none;
-    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    background-color: #28a745; /* Green color for Register button */
-    color: white;
-    box-shadow: 0 6px 18px rgba(40, 167, 69, 0.3); /* Green shadow */
+/* Global Auth Container (for full-screen background) */
+main.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* CẬP NHẬT: Màu nền sáng hơn, tươi tắn hơn */
+    background: linear-gradient(to right top, #ffecec, #e0f2f7); /* Light pastel gradient */
+    font-family: 'Inter', sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.register-form .btn-primary:hover {
-    background-color: #1e7e34; /* Darker green on hover */
-    transform: translateY(-3px); /* Slight lift effect */
-    box-shadow: 0 8px 24px rgba(40, 167, 69, 0.4); /* Enhanced green shadow on hover */
+/* Auth Card Styling */
+.auth-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    /* CẬP NHẬT: Bóng đổ nhẹ nhàng hơn, tinh tế hơn */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Slightly less intense shadow */
+    max-width: 500px;
+    width: 100%;
+    padding: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #f0f0f0; /* Thêm viền nhẹ để card rõ hơn trên nền sáng */
 }
 
-.register-form .btn-primary:disabled {
-    background-color: #e0e0e0;
-    color: #a0a0a0;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+/* Card Header Section */
+.auth-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0; /* Màu viền phân cách nhẹ nhàng hơn */
 }
 
-/* Verify OTP Button */
-.register-form .btn-success {
-    padding: 1rem 2rem;
-    font-size: 1.15rem;
+.auth-header .lucide-icon {
+    /* CẬP NHẬT: Màu đỏ tươi tắn hơn cho icon Heart */
+    color: #ff4d4d; /* A vibrant red */
+    margin-bottom: 10px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); } /* Nhấn nhá mạnh hơn chút */
+    100% { transform: scale(1); }
+}
+
+.auth-title {
+    font-size: 2.2rem;
     font-weight: 700;
-    border-radius: 12px;
-    border: none;
-    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    background-color: #17a2b8; /* Info blue/cyan color for OTP verify */
+    /* CẬP NHẬT: Màu chữ tiêu đề không quá tối, vẫn giữ sự nổi bật */
+    color: #2c3e50; /* Dark blue-gray for strong contrast */
+    margin-bottom: 5px;
+}
+
+.auth-subtitle {
+    font-size: 0.95rem;
+    /* CẬP NHẬT: Màu chữ phụ đề nhẹ nhàng hơn */
+    color: #7f8c8d; /* Medium gray */
+}
+
+/* Form Body Styling */
+.auth-form-body {
+    padding: 0 10px;
+}
+
+.form-group-input {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.auth-body .form-label {
+    display: block;
+    font-size: 0.9rem;
+    /* CẬP NHẬT: Màu label rõ ràng nhưng không quá gắt */
+    color: #34495e; /* Darker blue-gray */
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.auth-body .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0; /* Viền input nhẹ nhàng hơn */
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #34495e; /* Màu chữ trong input */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); /* Bóng mờ nhẹ */
+}
+
+.auth-body .form-control:focus {
+    border-color: #a7d9ff; /* Focus blue nhạt hơn */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15); /* Focus ring nhẹ hơn */
+    outline: none;
+}
+
+/* Step 1 Button (Primary Blue) */
+.auth-form-body .btn-primary {
+    width: 100%;
+    padding: 12px;
+    /* CẬP NHẬT: Gradient xanh tươi sáng hơn */
+    background: linear-gradient(to right, #4CAF50, #8bc34a); /* Fresh green gradient - MÀU NÀY BỊ LỆCH VỚI TÔNG ĐỎ */
+    /* NÊN DÙNG MÀU XANH TRUNG TÍNH HOẶC MÀU ĐỎ ĐỒNG BỘ VỚI TÔNG CHUNG */
+    background: linear-gradient(to right, #007bff, #0056b3); /* Giữ nguyên xanh primary nếu muốn */
+    /* Hoặc đổi sang tông đỏ tươi hơn: */
+    background: linear-gradient(to right, #ff4d4d, #e60000); /* Vibrant red gradient */
+
     color: white;
-    box-shadow: 0 6px 18px rgba(23, 162, 184, 0.3);
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Bóng nhẹ hơn */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.register-form .btn-success:hover {
-    background-color: #138496;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(23, 162, 184, 0.4);
+.auth-form-body .btn-primary:hover:not(:disabled) {
+    /* CẬP NHẬT: Hiệu ứng hover tươi hơn */
+    background: linear-gradient(to right, #e60000, #cc0000); /* Darker vibrant red on hover */
+    transform: translateY(-3px); /* Nhấc cao hơn chút */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Bóng đổ khi hover */
 }
 
-.register-form .btn-success:disabled {
-    background-color: #e0e0e0;
-    color: #a0a0a0;
+.auth-form-body .btn-primary:disabled {
+    background: #e9ecef; /* Màu disabled nhạt hơn */
+    color: #a0a0a0; /* Màu chữ disabled */
     cursor: not-allowed;
-    transform: none;
+    opacity: 0.8; /* Giảm opacity một chút */
     box-shadow: none;
 }
 
+/* Step 2 OTP Section */
+.auth-form-body .text-muted strong {
+    /* CẬP NHẬT: Màu email trong thông báo rõ hơn */
+    color: #34495e;
+}
 
-/* OTP Countdown Timer and Resend Link specific styles */
-.register-form .otp-countdown-wrapper {
+.otp-countdown-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: -0.5rem; /* Adjust negative margin if needed */
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
 }
 
-.register-form .otp-countdown-text {
-    color: #777;
+.otp-countdown-text {
+    /* CẬP NHẬT: Màu countdown rõ hơn */
+    color: #5d6d7e;
+    font-weight: 500;
 }
 
-.register-form .otp-countdown-text.expired {
-    color: #dc3545; /* Red for expired OTP */
+.otp-countdown-text.expired {
+    color: #ff4d4d; /* Màu đỏ tươi tắn cho hết hạn */
     font-weight: 600;
 }
 
-.register-form .btn-link-resend-otp {
-    color: #dc3545;
-    font-weight: 600;
+.btn-link-resend-otp {
+    background: none;
+    border: none;
+    /* CẬP NHẬT: Màu link gửi lại OTP tươi hơn */
+    color: #2980b9; /* A vibrant blue for links */
     text-decoration: none;
-    padding: 0; /* Remove default button padding */
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
     transition: color 0.2s ease;
 }
 
-.register-form .btn-link-resend-otp:hover {
-    color: #a71d2a;
+.btn-link-resend-otp:hover:not(:disabled) {
+    color: #3498db; /* Blue on hover */
     text-decoration: underline;
 }
 
-.register-form .btn-link-resend-otp:disabled {
-    color: #a0a0a0;
+.btn-link-resend-otp:disabled {
+    color: #b0c4de; /* Màu disabled nhạt */
     cursor: not-allowed;
-    text-decoration: none;
 }
 
-/* Responsive adjustments for Register form */
+/* Step 2 Submit Button (Success Green) */
+.auth-form-body .btn-success {
+    width: 100%;
+    padding: 12px;
+    /* CẬP NHẬT: Gradient xanh lá tươi sáng hơn */
+    background: linear-gradient(to right, #2ecc71, #27ae60); /* Fresh green gradient */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-form-body .btn-success:hover:not(:disabled) {
+    /* CẬP NHẬT: Hiệu ứng hover tươi hơn */
+    background: linear-gradient(to right, #27ae60, #229954);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.auth-form-body .btn-success:disabled {
+    background: #e9ecef;
+    color: #a0a0a0;
+    cursor: not-allowed;
+    opacity: 0.8;
+    box-shadow: none;
+}
+
+
+/* General Alert messages */
+.auth-body .alert {
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+.auth-body .alert-danger {
+    background-color: #fcebeb; /* Light red background */
+    color: #dc3545; /* Dark red text */
+    border: 1px solid #dc3545; /* Red border */
+}
+
+.auth-body .alert-success {
+    background-color: #e6ffe6; /* Light green background */
+    color: #28a745; /* Dark green text */
+    border: 1px solid #28a745; /* Green border */
+}
+
+
+/* Login Link at the bottom */
+.auth-body .mt-3 {
+    margin-top: 25px !important;
+    font-size: 0.95rem;
+    color: #6c757d;
+}
+
+.auth-body .mt-3 .text-center a {
+    /* CẬP NHẬT: Màu link đăng nhập tươi hơn */
+    color: #2980b9;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.auth-body .mt-3 .text-center a:hover {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+/* Responsive Adjustments for Register Page */
 @media (max-width: 576px) {
-    .register-form .btn-primary,
-    .register-form .btn-success {
-        font-size: 1.05rem;
-        padding: 0.9rem 1.5rem;
+    .auth-card {
+        padding: 25px;
+        margin: 0 15px;
     }
-    .register-form .otp-countdown-wrapper {
-        flex-direction: column; /* Stack countdown and resend link */
+    .auth-header {
+        margin-bottom: 20px;
+    }
+    .auth-header .lucide-icon {
+        size: 40px;
+    }
+    .auth-title {
+        font-size: 1.8rem;
+    }
+    .auth-subtitle {
+        font-size: 0.85rem;
+    }
+    .auth-body .form-control {
+        padding: 10px 15px;
+        font-size: 0.95rem;
+    }
+    .auth-form-body .btn-primary,
+    .auth-form-body .btn-success {
+        padding: 10px;
+        font-size: 1rem;
+    }
+    .otp-countdown-wrapper {
+        flex-direction: column;
         align-items: flex-start;
-        gap: 0.5rem;
+        gap: 5px;
+        margin-top: -5px;
+        margin-bottom: 15px;
     }
-    .register-form .btn-link-resend-otp {
-        padding: 0;
-        margin-left: 0;
+    .btn-link-resend-otp {
+        font-size: 0.85rem;
+    }
+    .auth-body .alert {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    .auth-body .mt-3 {
+        margin-top: 20px !important;
+        font-size: 0.9rem;
     }
 }

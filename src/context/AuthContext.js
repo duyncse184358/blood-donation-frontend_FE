@@ -11,6 +11,8 @@ const roleIdToName = {
   3: 'Member',
 };
 
+const TOKEN_TIMEOUT = 60 * 60 * 1000; // 60 phút
+
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -20,9 +22,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const decodedToken = jwtDecode(token);
 
+      // Kiểm tra hạn token (exp tính bằng giây, Date.now() tính bằng ms)
       if (decodedToken.exp * 1000 < Date.now()) {
         localStorage.removeItem('jwtToken');
-        sessionStorage.removeItem('jwtToken');
+        localStorage.removeItem('loginTime');
         setIsAuthenticated(false);
         setUser(null);
         return null;
@@ -37,6 +40,12 @@ export const AuthProvider = ({ children }) => {
       const userId = decodedToken.userId || decodedToken.user_id || decodedToken.sub;
       const username = decodedToken.username || decodedToken.unique_name || decodedToken.name || decodedToken.email;
       const email = decodedToken.email;
+      // Lấy trạng thái hoạt động từ token (mặc định true nếu không có)
+      const isActive = decodedToken.isActive !== undefined
+        ? decodedToken.isActive === true || decodedToken.isActive === 'true'
+        : (decodedToken.IsActive !== undefined
+            ? decodedToken.IsActive === true || decodedToken.IsActive === 'true'
+            : true);
 
       const userObject = {
         userId: userId,
@@ -44,6 +53,7 @@ export const AuthProvider = ({ children }) => {
         email: email,
         role: userRole,
         exp: decodedToken.exp,
+        isActive: isActive,
       };
 
       setIsAuthenticated(true);
@@ -54,42 +64,29 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setUser(null);
       localStorage.removeItem('jwtToken');
-      sessionStorage.removeItem('jwtToken');
+      localStorage.removeItem('loginTime');
       return null;
     }
   };
 
   useEffect(() => {
-    // Lấy token ưu tiên sessionStorage, sau đó localStorage
-    const token = sessionStorage.getItem('jwtToken') || localStorage.getItem('jwtToken');
-    if (token) {
-      decodeAndSetUser(token);
+    const token = localStorage.getItem('jwtToken');
+    const loginTime = localStorage.getItem('loginTime');
+    if (token && loginTime) {
+      // Nếu quá 60 phút kể từ lần đăng nhập cuối cùng, xóa token
+      if (Date.now() - Number(loginTime) > TOKEN_TIMEOUT) {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('loginTime');
+        setIsAuthenticated(false);
+        setUser(null);
+      } else {
+        decodeAndSetUser(token);
+      }
     } else {
       setIsAuthenticated(false);
       setUser(null);
     }
     setLoading(false);
-
-    // Xóa token khi tắt tab/trình duyệt (không xóa khi reload)
-    let timeoutId = null;
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        // Delay một chút để phân biệt reload và đóng tab
-        timeoutId = setTimeout(() => {
-          localStorage.removeItem('jwtToken');
-          sessionStorage.removeItem('jwtToken');
-        }, 500);
-      } else if (document.visibilityState === 'visible') {
-        // Nếu reload, hủy xóa token
-        if (timeoutId) clearTimeout(timeoutId);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
   }, []);
 
   const login = async (email, password) => {
@@ -97,14 +94,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = await authLoginService(email, password);
       localStorage.setItem('jwtToken', token);
-      sessionStorage.setItem('jwtToken', token);
+      localStorage.setItem('loginTime', Date.now().toString());
       const user = decodeAndSetUser(token);
       return { success: true, user: user };
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
       localStorage.removeItem('jwtToken');
-      sessionStorage.removeItem('jwtToken');
+      localStorage.removeItem('loginTime');
       throw error;
     } finally {
       setLoading(false);
@@ -113,7 +110,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('jwtToken');
-    sessionStorage.removeItem('jwtToken');
+    localStorage.removeItem('loginTime');
     setIsAuthenticated(false);
     setUser(null);
   };
@@ -121,6 +118,7 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = user?.role === 'Admin';
   const isStaff = user?.role === 'Staff';
   const isMember = user?.role === 'Member' || user?.role === 'User';
+  const isUserActive = user?.isActive === true;
 
   const authContextValue = {
     isAuthenticated,
@@ -131,6 +129,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin,
     isStaff,
     isMember,
+    isUserActive,
   };
 
   return (

@@ -1,39 +1,45 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://localhost:44387/api'; // Thay đổi nếu BE chạy trên cổng khác
+// Thay đổi URL này để khớp với API của bạn (ví dụ: https://localhost:7080/api)
+// Đảm bảo đây là URL chính xác của API Backend của bạn.
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://localhost:44387/api'; // KIỂM TRA LẠI DÒNG NÀY RẤT QUAN TRỌNG
 
+// Tạo một instance Axios để dễ dàng cấu hình headers (ví dụ: cho Authorization)
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
-// Thêm interceptor để đính kèm JWT token vào mỗi request (trừ request đăng nhập/đăng ký)
+// Interceptor để thêm token vào mỗi request (trừ các request public)
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('jwtToken'); // Lấy token từ localStorage
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    (config) => {
+        const token = localStorage.getItem('jwtToken');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
 );
 
-// Thêm interceptor để xử lý lỗi response, ví dụ: token hết hạn
+// Interceptor để xử lý lỗi response, ví dụ: token hết hạn (401)
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Nếu lỗi 401 Unauthorized (token hết hạn hoặc không hợp lệ)
-    if (error.response && error.response.status === 401) {
-      console.log('Token hết hạn hoặc không hợp lệ. Đang chuyển hướng đến trang đăng nhập...');
-      // Xóa token cũ và chuyển hướng về trang đăng nhập
+  async (error) => {
+    const originalRequest = error.config;
+    // Nếu lỗi 401 (Unauthorized) và không phải là request login/register,
+    // và chưa thử lại (để tránh vòng lặp vô hạn)
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/Auth')) {
+      originalRequest._retry = true;
       localStorage.removeItem('jwtToken');
-      // Không cần removeItem('currentUser') nếu AuthContext đã quản lý tốt
-      window.location.href = '/login'; // Chuyển hướng cứng, có thể dùng navigate của react-router-dom
+      // Dispatch một event để AuthContext có thể cập nhật trạng thái
+      window.dispatchEvent(new Event('authChange')); 
+      window.location.href = '/login'; // Điều hướng cứng về trang đăng nhập
+      return Promise.reject(error);
     }
     return Promise.reject(error);
   }

@@ -1,8 +1,8 @@
 // src/pages/Member/ProfileUpdate.jsx
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/Header/Header';
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
+//import Header from '../../components/Header/Header';
+//import Navbar from '../../components/Navbar/Navbar';
+//import Footer from '../../components/Footer/Footer';
 import LoadingSpinner from '../../components/Shared/LoadingSpinner';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
@@ -203,8 +203,7 @@ function ProfileUpdate() {
 
   return (
     <div className="profile-page-wrapper" style={{ background: '#f6f8fa', minHeight: '100vh' }}>
-      <Header />
-      <Navbar />
+  
       <main className="container my-5">
         <h1 className="text-center mb-4 text-primary">{isCreateMode ? 'Tạo Hồ sơ cá nhân' : 'Cập nhật Hồ sơ cá nhân'}</h1>
         <p className="text-center lead">
@@ -324,7 +323,7 @@ function ProfileUpdate() {
           </form>
         </div>
       </main>
-      <Footer />
+ 
       {/* CSS nội bộ cho đẹp hơn */}
       <style>{`
         .profile-page-wrapper {

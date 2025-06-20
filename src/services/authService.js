@@ -32,100 +32,97 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    // Nếu lỗi 401 (Unauthorized) và không phải là request login/register,
-    // và chưa thử lại (để tránh vòng lặp vô hạn)
-    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/Auth')) {
-      originalRequest._retry = true;
-      localStorage.removeItem('jwtToken');
-      window.dispatchEvent(new Event('authChange'));
-      window.location.href = '/login'; 
-      return Promise.reject(error);
+    // Nếu lỗi 401 (Unauthorized) và không phải request đăng nhập/đăng ký
+    if (error.response && error.response.status === 401 && !originalRequest._isRetry) {
+      originalRequest._isRetry = true; // Đánh dấu đã thử lại
+      // Đây là nơi bạn có thể thử làm mới token nếu có refresh token
+      // Hoặc đơn giản là chuyển hướng về trang đăng nhập
+      console.log('Token hết hạn hoặc không hợp lệ. Đang chuyển hướng đến trang đăng nhập...');
+      localStorage.removeItem('jwtToken'); // Xóa token cũ
+      // Tránh lặp vô hạn nếu backend liên tục trả 401 cho refresh token
+      window.location.href = '/login'; // Điều hướng người dùng về trang đăng nhập
+      return Promise.reject(error); // Tiếp tục ném lỗi
     }
     return Promise.reject(error);
   }
 );
 
 
-// --- AUTHENTICATION API CALLS ---
+/**
+ * @function register
+ * @description Gửi yêu cầu đăng ký người dùng mới.
+ * @param {object} userData - Dữ liệu người dùng (username, email, password, confirmPassword).
+ * @returns {Promise<object>} Đối tượng chứa token (hoặc message) và user info.
+ */
+export const register = async (userData) => {
+    try {
+        const response = await api.post('/Auth/register', userData); // Sửa đường dẫn API nếu cần
+        return response.data; // Backend nên trả về token ở đây
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Đăng ký thất bại.';
+        console.error('Error registering:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
 
 /**
- * Gửi mã OTP đến email để đăng ký.
- * @param {string} email
- * @returns {Promise<string>} Message from API
+ * @function sendOtpForRegistration
+ * @description Gửi mã OTP để xác minh email khi đăng ký.
+ * @param {string} email - Email cần gửi OTP.
+ * @returns {Promise<string>} Message từ API.
  */
 export const sendOtpForRegistration = async (email) => {
     try {
         const response = await api.post('/Auth/send-otp', { email });
-        return response.data.message; // "Mã OTP đã được gửi tới email."
+        return response.data.message; // API trả về message "Mã OTP đã được gửi tới email."
     } catch (error) {
-        const errorMessage = error.response?.data?.error || 'Gửi OTP thất bại.';
-        console.error('Error sending OTP for registration:', errorMessage);
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Gửi OTP thất bại.';
+        console.error('Error sending OTP:', errorMessage);
         throw new Error(errorMessage);
     }
 };
 
 /**
- * Đăng ký tài khoản mới với OTP.
- * @param {string} username
- * @param {string} email
- * @param {string} password
- * @param {string} confirmPassword
- * @param {string} otpCode
- * @returns {Promise<string>} JWT Token
+ * @function login
+ * @description Gửi yêu cầu đăng nhập.
+ * @param {string} email - Email người dùng.
+ * @param {string} password - Mật khẩu người dùng.
+ * @returns {Promise<string>} JWT token nếu đăng nhập thành công.
  */
-export const register = async (username, email, password, confirmPassword, otpCode) => {
-    try {
-        const response = await api.post('/Auth/register', { username, email, password, confirmPassword, otpCode });
-        // API trả về TokenDto { Token: "..." }
-        return response.data.token;
-    } catch (error) {
-        const errorMessage = error.response?.data?.error || 'Đăng ký thất bại. Vui lòng kiểm tra thông tin hoặc mã OTP.';
-        console.error('Error during registration:', errorMessage);
-        throw new Error(errorMessage);
-    }
-};
-
-/**
- * Đăng nhập người dùng và nhận JWT Token.
- * @param {string} email
- * @param {string} password
- * @returns {Promise<string>} JWT Token
- */
-export const login = async (email, password) => {
+export const login = async (email, password) => { // ĐẢM BẢO export const login
     try {
         const response = await api.post('/Auth/login', { email, password });
-        // API Backend của bạn trả về TokenDto { Token: "..." }
-        if (response.data && response.data.token) {
-            return response.data.token; // TRẢ VỀ CHỈ TOKEN
-        }
-        throw new Error(response.data?.error || 'Phản hồi không chứa token.');
+        // Backend của bạn nên trả về trực tiếp chuỗi token (hoặc một object có trường 'token')
+        // Nếu backend trả về { token: "your_jwt_token" }, thì response.data.token
+        // Nếu backend trả về "your_jwt_token" trực tiếp, thì response.data
+        return response.data.token || response.data; 
     } catch (error) {
-        const errorMessage = error.response?.data?.error || 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.';
-        console.error('Error during login:', errorMessage);
+        const errorMessage = error.response?.data?.message || 'Đăng nhập thất bại. Email hoặc mật khẩu không đúng.';
+        console.error('Error logging in:', errorMessage);
         throw new Error(errorMessage);
     }
 };
 
-// --- RESET PASSWORD API CALLS ---
-
 /**
- * Gửi mã OTP để đặt lại mật khẩu.
+ * @function requestPasswordReset
+ * @description Gửi yêu cầu đặt lại mật khẩu và OTP về email.
  * @param {string} email
  * @returns {Promise<string>} Message from API
  */
-export const sendOtpForResetPassword = async (email) => {
+export const requestPasswordReset = async (email) => {
     try {
-        const response = await api.post('/Auth/forgot-password', { email }); // Đã sửa về Auth/forgot-password theo AuthController
-        return response.data.message; // API trả về "OTP sent successfully."
+        const response = await api.post('/Auth/forgot-password', { email }); // Sửa đường dẫn API nếu cần
+        return response.data.message; // API trả về "Mã OTP đã được gửi về email."
     } catch (error) {
-        const errorMessage = error.response?.data?.message || 'Gửi OTP thất bại. Email không tồn tại hoặc lỗi hệ thống.';
-        console.error('Error sending OTP for password reset:', errorMessage);
+        const errorMessage = error.response?.data?.message || 'Gửi yêu cầu đặt lại mật khẩu thất bại.';
+        console.error('Error requesting password reset:', errorMessage);
         throw new Error(errorMessage);
     }
 };
 
 /**
- * Đặt lại mật khẩu bằng OTP.
+ * @function resetPassword
+ * @description Xác nhận OTP và đặt mật khẩu mới.
  * @param {string} email
  * @param {string} otpCode
  * @param {string} newPassword
@@ -162,8 +159,6 @@ export const logout = () => {
 // Hàm để lấy thông tin người dùng hiện tại từ token nếu có (sử dụng trong AuthContext và utils)
 export const getCurrentUser = () => {
     const token = localStorage.getItem('jwtToken');
-    if (token) {
-        return jwtDecode(token);
-    }
-    return null;
+    if (!token) return null;
+    return decodeToken(token);
 };

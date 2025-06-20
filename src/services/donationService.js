@@ -1,27 +1,5 @@
 // src/services/donationService.js
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000/api';
-
-const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('jwtToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
+import api from './Api';
 
 // --- DONATION HISTORY API CALLS ---
 
@@ -63,8 +41,6 @@ export const getDonationHistoryById = async (donationId) => {
  */
 export const getDonationHistoryByDonorUserId = async (donorUserId) => {
     try {
-        // Assume you have an endpoint like /DonationHistory/by-donor/{donorUserId}
-        // If not, you might need to adjust your backend or filter on the client side
         const response = await api.get(`/DonationHistory/by-donor/${donorUserId}`);
         return response.data;
     } catch (error) {
@@ -150,7 +126,7 @@ export const registerDonationRequest = async (requestDto) => {
  */
 export const getAllDonationRequests = async () => {
     try {
-        const response = await api.get('/DonationRequest'); // Endpoint GET All Donations
+        const response = await api.get('/DonationRequest');
         return response.data;
     } catch (error) {
         const errorMessage = error.response?.data?.message || 'Không thể lấy tất cả yêu cầu hiến máu.';

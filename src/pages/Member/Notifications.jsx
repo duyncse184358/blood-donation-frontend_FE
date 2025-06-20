@@ -14,73 +14,41 @@ function Notifications() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchNotifications = async () => {
+    const fetchAll = async () => {
       if (!isAuthenticated || !user?.userId) {
         setLoading(false);
         setError('Vui lòng đăng nhập để xem thông báo.');
         return;
       }
-
       setLoading(true);
       setError('');
       try {
-        // Giả định API endpoint để lấy thông báo cho người dùng hiện tại
-        // Thay thế bằng endpoint thực tế của bạn
-        const response = await api.get(`/api/Notifications/GetByRecipientId/${user.userId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('jwtToken')}` // Gửi token
-          }
-        });
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Không thể tải thông báo.');
-        }
-
-        // Sắp xếp thông báo theo ngày gửi giảm dần
-        const sortedNotifications = data.sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate));
-        setNotifications(sortedNotifications);
+        // Lấy tất cả notification, lọc theo userId hoặc ALL
+        const res = await api.get('/Notification');
+        const list = (res.data || []).filter(
+          n => n.recipientUserId === user.userId || n.recipientUserId === 'ALL'
+        );
+        setNotifications(list.sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate)));
       } catch (err) {
-        setError(err.message || 'Đã xảy ra lỗi khi tải thông báo.');
-        console.error("Fetch Notifications Error:", err);
+        setError('Không thể tải thông báo.');
       } finally {
         setLoading(false);
       }
     };
+    fetchAll();
+  }, [isAuthenticated, user?.userId]);
 
-    fetchNotifications();
-  }, [isAuthenticated, user?.userId]); // Dependency array để gọi lại khi user hoặc isAuthenticated thay đổi
-
+  // Đánh dấu đã đọc notification
   const markAsRead = async (notificationId) => {
     try {
-      // Giả định API endpoint để đánh dấu thông báo đã đọc
-      const response = await fetch(`/api/Notifications/MarkAsRead/${notificationId}`, {
-        method: 'PUT', // Hoặc PATCH
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
-        }
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Không thể đánh dấu đã đọc.');
-      }
-
-      // Cập nhật trạng thái trong UI
-      setNotifications(prevNotifications =>
-        prevNotifications.map(notif =>
-          notif.notificationId === notificationId ? { ...notif, isRead: true } : notif
-        )
+      await api.put(`/Notification/${notificationId}`, { isRead: true });
+      setNotifications(prev =>
+        prev.map(n => n.notificationId === notificationId ? { ...n, isRead: true } : n)
       );
-    } catch (err) {
-      setError(err.message || 'Lỗi khi đánh dấu thông báo đã đọc.');
-      console.error("Mark as read error:", err);
-    }
+    } catch {}
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="page-wrapper">
@@ -88,18 +56,16 @@ function Notifications() {
       <Navbar />
       <main className="container my-5">
         <h1 className="text-center mb-4 text-info">Thông báo của tôi</h1>
-        <p className="text-center lead">
-          Kiểm tra các thông báo chung từ hệ thống.
-        </p>
-
+        <p className="text-center lead">Chỉ hiển thị các thông báo gửi cho bạn hoặc thông báo chung.</p>
         {error && <div className="alert alert-danger text-center">{error}</div>}
 
-        {!notifications || notifications.length === 0 ? (
-          <div className="alert alert-secondary text-center mt-4">
+        {/* Thông báo */}
+        {(!notifications || notifications.length === 0) ? (
+          <div className="alert alert-secondary text-center mt-2">
             Bạn chưa có thông báo nào.
           </div>
         ) : (
-          <div className="list-group mt-4 shadow-sm">
+          <div className="list-group mt-2 shadow-sm">
             {notifications.map((notification) => (
               <div
                 key={notification.notificationId}

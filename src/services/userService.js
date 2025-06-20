@@ -1,34 +1,10 @@
 // src/services/userService.js
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000/api';
-
-const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
-// Interceptor để thêm token vào mỗi request (trừ các request public)
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('jwtToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
+import api from './Api'; // Sử dụng instance đã cấu hình sẵn
 
 // --- USER PROFILE API CALLS ---
 
 /**
  * Lấy thông tin hồ sơ người dùng bằng UserId.
- * Yêu cầu token (user có thể lấy profile của chính mình).
  * @param {string} userId
  * @returns {Promise<object>} UserProfileDto
  */
@@ -45,7 +21,6 @@ export const getUserProfileByUserId = async (userId) => {
 
 /**
  * Cập nhật thông tin hồ sơ người dùng.
- * Yêu cầu token.
  * @param {string} userId
  * @param {object} updateProfileDto
  * @returns {Promise<object>} UserProfileDto đã cập nhật
@@ -62,7 +37,7 @@ export const updateProfile = async (userId, updateProfileDto) => {
 };
 
 /**
- * Tạo hồ sơ người dùng mới. (Có thể chỉ Admin hoặc tạo tự động sau khi đăng ký)
+ * Tạo hồ sơ người dùng mới.
  * @param {object} createProfileDto
  * @returns {Promise<object>} UserProfileDto đã tạo
  */
@@ -77,12 +52,10 @@ export const createUserProfile = async (createProfileDto) => {
     }
 };
 
-
 // --- ADMIN: MANAGE USER ACCOUNTS API CALLS ---
 
 /**
  * [ADMIN ONLY] Lấy tất cả người dùng.
- * Yêu cầu Admin token.
  * @returns {Promise<Array<object>>} Danh sách UserDto
  */
 export const getAllUsers = async () => {
@@ -90,15 +63,14 @@ export const getAllUsers = async () => {
         const response = await api.get('/ManageUserAccounts');
         return response.data;
     } catch (error) {
-        const errorMessage = error.response?.data || 'Không thể lấy danh sách người dùng.';
+        const errorMessage = error.response?.data?.message || 'Không thể lấy danh sách người dùng.';
         console.error('Error fetching all users (Admin):', errorMessage);
-        throw new Error(errorMessage.message || errorMessage);
+        throw new Error(errorMessage);
     }
 };
 
 /**
  * [ADMIN ONLY] Lấy người dùng theo ID.
- * Yêu cầu Admin token.
  * @param {string} userId
  * @returns {Promise<object>} UserDto
  */
@@ -107,15 +79,14 @@ export const getUserById = async (userId) => {
         const response = await api.get(`/ManageUserAccounts/${userId}`);
         return response.data;
     } catch (error) {
-        const errorMessage = error.response?.data || 'Không tìm thấy người dùng.';
+        const errorMessage = error.response?.data?.message || 'Không tìm thấy người dùng.';
         console.error('Error fetching user by ID (Admin):', errorMessage);
-        throw new Error(errorMessage.message || errorMessage);
+        throw new Error(errorMessage);
     }
 };
 
 /**
- * [ADMIN ONLY] Tạo người dùng mới (có thể có hoặc không cần OTP).
- * Yêu cầu Admin token.
+ * [ADMIN ONLY] Tạo người dùng mới.
  * @param {object} createUserDto
  * @returns {Promise<object>} UserDto đã tạo
  */
@@ -124,15 +95,14 @@ export const createUserByAdmin = async (createUserDto) => {
         const response = await api.post('/ManageUserAccounts', createUserDto);
         return response.data;
     } catch (error) {
-        const errorMessage = error.response?.data || 'Không thể tạo người dùng mới.';
+        const errorMessage = error.response?.data?.message || 'Không thể tạo người dùng mới.';
         console.error('Error creating user (Admin):', errorMessage);
-        throw new Error(errorMessage.message || errorMessage);
+        throw new Error(errorMessage);
     }
 };
 
 /**
  * [ADMIN ONLY] Cập nhật thông tin người dùng.
- * Yêu cầu Admin token.
  * @param {string} userId
  * @param {object} updateDto
  * @returns {Promise<object>} UserDto đã cập nhật
@@ -142,33 +112,31 @@ export const updateUser = async (userId, updateDto) => {
         const response = await api.put(`/ManageUserAccounts/${userId}`, updateDto);
         return response.data;
     } catch (error) {
-        const errorMessage = error.response?.data || 'Không thể cập nhật người dùng.';
+        const errorMessage = error.response?.data?.message || 'Không thể cập nhật người dùng.';
         console.error('Error updating user (Admin):', errorMessage);
-        throw new Error(errorMessage.message || errorMessage);
+        throw new Error(errorMessage);
     }
 };
 
 /**
  * [ADMIN ONLY] Cập nhật vai trò (role) của người dùng.
- * Yêu cầu Admin token.
  * @param {string} userId
- * @param {string} roleName
+ * @param {object} roleDto { roleName: string }
  * @returns {Promise<object>} UserDto với role đã cập nhật
  */
-export const updateUserRole = async (userId, roleName) => {
+export const updateUserRole = async (userId, roleDto) => {
     try {
-        const response = await api.put(`/ManageUserAccounts/${userId}/role`, { roleName });
+        const response = await api.put(`/ManageUserAccounts/${userId}/role`, roleDto);
         return response.data;
     } catch (error) {
-        const errorMessage = error.response?.data || 'Không thể cập nhật vai trò người dùng.';
+        const errorMessage = error.response?.data?.message || 'Không thể cập nhật vai trò người dùng.';
         console.error('Error updating user role (Admin):', errorMessage);
-        throw new Error(errorMessage.message || errorMessage);
+        throw new Error(errorMessage);
     }
 };
 
 /**
  * [ADMIN ONLY] Xóa người dùng.
- * Yêu cầu Admin token.
  * @param {string} userId
  * @returns {Promise<string>} Message thành công
  */
@@ -177,8 +145,23 @@ export const deleteUser = async (userId) => {
         await api.delete(`/ManageUserAccounts/${userId}`);
         return 'User deleted successfully.';
     } catch (error) {
-        const errorMessage = error.response?.data || 'Không thể xóa người dùng.';
+        const errorMessage = error.response?.data?.message || 'Không thể xóa người dùng.';
         console.error('Error deleting user (Admin):', errorMessage);
-        throw new Error(errorMessage.message || errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
+/**
+ * [ADMIN ONLY] Lấy tất cả vai trò (roles) trong hệ thống.
+ * @returns {Promise<Array<object>>} Danh sách RoleDto
+ */
+export const getAllRoles = async () => {
+    try {
+        const response = await api.get('/Roles');
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Không thể lấy danh sách vai trò.';
+        console.error('Error fetching all roles (Admin):', errorMessage);
+        throw new Error(errorMessage);
     }
 };
