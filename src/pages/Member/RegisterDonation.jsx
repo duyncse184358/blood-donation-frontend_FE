@@ -1,16 +1,23 @@
 // src/pages/Member/RegisterDonation.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
 
+const TIME_SLOTS = [
+  '08:00 - 09:30',
+  '09:30 - 11:00',
+  '13:30 - 15:00',
+  '15:00 - 16:30'
+];
+const MAX_PER_SLOT = 10; // Số lượng tối đa mỗi khung giờ
+
 function RegisterDonation() {
   const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     bloodTypeId: '',
-    componentId: '',
     preferredDate: '',
     preferredTimeSlot: '',
     staffNotes: '',
@@ -19,35 +26,101 @@ function RegisterDonation() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [slotCounts, setSlotCounts] = useState({});
+  const [disabledSlots, setDisabledSlots] = useState([]);
+  const [disabledDates, setDisabledDates] = useState([]);
+  
+  const [profile, setProfile] = useState(null);
+  const [hasRejectedHistory, setHasRejectedHistory] = useState(false);
 
-  // Các tùy chọn nhóm máu và thành phần máu
+  // Các tùy chọn nhóm máu
   const bloodTypes = [
     { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
     { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
     { id: 5, name: 'O+' }, { id: 6, name: 'O-' },
     { id: 7, name: 'AB+' }, { id: 8, name: 'AB-' },
   ];
-  const bloodComponents = [
-    { id: 1, name: 'Máu toàn phần' },
-    { id: 2, name: 'Hồng cầu' },
-    { id: 3, name: 'Huyết tương' },
-    { id: 4, name: 'Tiểu cầu' },
-  ];
 
-  // Regex kiểm tra khung giờ (ví dụ: 8:00 - 11:00 hoặc 08:00-11:00)
-  const timeSlotRegex = /^([01]?\d|2[0-3]):[0-5]\d\s*-\s*([01]?\d|2[0-3]):[0-5]\d$/;
+  // Lấy ngày hôm nay (yyyy-MM-dd)
+  const today = new Date().toISOString().split('T')[0];
+
+  // Lấy số lượng đăng ký từng khung giờ trong ngày đã chọn
+  useEffect(() => {
+    if (formData.preferredDate) {
+      api.get(`/DonationRequest/SlotCounts?date=${formData.preferredDate}`)
+        .then(res => {
+          setSlotCounts(res.data || {});
+          // Disable slot nếu đủ số lượng
+          const fullSlots = TIME_SLOTS.filter(slot => (res.data?.[slot] || 0) >= MAX_PER_SLOT);
+          setDisabledSlots(fullSlots);
+          // Nếu tất cả slot đều full thì disable ngày này
+          if (fullSlots.length === TIME_SLOTS.length) {
+            setDisabledDates(prev => [...new Set([...prev, formData.preferredDate])]);
+          }
+        })
+        .catch(() => {
+          setSlotCounts({});
+          setDisabledSlots([]);
+        });
+    }
+  }, [formData.preferredDate]);
+
+  // Lấy profile và kiểm tra lịch sử bị từ chối
+  useEffect(() => {
+    if (isAuthenticated && user?.userId) {
+      api.get(`/UserProfile/by-user/${user.userId}`)
+        .then(res => setProfile(res.data))
+        .catch(() => setProfile(null));
+      api.get(`/DonationHistory/by-donor/${user.userId}`)
+        .then(res => {
+          const rejected = (res.data || []).some(h => h.status === 'Rejected');
+          setHasRejectedHistory(rejected);
+        })
+        .catch(() => setHasRejectedHistory(false));
+    }
+  }, [isAuthenticated, user?.userId]);
 
   // Validate form trước khi gửi
   const validate = () => {
     const errs = {};
     if (!formData.bloodTypeId) errs.bloodTypeId = 'Vui lòng chọn nhóm máu.';
-    if (!formData.componentId) errs.componentId = 'Vui lòng chọn thành phần máu.';
     if (!formData.preferredDate) errs.preferredDate = 'Vui lòng chọn ngày hiến máu.';
-    else if (formData.preferredDate < new Date().toISOString().split('T')[0])
+    else if (formData.preferredDate < today)
       errs.preferredDate = 'Không được chọn ngày trong quá khứ.';
-    if (!formData.preferredTimeSlot) errs.preferredTimeSlot = 'Vui lòng nhập khung giờ mong muốn.';
-    else if (!timeSlotRegex.test(formData.preferredTimeSlot.trim()))
-      errs.preferredTimeSlot = 'Định dạng khung giờ phải là HH:mm - HH:mm (VD: 08:00 - 11:00)';
+    if (!formData.preferredTimeSlot) errs.preferredTimeSlot = 'Vui lòng chọn khung giờ.';
+    // Kiểm tra slot đã đủ người chưa
+    if (disabledSlots.includes(formData.preferredTimeSlot))
+      errs.preferredTimeSlot = 'Khung giờ này đã đủ số lượng đăng ký, vui lòng chọn khung giờ khác.';
+    // Kiểm tra ngày đã full chưa
+    if (disabledDates.includes(formData.preferredDate))
+      errs.preferredDate = 'Ngày này đã đủ số lượng đăng ký, vui lòng chọn ngày khác.';
+    // Kiểm tra khoảng cách 90 ngày
+    const lastDate = profile && profile.lastBloodDonationDate ? profile.lastBloodDonationDate : null;
+    if (lastDate && formData.preferredDate) {
+      const last = new Date(lastDate);
+      const next = new Date(formData.preferredDate);
+      const diffDays = Math.floor((next - last) / (1000 * 60 * 60 * 24));
+      if (diffDays < 90) {
+        errs.preferredDate = `Bạn cần chờ ít nhất 90 ngày giữa 2 lần hiến máu. Lần gần nhất: ${lastDate}`;
+      }
+    }
+    // Kiểm tra tuổi
+    if (profile && profile.dob) {
+      const dob = new Date(profile.dob);
+      const now = new Date();
+      let age = now.getFullYear() - dob.getFullYear();
+      const m = now.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) {
+        age--;
+      }
+      if (age < 18 || age > 60) {
+        errs.bloodTypeId = 'Bạn phải từ 18 đến 60 tuổi mới được đăng ký hiến máu.';
+      }
+    }
+    // Kiểm tra lịch sử bị từ chối
+    if (hasRejectedHistory) {
+      errs.bloodTypeId = 'Bạn đã từng bị từ chối hiến máu, không thể đăng ký hiến máu mới.';
+    }
     return errs;
   };
 
@@ -55,6 +128,10 @@ function RegisterDonation() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setFieldErrors(prev => ({ ...prev, [name]: '' }));
+    // Nếu đổi ngày thì reset slot
+    if (name === 'preferredDate') {
+      setFormData(prev => ({ ...prev, preferredTimeSlot: '' }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -75,18 +152,16 @@ function RegisterDonation() {
       const payload = {
         donorUserId: user.userId,
         bloodTypeId: parseInt(formData.bloodTypeId),
-        componentId: parseInt(formData.componentId),
-        preferredDate: formData.preferredDate, // luôn là string yyyy-MM-dd
+        preferredDate: formData.preferredDate,
         preferredTimeSlot: formData.preferredTimeSlot,
         status: "Pending",
         staffNotes: formData.staffNotes
       };
 
-      const res = await api.post('/DonationRequest/RegisterDonationRequest', payload);
+      await api.post('/DonationRequest/RegisterDonationRequest', payload);
       setMessage('Yêu cầu hiến máu của bạn đã được gửi thành công!');
       setFormData({
         bloodTypeId: '',
-        componentId: '',
         preferredDate: '',
         preferredTimeSlot: '',
         staffNotes: '',
@@ -103,6 +178,9 @@ function RegisterDonation() {
       setLoading(false);
     }
   };
+
+  // Disable ngày đã full slot
+  const isDateDisabled = (dateStr) => disabledDates.includes(dateStr);
 
   return (
     <div className="page-wrapper">
@@ -138,25 +216,6 @@ function RegisterDonation() {
             </div>
 
             <div className="mb-3">
-              <label htmlFor="componentId" className="form-label">Thành phần máu hiến <span style={{color:'red'}}>*</span></label>
-              <select
-                className={`form-select ${fieldErrors.componentId ? 'is-invalid' : ''}`}
-                id="componentId"
-                name="componentId"
-                value={formData.componentId}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              >
-                <option value="">Chọn thành phần</option>
-                {bloodComponents.map(component => (
-                  <option key={component.id} value={component.id}>{component.name}</option>
-                ))}
-              </select>
-              {fieldErrors.componentId && <div className="invalid-feedback">{fieldErrors.componentId}</div>}
-            </div>
-
-            <div className="mb-3">
               <label htmlFor="preferredDate" className="form-label">Ngày hiến máu mong muốn <span style={{color:'red'}}>*</span></label>
               <input
                 type="date"
@@ -165,26 +224,39 @@ function RegisterDonation() {
                 name="preferredDate"
                 value={formData.preferredDate}
                 onChange={handleChange}
-                min={new Date().toISOString().split('T')[0]}
+                min={today}
                 required
                 disabled={loading}
               />
               {fieldErrors.preferredDate && <div className="invalid-feedback">{fieldErrors.preferredDate}</div>}
+              {isDateDisabled(formData.preferredDate) && (
+                <div className="text-danger mt-1">Ngày này đã đủ số lượng đăng ký, vui lòng chọn ngày khác.</div>
+              )}
             </div>
 
             <div className="mb-3">
               <label htmlFor="preferredTimeSlot" className="form-label">Khung giờ mong muốn <span style={{color:'red'}}>*</span></label>
-              <input
-                type="text"
-                className={`form-control ${fieldErrors.preferredTimeSlot ? 'is-invalid' : ''}`}
+              <select
+                className={`form-select ${fieldErrors.preferredTimeSlot ? 'is-invalid' : ''}`}
                 id="preferredTimeSlot"
                 name="preferredTimeSlot"
                 value={formData.preferredTimeSlot}
                 onChange={handleChange}
-                placeholder="Ví dụ: 08:00 - 11:00"
                 required
-                disabled={loading}
-              />
+                disabled={loading || !formData.preferredDate || isDateDisabled(formData.preferredDate)}
+              >
+                <option value="">Chọn khung giờ</option>
+                {TIME_SLOTS.map(slot => (
+                  <option
+                    key={slot}
+                    value={slot}
+                    disabled={disabledSlots.includes(slot)}
+                  >
+                    {slot} {slotCounts[slot] ? `(${slotCounts[slot]}/${MAX_PER_SLOT})` : ''}
+                    {disabledSlots.includes(slot) ? ' - Đã đầy' : ''}
+                  </option>
+                ))}
+              </select>
               {fieldErrors.preferredTimeSlot && <div className="invalid-feedback">{fieldErrors.preferredTimeSlot}</div>}
             </div>
 

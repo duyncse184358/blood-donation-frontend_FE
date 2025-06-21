@@ -75,6 +75,13 @@ function BloodDiscardForm() {
     setForm(f => ({ ...f, [name]: value }));
   };
 
+  useEffect(() => {
+    if (selected) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [selected]);
+
   return (
     <div>
       <h4 className="mb-3">Danh sách đơn vị máu quá hạn</h4>
@@ -90,7 +97,7 @@ function BloodDiscardForm() {
                 <th>Thành phần</th>
                 <th>Thể tích (ml)</th>
                 <th>Ngày lấy</th>
-                <th>Hạn dùng</th>
+                <th>Hạn sử dụng</th>
                 <th>Trạng thái</th>
                 <th>Lý do loại bỏ</th>
                 <th></th>
@@ -109,7 +116,8 @@ function BloodDiscardForm() {
                     {unit.status === 'Available' && <span className="badge bg-success">Có sẵn</span>}
                     {unit.status === 'Reserved' && <span className="badge bg-primary">Đã đặt</span>}
                     {unit.status === 'Discarded' && <span className="badge bg-danger">Đã loại bỏ</span>}
-                    {unit.status !== 'Available' && unit.status !== 'Reserved' && unit.status !== 'Discarded' && (
+                    {unit.status === 'Used' && <span className="badge bg-secondary">Đã sử dụng</span>}
+                    {unit.status !== 'Available' && unit.status !== 'Reserved' && unit.status !== 'Discarded' && unit.status !== 'Used' && (
                       <span className="badge bg-secondary">{unit.status}</span>
                     )}
                   </td>
@@ -134,7 +142,7 @@ function BloodDiscardForm() {
       {/* Modal chi tiết & cập nhật */}
       {selected && (
         <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.2)' }}>
-          <div className="modal-dialog">
+          <div className="modal-dialog" onClick={e => e.stopPropagation()}>
             <div className="modal-content">
               {!edit ? (
                 <>
@@ -148,9 +156,17 @@ function BloodDiscardForm() {
                     <div><b>Thành phần:</b> {selected.componentName}</div>
                     <div><b>Thể tích (ml):</b> {selected.volumeMl}</div>
                     <div><b>Ngày lấy:</b> {selected.collectionDate}</div>
-                    <div><b>Hạn dùng:</b> {selected.expirationDate}</div>
+                    <div><b>Hạn sử dụng:</b> {selected.expirationDate}</div>
                     <div><b>Kết quả xét nghiệm:</b> {selected.testResults}</div>
-                    <div><b>Trạng thái:</b> {selected.status}</div>
+                    <div><b>Trạng thái:</b> 
+                      {selected.status === 'Available' && <span className="badge bg-success ms-2">Có sẵn</span>}
+                      {selected.status === 'Reserved' && <span className="badge bg-primary ms-2">Đã đặt</span>}
+                      {selected.status === 'Discarded' && <span className="badge bg-danger ms-2">Đã loại bỏ</span>}
+                      {selected.status === 'Used' && <span className="badge bg-secondary ms-2">Đã sử dụng</span>}
+                      {selected.status !== 'Available' && selected.status !== 'Reserved' && selected.status !== 'Discarded' && selected.status !== 'Used' && (
+                        <span className="badge bg-secondary ms-2">{selected.status}</span>
+                      )}
+                    </div>
                     <div><b>Lý do loại bỏ:</b> {selected.discardReason}</div>
                     {msg && <div className="alert alert-success mt-2">{msg}</div>}
                     {err && <div className="alert alert-danger mt-2">{err}</div>}
@@ -176,7 +192,7 @@ function BloodDiscardForm() {
                       </select>
                     </div>
                     <div className="mb-2"><b>Lý do loại bỏ:</b>
-                      <input type="text" className="form-control" name="discardReason" value={form.discardReason || ''} onChange={handleChange} />
+                      <input type="text" className="form-control" name="discardReason" value={form.discardReason || ''} onChange={handleChange} placeholder="Nhập lý do loại bỏ (nếu có)" />
                     </div>
                     {msg && <div className="alert alert-success mt-2">{msg}</div>}
                     {err && <div className="alert alert-danger mt-2">{err}</div>}
@@ -189,6 +205,13 @@ function BloodDiscardForm() {
               )}
             </div>
           </div>
+          <style>{`
+            .modal-content { animation: fadeInModal 0.3s; }
+            @keyframes fadeInModal {
+              from { opacity: 0; transform: translateY(40px);}
+              to { opacity: 1; transform: none;}
+            }
+          `}</style>
         </div>
       )}
     </div>

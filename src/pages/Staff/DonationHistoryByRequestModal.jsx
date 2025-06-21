@@ -2,6 +2,20 @@ import React, { useEffect, useState, useContext } from 'react';
 import api from '../../services/Api';
 import { AuthContext } from '../../context/AuthContext';
 
+const BLOOD_TYPES = [
+  { id: 1, name: 'A' },
+  { id: 2, name: 'B' },
+  { id: 3, name: 'AB' },
+  { id: 4, name: 'O' }
+];
+
+const COMPONENTS = [
+  { id: 1, name: 'Máu toàn phần' },
+  { id: 2, name: 'Huyết tương' },
+  { id: 3, name: 'Tiểu cầu' },
+  { id: 4, name: 'Hồng cầu lắng' }
+];
+
 function DonationHistoryByRequestModal({ requestId, onClose }) {
   const { user } = useContext(AuthContext);
   const [history, setHistory] = useState(null);
@@ -58,6 +72,13 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
       setForm(res.data);
       setMsg('Cập nhật thành công!');
       setEdit(false);
+
+      // Nếu trạng thái là Complete, cập nhật lastBloodDonationDate cho UserProfile
+      if (payload.status === 'Complete' && payload.donationDate && payload.donorUserId) {
+        await api.put(`/UserProfile/by-user/${payload.donorUserId}`, {
+          dto: { lastBloodDonationDate: payload.donationDate }
+        });
+      }
     } catch {
       setErr('Cập nhật thất bại!');
     } finally {
@@ -65,26 +86,36 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
     }
   };
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   return (
     <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.2)' }}>
-      <div className="modal-dialog modal-lg">
+      <div className="modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
         <div className="modal-content">
           <form onSubmit={handleSave}>
             <div className="modal-header">
-              <h5 className="modal-title">Lịch sử hiến máu thực tế</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
+              <h5 className="modal-title">Ghi nhận thực tế hiến máu</h5>
+              <button type="button" className="btn-close" onClick={onClose} aria-label="Đóng"></button>
             </div>
             <div className="modal-body">
-              {loading && <div>Đang tải...</div>}
+              {loading && <div>Đang tải dữ liệu...</div>}
               {notFound && <div className="alert alert-warning">Chưa có ghi nhận hiến máu thực tế cho yêu cầu này.</div>}
               {history && !edit && (
                 <div>
-                  <div><b>Ngày hiến máu:</b> {history.donationDate ? new Date(history.donationDate).toLocaleString() : ''}</div>
+                  <div><b>Ngày hiến máu:</b> {history.donationDate ? new Date(history.donationDate).toLocaleString('vi-VN') : ''}</div>
                   <div><b>Nhóm máu:</b> {history.bloodTypeName}</div>
-                  <div><b>Thành phần:</b> {history.componentName}</div>
-                  <div><b>Số ml máu:</b> {history.quantityMl}</div>
+                  <div><b>Thành phần máu:</b> {history.componentName}</div>
+                  <div><b>Số lượng (ml):</b> {history.quantityMl}</div>
+                  <div><b>Tình trạng đủ điều kiện:</b> {history.eligibilityStatus === true ? 'Đủ điều kiện' : history.eligibilityStatus === false ? 'Không đủ điều kiện' : ''}</div>
+                  <div><b>Lý do không đủ điều kiện:</b> {history.reasonIneligible}</div>
                   <div><b>Kết quả xét nghiệm:</b> {history.testingResults}</div>
-                  <div><b>Trạng thái:</b> {history.status}</div>
+                  <div><b>Trạng thái:</b> {history.status === 'Complete' ? 'Hoàn thành'
+                    : history.status === 'Pending' ? 'Đang xử lý'
+                    : history.status === 'Cancelled' ? 'Đã hủy'
+                    : history.status}</div>
                   <div><b>Ghi chú:</b> {history.descriptions}</div>
                   <button type="button" className="btn btn-warning mt-3" onClick={() => setEdit(true)}>
                     Chỉnh sửa
@@ -97,8 +128,34 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                     <input type="datetime-local" className="form-control" name="donationDate"
                       value={form.donationDate ? form.donationDate.substring(0, 16) : ''} onChange={handleChange} />
                   </div>
-                  <div className="mb-2"><b>Số ml máu:</b>
+                  <div className="mb-2"><b>Nhóm máu:</b>
+                    <select className="form-select" name="bloodTypeId" value={form.bloodTypeId || ''} onChange={handleChange}>
+                      <option value="">Chọn nhóm máu</option>
+                      {BLOOD_TYPES.map(bt => (
+                        <option key={bt.id} value={bt.id}>{bt.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-2"><b>Thành phần máu:</b>
+                    <select className="form-select" name="componentId" value={form.componentId || ''} onChange={handleChange}>
+                      <option value="">Chọn thành phần máu</option>
+                      {COMPONENTS.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-2"><b>Số lượng (ml):</b>
                     <input type="number" className="form-control" name="quantityMl" value={form.quantityMl || ''} onChange={handleChange} />
+                  </div>
+                  <div className="mb-2"><b>Tình trạng đủ điều kiện:</b>
+                    <select className="form-select" name="eligibilityStatus" value={form.eligibilityStatus === true ? 'true' : form.eligibilityStatus === false ? 'false' : ''} onChange={e => setForm(f => ({ ...f, eligibilityStatus: e.target.value === 'true' ? true : e.target.value === 'false' ? false : '' }))}>
+                      <option value="">Chọn tình trạng</option>
+                      <option value="true">Đủ điều kiện</option>
+                      <option value="false">Không đủ điều kiện</option>
+                    </select>
+                  </div>
+                  <div className="mb-2"><b>Lý do không đủ điều kiện:</b>
+                    <input type="text" className="form-control" name="reasonIneligible" value={form.reasonIneligible || ''} onChange={handleChange} />
                   </div>
                   <div className="mb-2"><b>Kết quả xét nghiệm:</b>
                     <input type="text" className="form-control" name="testingResults" value={form.testingResults || ''} onChange={handleChange} />
@@ -107,7 +164,7 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                     <select className="form-select" name="status" value={form.status || ''} onChange={handleChange}>
                       <option value="Complete">Hoàn thành</option>
                       <option value="Pending">Đang xử lý</option>
-                      <option value="Cancelled">Hủy</option>
+                      <option value="Cancelled">Đã hủy</option>
                     </select>
                   </div>
                   <div className="mb-2"><b>Ghi chú:</b>
@@ -130,6 +187,13 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
           </form>
         </div>
       </div>
+      <style>{`
+        .modal-content { animation: fadeInModal 0.3s; }
+        @keyframes fadeInModal {
+          from { opacity: 0; transform: translateY(40px);}
+          to { opacity: 1; transform: none;}
+        }
+      `}</style>
     </div>
   );
 }

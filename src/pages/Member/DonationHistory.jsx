@@ -13,7 +13,7 @@ import styled from 'styled-components';
 const DonationHistoryWrapper = styled.div`
   background: #f7f7f7;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif; /* Make sure Inter font is loaded globally */
+  font-family: 'Inter', sans-serif;
 `;
 
 const DonationHistoryMain = styled.main`
@@ -68,7 +68,7 @@ const DonationCard = styled.div`
   background: #fff;
   transition: box-shadow 0.3s ease, transform 0.2s ease;
   overflow: hidden;
-  height: 100%; /* Ensures all cards in a row have equal height */
+  height: 100%;
 
   &:hover {
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
@@ -136,7 +136,7 @@ const ListItem = styled.li`
   strong {
     color: #212529;
     min-width: 120px;
-    display: inline-block; /* Aligns labels nicely */
+    display: inline-block;
 
     @media (max-width: 576px) {
       min-width: 100px;
@@ -152,8 +152,8 @@ const StatusBadge = styled.span`
   padding: .4em .7em;
   border-radius: .5rem;
   font-weight: 500;
-  display: inline-block; /* Ensure it respects padding/margin */
-  text-transform: capitalize; /* Make status text look nicer */
+  display: inline-block;
+  text-transform: capitalize;
 
   &.bg-success {
     background-color: #28a745;
@@ -187,11 +187,9 @@ function DonationHistory() {
       setLoading(true);
       setError('');
       try {
-        // Sửa lỗi: kiểm tra response.data là mảng, nếu không thì trả về mảng rỗng
         const response = await api.get(`/DonationHistory/by-donor/${user.userId}`);
         setHistory(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
-        // Sửa lỗi: lấy message đúng, fallback nếu không có
         let msg = 'Đã xảy ra lỗi khi lấy lịch sử hiến máu. Vui lòng thử lại sau.';
         if (err?.response?.status === 404) {
           msg = 'Không tìm thấy lịch sử hiến máu cho tài khoản này.';
@@ -206,14 +204,32 @@ function DonationHistory() {
     fetchHistory();
   }, [isAuthenticated, user?.userId]);
 
-  // Hàm lấy màu badge theo trạng thái
-  const getStatusBadgeClass = (status) => { // Renamed to avoid confusion with styled-component
+  // Hàm lấy màu badge và chuyển trạng thái sang tiếng Việt
+  const getStatusBadgeClass = (status) => {
     if (!status) return 'secondary';
     const s = status.toLowerCase();
     if (s === 'completed' || s === 'complete') return 'success';
     if (s === 'pending') return 'warning';
     if (s === 'cancelled' || s === 'no show' || s === 'rejected') return 'secondary';
     return 'secondary';
+  };
+
+  const getStatusText = (status) => {
+    if (!status) return '---';
+    const s = status.toLowerCase();
+    if (s === 'completed' || s === 'complete') return 'Đã hoàn thành';
+    if (s === 'pending') return 'Đang chờ';
+    if (s === 'cancelled') return 'Đã hủy';
+    if (s === 'no show') return 'Không đến';
+    if (s === 'rejected') return 'Bị từ chối';
+    return status;
+  };
+
+  const getEligibilityText = (status) => {
+    if (!status) return '---';
+    if (status.toLowerCase() === 'eligible') return 'Đủ điều kiện';
+    if (status.toLowerCase() === 'ineligible') return 'Không đủ điều kiện';
+    return status;
   };
 
   if (loading) {
@@ -264,7 +280,10 @@ function DonationHistory() {
                       </h5>
                     </CardTitleGroup>
                     <DetailsList>
-                      <ListItem><strong><Calendar size={18} className="list-icon" />Ngày hiến:</strong> {item.donationDate ? new Date(item.donationDate).toLocaleDateString('vi-VN') : '---'}</ListItem>
+                      <ListItem>
+                        <strong><Calendar size={18} className="list-icon" />Ngày hiến:</strong>
+                        {item.donationDate ? new Date(item.donationDate).toLocaleDateString('vi-VN') : '---'}
+                      </ListItem>
                       <ListItem>
                         <strong>
                           <Droplet size={18} className="list-icon" />
@@ -272,11 +291,27 @@ function DonationHistory() {
                         </strong>
                         {item.componentName || '---'}
                       </ListItem>
-                      <ListItem><strong><Ruler size={18} className="list-icon" />Thể tích:</strong> {item.quantityMl ? `${item.quantityMl} ml` : '---'}</ListItem>
-                      <ListItem><strong><TestTube size={18} className="list-icon" />Kết quả xét nghiệm:</strong> {item.testingResults || '---'}</ListItem>
-                      <ListItem><strong><CheckCircle size={18} className="list-icon" />Trạng thái đủ điều kiện:</strong> {item.eligibilityStatus || '---'}</ListItem>
-                      <ListItem><strong><Clock size={18} className="list-icon" />Trạng thái:</strong> <StatusBadge className={`bg-${getStatusBadgeClass(item.status)}`}>{item.status || '---'}</StatusBadge></ListItem>
-                      <ListItem><strong>Mã đơn hiến máu:</strong> {item.donationRequestId || '---'}</ListItem>
+                      <ListItem>
+                        <strong><Ruler size={18} className="list-icon" />Thể tích:</strong>
+                        {item.quantityMl ? `${item.quantityMl} ml` : '---'}
+                      </ListItem>
+                      <ListItem>
+                        <strong><TestTube size={18} className="list-icon" />Kết quả xét nghiệm:</strong>
+                        {item.testingResults || '---'}
+                      </ListItem>
+                      <ListItem>
+                        <strong><CheckCircle size={18} className="list-icon" />Trạng thái đủ điều kiện:</strong>
+                        {getEligibilityText(item.eligibilityStatus)}
+                      </ListItem>
+                      <ListItem>
+                        <strong><Clock size={18} className="list-icon" />Trạng thái:</strong>
+                        <StatusBadge className={`bg-${getStatusBadgeClass(item.status)}`}>
+                          {getStatusText(item.status)}
+                        </StatusBadge>
+                      </ListItem>
+                      <ListItem>
+                        <strong>Mã đơn hiến máu:</strong> {item.donationRequestId || '---'}
+                      </ListItem>
                     </DetailsList>
                     {item.descriptions && <div className="text-muted small mt-2">Ghi chú: {item.descriptions}</div>}
                   </CardBody>

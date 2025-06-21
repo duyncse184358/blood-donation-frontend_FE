@@ -29,6 +29,7 @@ import EmergencyNotificationsPage from './pages/Member/EmergencyNotifications'; 
 import StaffDashboardpage from './pages/Staff/StaffDashboard.jsx';
 import NotificationForm from './pages/Staff/NotificationForm.jsx';
 import NotificationSend from './pages/Staff/NotificationSend.jsx';
+import DonorProfile from './pages/Staff/DonorProfileModal.jsx';
 
 // Admin
 import AdminDashboardPage from './pages/Admin/DashboardPage.jsx';
@@ -76,6 +77,7 @@ function App() {
                             <Route path="/staff/dashboard" element={<StaffDashboardpage />} />
                             <Route path="/staff/notifications" element={<NotificationForm />} />
                             <Route path="/staff/notification-send" element={<NotificationSend />} />
+                            <Route path="/staff/donor/:userId" element={<DonorProfile />} />
                         </Route>
 
                         {/* Admin Routes */}

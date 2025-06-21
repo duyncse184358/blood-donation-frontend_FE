@@ -1,91 +1,71 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/Api';
-import DonationHistoryByRequestModal from './DonationHistoryByRequestModal'; // Thêm dòng này
 
 const PAGE_SIZE = 10;
 
-function DonationRequestManager() {
+function DonationRequestManager({ openModal }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState(null); // đơn đang xem chi tiết
-  const [showDetail, setShowDetail] = useState(false);
-  const [showHistory, setShowHistory] = useState(false); // Thêm state này
-  const [total, setTotal] = useState(0);
-  const [updating, setUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState('');
-  const [updateMsg, setUpdateMsg] = useState('');
 
-  // Lấy danh sách đơn hiến máu
   useEffect(() => {
     setLoading(true);
     api.get('/DonationRequest')
       .then(res => {
-        setRequests(res.data);
-        setTotal(res.data.length);
+        // Sắp xếp giảm dần theo requestDate (mới nhất lên đầu)
+        const sorted = [...res.data].sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+        setRequests(sorted);
       })
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));
   }, []);
 
-  // Phân trang
   const pagedRequests = requests.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const totalPages = Math.ceil(requests.length / PAGE_SIZE);
 
-  // Xem chi tiết đơn
+  // Khi bấm "Xem chi tiết", chỉ cho phép cập nhật trạng thái
   const handleShowDetail = async (requestId) => {
-    setShowDetail(true);
-    setUpdateError('');
-    setUpdateMsg('');
-    setUpdating(false);
     try {
       const res = await api.get(`/DonationRequest/${requestId}`);
-      setSelected(res.data);
+      openModal('detail', {
+        ...res.data,
+        onUpdateStatus: async (newStatus, onDone) => {
+          try {
+            const updateRes = await api.put(`/DonationRequest/${requestId}`, {
+              ...res.data,
+              status: newStatus,
+            });
+            // Cập nhật lại danh sách
+            setRequests(reqs =>
+              reqs.map(r =>
+                r.requestId === requestId ? { ...r, ...updateRes.data } : r
+              )
+            );
+            // Nếu trạng thái mới là Completed, cập nhật UserProfile
+            if (newStatus === 'Complete' && updateRes.data.preferredDate && res.data.donorUserId) {
+              await api.put(`/UserProfile/by-user/${res.data.donorUserId}`, {
+                dto: { lastBloodDonationDate: updateRes.data.preferredDate }
+              });
+            }
+            if (onDone) onDone(null, updateRes.data);
+          } catch (err) {
+            if (onDone) onDone(err);
+          }
+        }
+      });
     } catch {
-      setSelected(null);
+      console.error('Không thể tải chi tiết đơn.');
     }
   };
 
-  // Đóng modal chi tiết
-  const handleCloseDetail = () => {
-    setShowDetail(false);
-    setSelected(null);
-    setUpdateError('');
-    setUpdateMsg('');
+  // Khi bấm "Lịch sử", mở modal ghi nhận thực tế hiến máu
+  const handleShowHistory = (requestId) => {
+    openModal('history', { requestId });
   };
 
-  // Cập nhật trạng thái đơn
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setUpdating(true);
-    setUpdateError('');
-    setUpdateMsg('');
-    try {
-      const payload = {
-        bloodTypeId: selected.bloodTypeId,
-        componentId: selected.componentId,
-        preferredDate: selected.preferredDate,
-        preferredTimeSlot: selected.preferredTimeSlot,
-        status: selected.status,
-        staffNotes: selected.staffNotes,
-      };
-      const res = await api.put(`/DonationRequest/${selected.requestId}`, payload);
-      setSelected(res.data);
-      setUpdateMsg('Cập nhật thành công!');
-      // Cập nhật lại danh sách
-      setRequests(reqs =>
-        reqs.map(r => r.requestId === selected.requestId ? { ...r, ...res.data } : r)
-      );
-    } catch (err) {
-      setUpdateError('Cập nhật thất bại!');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  // Xem lịch sử hiến máu (mở modal)
-  const handleViewHistory = () => {
-    setShowHistory(true);
+  // Khi bấm "Hồ sơ", mở modal hồ sơ người hiến
+  const handleShowProfile = (donorUserId) => {
+    openModal('profile', { userId: donorUserId });
   };
 
   return (
@@ -99,36 +79,55 @@ function DonationRequestManager() {
             <thead>
               <tr>
                 <th>STT</th>
-                <th>Mã đơn</th>
                 <th>Người hiến</th>
                 <th>Trạng thái</th>
                 <th>Ngày yêu cầu</th>
-                <th></th>
+                <th>Chức năng</th>
               </tr>
             </thead>
             <tbody>
               {pagedRequests.map((r, idx) => (
                 <tr key={r.requestId}>
                   <td>{(page - 1) * PAGE_SIZE + idx + 1}</td>
-                  <td>{r.requestId}</td>
                   <td>{r.donorUserName || r.donorUserId}</td>
-                  <td>{r.status}</td>
-                  <td>{r.requestDate ? new Date(r.requestDate).toLocaleString() : ''}</td>
                   <td>
-                    <button className="btn btn-sm btn-primary" onClick={() => handleShowDetail(r.requestId)}>
+                    {r.status === 'Accepted' && 'Chấp nhận'}
+                    {r.status === 'Rejected' && 'Từ chối'}
+                    {r.status === 'Pending' && 'Đang chờ'}
+                    {r.status === 'Scheduled' && 'Đã xếp lịch'}
+                    {r.status === 'Completed' && 'Đã hiến'}
+                    {r.status === 'Cancelled' && 'Đã hủy'}
+                  </td>
+                  <td>{r.requestDate ? new Date(r.requestDate).toLocaleString('vi-VN') : ''}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-primary me-1"
+                      onClick={() => handleShowDetail(r.requestId)}
+                    >
                       Xem chi tiết
+                    </button>
+                    <button
+                      className="btn btn-sm btn-info me-1"
+                      onClick={() => handleShowHistory(r.requestId)}
+                    >
+                      Lịch sử
+                    </button>
+                    <button
+                      className="btn btn-sm btn-secondary"
+                      onClick={() => handleShowProfile(r.donorUserId)}
+                    >
+                      Hồ sơ
                     </button>
                   </td>
                 </tr>
               ))}
               {pagedRequests.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center text-muted">Không có dữ liệu</td>
+                  <td colSpan={5} className="text-center text-muted">Không có dữ liệu</td>
                 </tr>
               )}
             </tbody>
           </table>
-          {/* Phân trang */}
           <nav>
             <ul className="pagination justify-content-center">
               <li className={`page-item${page === 1 ? ' disabled' : ''}`}>
@@ -145,78 +144,6 @@ function DonationRequestManager() {
             </ul>
           </nav>
         </>
-      )}
-
-      {/* Modal chi tiết đơn */}
-      {showDetail && selected && (
-        <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.2)' }}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <form onSubmit={handleUpdate}>
-                <div className="modal-header">
-                  <h5 className="modal-title">Chi tiết đơn hiến máu: {selected.requestId}</h5>
-                  <button type="button" className="btn-close" onClick={handleCloseDetail}></button>
-                </div>
-                <div className="modal-body">
-                  <div className="mb-2"><b>Người hiến:</b> {selected.donorUserName || selected.donorUserId}</div>
-                  <div className="mb-2"><b>Nhóm máu:</b> {selected.bloodTypeName}</div>
-                  <div className="mb-2"><b>Thành phần:</b> {selected.componentName}</div>
-                  <div className="mb-2"><b>Ngày mong muốn:</b> {selected.preferredDate}</div>
-                  <div className="mb-2"><b>Khung giờ:</b> {selected.preferredTimeSlot}</div>
-                  <div className="mb-2"><b>Trạng thái:</b>
-                    <select
-                      className="form-select d-inline w-auto ms-2"
-                      value={selected.status}
-                      onChange={e => setSelected(s => ({ ...s, status: e.target.value }))}
-                      disabled={updating}
-                    >
-                      <option value="Pending">Đang chờ</option>
-                      <option value="Scheduled">Đã xếp lịch</option>
-                      <option value="Completed">Đã hiến</option>
-                      <option value="Cancelled">Hủy</option>
-                      <option value="Rejected">Từ chối</option>
-                    </select>
-                  </div>
-                  <div className="mb-2">
-                    <b>Ghi chú nhân viên:</b>
-                    <textarea
-                      className="form-control"
-                      value={selected.staffNotes || ''}
-                      onChange={e => setSelected(s => ({ ...s, staffNotes: e.target.value }))}
-                      rows={2}
-                      disabled={updating}
-                    />
-                  </div>
-                  {updateError && <div className="alert alert-danger">{updateError}</div>}
-                  {updateMsg && <div className="alert alert-success">{updateMsg}</div>}
-                </div>
-                <div className="modal-footer">
-                  <button type="submit" className="btn btn-success" disabled={updating}>
-                    {updating ? 'Đang cập nhật...' : 'Cập nhật'}
-                  </button>
-                  {selected.status === 'Completed' && (
-                    <button
-                      type="button"
-                      className="btn btn-info"
-                      onClick={() => setShowHistory(true)}
-                    >
-                      Xem lịch sử hiến máu
-                    </button>
-                  )}
-                  <button type="button" className="btn btn-secondary" onClick={handleCloseDetail}>Đóng</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal xem lịch sử hiến máu thực tế */}
-      {showHistory && selected && (
-        <DonationHistoryByRequestModal
-          requestId={selected.requestId}
-          onClose={() => setShowHistory(false)}
-        />
       )}
     </div>
   );

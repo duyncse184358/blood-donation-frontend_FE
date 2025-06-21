@@ -92,6 +92,13 @@ function BloodInventoryManager() {
     setForm(f => ({ ...f, [name]: value }));
   };
 
+  useEffect(() => {
+    if (selected) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [selected]);
+
   return (
     <div>
       <h4 className="mb-3">Quản lý kho máu</h4>
@@ -155,7 +162,7 @@ function BloodInventoryManager() {
       {/* Modal chi tiết & chỉnh sửa */}
       {selected && (
         <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.2)' }}>
-          <div className="modal-dialog">
+          <div className="modal-dialog" onClick={e => e.stopPropagation()}>
             <div className="modal-content">
               {!edit ? (
                 <>
@@ -229,6 +236,13 @@ function BloodInventoryManager() {
               )}
             </div>
           </div>
+          <style>{`
+            .modal-content { animation: fadeInModal 0.3s; }
+            @keyframes fadeInModal {
+              from { opacity: 0; transform: translateY(40px);}
+              to { opacity: 1; transform: none;}
+            }
+          `}</style>
         </div>
       )}
     </div>

@@ -1,19 +1,20 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext'; // Import AuthContext
-import LoadingSpinner from '../Shared/LoadingSpinner'; // Đảm bảo đường dẫn đúng
-import '../../styles/Auth.css'; // Global Auth styles (for background)
+import { AuthContext } from '../../context/AuthContext';
+import LoadingSpinner from '../Shared/LoadingSpinner';
+import '../../styles/Auth.css';
 import './../../styles/Login.css';
-import { Heart, Mail, Lock, Eye, EyeOff } from 'lucide-react'; // Import necessary icons
+import { Heart, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import api from '../../services/Api'; // Thêm dòng này
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-    const { login } = useContext(AuthContext); // Sử dụng hàm login từ AuthContext
+    const { login } = useContext(AuthContext);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -29,7 +30,15 @@ function Login() {
             } else if (response.user && response.user.role === 'Staff') {
                 navigate('/staff/dashboard');
             } else if (response.user && response.user.role === 'Member') {
-                navigate('/member/dashboard');
+                // Kiểm tra đã có profile chưa
+                try {
+                    await api.get(`/UserProfile/by-user/${response.user.userId}`);
+                    // Nếu có profile, vào dashboard
+                    navigate('/member/dashboard');
+                } catch {
+                    // Nếu chưa có profile, vào trang nhập hồ sơ
+                    navigate('/member/profile');
+                }
             } else {
                 console.warn('Login Component Debug: Unknown role or no specific role match, navigating to home page.');
                 navigate('/');
@@ -45,11 +54,11 @@ function Login() {
     };
 
     return (
-        <main className="auth-container"> {/* This container will have the light red background */}
-            <div className="login-card"> {/* Changed class name for specific login card styling */}
+        <main className="auth-container">
+            <div className="login-card">
                 <div className="login-card-header">
-                    <Heart size={60} className="login-heart-icon" /> {/* Adjusted size and class */}
-                    <h3 className="login-brand-text">Hiến Máu Nhân Ái</h3> {/* Added brand text */}
+                    <Heart size={60} className="login-heart-icon" />
+                    <h3 className="login-brand-text">Hiến Máu Nhân Ái</h3>
                     <h2 className="login-title">Đăng nhập</h2>
                     <p className="login-subtitle">Chào mừng bạn trở lại! Hãy đăng nhập để tiếp tục.</p>
                 </div>
@@ -63,9 +72,9 @@ function Login() {
                                 <Mail size={20} className="input-icon" />
                                 <input
                                     type="email"
-                                    className="form-control-custom" // Custom class for input styling
+                                    className="form-control-custom"
                                     id="email"
-                                    placeholder="Nhập email của bạn" // Placeholder as per image
+                                    placeholder="Nhập email của bạn"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -82,7 +91,7 @@ function Login() {
                                     type={showPassword ? "text" : "password"} // Toggle type based on state
                                     className="form-control-custom"
                                     id="password"
-                                    placeholder="Nhập mật khẩu" // Placeholder as per image
+                                    placeholder="Nhập mật khẩu"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required

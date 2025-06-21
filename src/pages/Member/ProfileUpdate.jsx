@@ -1,11 +1,248 @@
 // src/pages/Member/ProfileUpdate.jsx
 import React, { useState, useEffect } from 'react';
-//import Header from '../../components/Header/Header';
-//import Navbar from '../../components/Navbar/Navbar';
-//import Footer from '../../components/Footer/Footer';
 import LoadingSpinner from '../../components/Shared/LoadingSpinner';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
+import { useNavigate } from 'react-router-dom';
+
+// Giả lập dữ liệu tỉnh/thành, quận/huyện, xã/phường (bạn nên lấy từ API hoặc file JSON thực tế)
+const provinces = [
+  { code: '01', name: 'Hà Nội' },
+  { code: '79', name: 'TP. Hồ Chí Minh' },
+  // ... thêm các tỉnh/thành khác
+];
+// Danh sách quận/huyện TP. Hồ Chí Minh (đã đầy đủ)
+const districtsData = {
+  '79': [
+    { code: '760', name: 'Quận 1' },
+    { code: '761', name: 'Quận 12' },
+    { code: '764', name: 'Quận Gò Vấp' },
+    { code: '765', name: 'Quận Bình Thạnh' },
+    { code: '766', name: 'Quận Tân Bình' },
+    { code: '767', name: 'Quận Tân Phú' },
+    { code: '768', name: 'Quận Phú Nhuận' },
+    { code: '769', name: 'Thành phố Thủ Đức' },
+    { code: '770', name: 'Quận 3' },
+    { code: '771', name: 'Quận 10' },
+    { code: '772', name: 'Quận 11' },
+    { code: '773', name: 'Quận 4' },
+    { code: '774', name: 'Quận 5' },
+    { code: '775', name: 'Quận 6' },
+    { code: '776', name: 'Quận 8' },
+    { code: '777', name: 'Quận Bình Tân' },
+    { code: '778', name: 'Quận 7' },
+    { code: '783', name: 'Huyện Củ Chi' },
+    { code: '784', name: 'Huyện Hóc Môn' },
+    { code: '785', name: 'Huyện Bình Chánh' },
+    { code: '786', name: 'Huyện Nhà Bè' },
+    { code: '787', name: 'Huyện Cần Giờ' },
+  ]
+};
+
+// Một số phường/xã tiêu biểu cho từng quận (bạn có thể bổ sung thêm)
+const wardsData = {
+  '760': [ // Quận 1
+    { code: '26734', name: 'Tân Định' },
+    { code: '26737', name: 'Đa Kao' },
+    { code: '26740', name: 'Bến Nghé' },
+    { code: '26743', name: 'Bến Thành' },
+    { code: '26746', name: 'Nguyễn Thái Bình' },
+    { code: '26749', name: 'Phạm Ngũ Lão' },
+    { code: '26752', name: 'Cầu Ông Lãnh' },
+    { code: '26755', name: 'Cô Giang' },
+    { code: '26758', name: 'Nguyễn Cư Trinh' },
+    { code: '26761', name: 'Cầu Kho' }
+  ],
+  '761': [ // Quận 12
+    { code: '26764', name: 'Thạnh Xuân' },
+    { code: '26767', name: 'Thạnh Lộc' },
+    { code: '26770', name: 'Hiệp Thành' },
+    { code: '26773', name: 'Thới An' },
+    { code: '26776', name: 'Tân Chánh Hiệp' },
+    { code: '26779', name: 'An Phú Đông' },
+    { code: '26782', name: 'Tân Thới Hiệp' },
+    { code: '26785', name: 'Trung Mỹ Tây' },
+    { code: '26788', name: 'Tân Hưng Thuận' },
+    { code: '26791', name: 'Đông Hưng Thuận' },
+    { code: '26794', name: 'Tân Thới Nhất' }
+  ],
+  '764': [ // Gò Vấp
+    { code: '26797', name: 'Phường 15' },
+    { code: '26800', name: 'Phường 13' },
+    { code: '26803', name: 'Phường 17' },
+    { code: '26806', name: 'Phường 6' },
+    { code: '26809', name: 'Phường 16' },
+    { code: '26812', name: 'Phường 12' },
+    { code: '26815', name: 'Phường 14' },
+    { code: '26818', name: 'Phường 10' },
+    { code: '26821', name: 'Phường 5' },
+    { code: '26824', name: 'Phường 7' },
+    { code: '26827', name: 'Phường 3' },
+    { code: '26830', name: 'Phường 1' },
+    { code: '26833', name: 'Phường 2' },
+    { code: '26836', name: 'Phường 4' },
+    { code: '26839', name: 'Phường 8' },
+    { code: '26842', name: 'Phường 9' },
+    { code: '26845', name: 'Phường 11' }
+  ],
+  '765': [ // Bình Thạnh
+    { code: '26848', name: 'Phường 13' },
+    { code: '26851', name: 'Phường 11' },
+    { code: '26854', name: 'Phường 27' },
+    { code: '26857', name: 'Phường 26' },
+    { code: '26860', name: 'Phường 12' },
+    { code: '26863', name: 'Phường 25' },
+    { code: '26866', name: 'Phường 5' },
+    { code: '26869', name: 'Phường 7' },
+    { code: '26872', name: 'Phường 24' },
+    { code: '26875', name: 'Phường 6' },
+    { code: '26878', name: 'Phường 14' },
+    { code: '26881', name: 'Phường 15' },
+    { code: '26884', name: 'Phường 2' },
+    { code: '26887', name: 'Phường 1' },
+    { code: '26890', name: 'Phường 3' },
+    { code: '26893', name: 'Phường 17' },
+    { code: '26896', name: 'Phường 21' },
+    { code: '26899', name: 'Phường 19' },
+    { code: '26902', name: 'Phường 28' }
+  ],
+  '766': [ // Tân Bình
+    { code: '26905', name: 'Phường 15' },
+    { code: '26908', name: 'Phường 13' },
+    { code: '26911', name: 'Phường 17' },
+    { code: '26914', name: 'Phường 6' },
+    { code: '26917', name: 'Phường 16' },
+    { code: '26920', name: 'Phường 12' },
+    { code: '26923', name: 'Phường 14' },
+    { code: '26926', name: 'Phường 10' },
+    { code: '26929', name: 'Phường 5' },
+    { code: '26932', name: 'Phường 7' },
+    { code: '26935', name: 'Phường 3' },
+    { code: '26938', name: 'Phường 1' },
+    { code: '26941', name: 'Phường 2' },
+    { code: '26944', name: 'Phường 4' },
+    { code: '26947', name: 'Phường 8' },
+    { code: '26950', name: 'Phường 9' },
+    { code: '26953', name: 'Phường 11' }
+  ],
+  '767': [ // Tân Phú
+    { code: '26956', name: 'Phường Tân Sơn Nhì' },
+    { code: '26959', name: 'Phường Tây Thạnh' },
+    { code: '26962', name: 'Phường Sơn Kỳ' },
+    { code: '26965', name: 'Phường Tân Quý' },
+    { code: '26968', name: 'Phường Tân Thành' },
+    { code: '26971', name: 'Phường Phú Thọ Hòa' },
+    { code: '26974', name: 'Phường Phú Thạnh' },
+    { code: '26977', name: 'Phường Phú Trung' },
+    { code: '26980', name: 'Phường Hòa Thạnh' },
+    { code: '26983', name: 'Phường Hiệp Tân' },
+    { code: '26986', name: 'Phường Tân Thới Hòa' }
+  ],
+  '768': [ // Phú Nhuận
+    { code: '26989', name: 'Phường 1' },
+    { code: '26992', name: 'Phường 2' },
+    { code: '26995', name: 'Phường 3' },
+    { code: '26998', name: 'Phường 4' },
+    { code: '27001', name: 'Phường 5' },
+    { code: '27004', name: 'Phường 7' },
+    { code: '27007', name: 'Phường 8' },
+    { code: '27010', name: 'Phường 9' },
+    { code: '27013', name: 'Phường 10' },
+    { code: '27016', name: 'Phường 11' },
+    { code: '27019', name: 'Phường 12' },
+    { code: '27022', name: 'Phường 13' },
+    { code: '27025', name: 'Phường 14' },
+    { code: '27028', name: 'Phường 15' },
+    { code: '27031', name: 'Phường 17' }
+  ],
+  '769': [ // TP Thủ Đức (một số phường tiêu biểu, bạn có thể bổ sung thêm)
+    { code: '27679', name: 'Hiệp Bình' },
+    { code: '27682', name: 'Tam Bình' },
+    { code: '27685', name: 'Thủ Đức' },
+    { code: '27688', name: 'Linh Xuân' },
+    { code: '27691', name: 'Long Bình' },
+    { code: '27694', name: 'Tăng Nhơn Phú' },
+    { code: '27697', name: 'Phước Long' },
+    { code: '27700', name: 'Long Phước' },
+    { code: '27703', name: 'Long Trường' },
+    { code: '27706', name: 'An Khánh' },
+    { code: '27709', name: 'Bình Trưng' },
+    { code: '27712', name: 'Cát Lái' }
+  ],
+  // ...bạn có thể bổ sung thêm các quận/huyện khác theo cấu trúc trên...
+  // Các huyện còn lại bạn có thể lấy từ nguồn JSON địa giới hành chính Việt Nam để đầy đủ nhất.
+};
+
+// Danh sách đường/phố tiêu biểu cho từng quận (bạn có thể bổ sung thêm)
+const streetsByDistrict = {
+  '760': [ // Quận 1
+    'Nguyễn Huệ', 'Lê Lợi', 'Đồng Khởi', 'Nguyễn Thị Minh Khai', 'Trần Hưng Đạo',
+    'Hai Bà Trưng', 'Pasteur', 'Nam Kỳ Khởi Nghĩa', 'Lý Tự Trọng', 'Tôn Đức Thắng'
+  ],
+  '761': [ // Quận 12
+    'Nguyễn Ảnh Thủ', 'Tô Ký', 'Lê Văn Khương', 'Hà Huy Giáp', 'Nguyễn Văn Quá'
+  ],
+  '764': [ // Gò Vấp
+    'Quang Trung', 'Phan Văn Trị', 'Lê Đức Thọ', 'Nguyễn Oanh', 'Nguyễn Kiệm'
+  ],
+  '765': [ // Bình Thạnh
+    'Điện Biên Phủ', 'Phan Đăng Lưu', 'Bạch Đằng', 'Đinh Bộ Lĩnh', 'Xô Viết Nghệ Tĩnh'
+  ],
+  '766': [ // Tân Bình
+    'Cộng Hòa', 'Trường Chinh', 'Hoàng Văn Thụ', 'Lý Thường Kiệt', 'Phạm Văn Bạch'
+  ],
+  '767': [ // Tân Phú
+    'Lũy Bán Bích', 'Tân Kỳ Tân Quý', 'Âu Cơ', 'Thạch Lam', 'Gò Dầu'
+  ],
+  '768': [ // Phú Nhuận
+    'Phan Đình Phùng', 'Nguyễn Văn Trỗi', 'Hoàng Văn Thụ', 'Huỳnh Văn Bánh', 'Trường Sa'
+  ],
+  '769': [ // TP Thủ Đức
+    'Võ Văn Ngân', 'Kha Vạn Cân', 'Lê Văn Việt', 'Đặng Văn Bi', 'Phạm Văn Đồng'
+  ],
+  '770': [ // Quận 3
+    'Cách Mạng Tháng 8', 'Nguyễn Đình Chiểu', 'Lý Chính Thắng', 'Nam Kỳ Khởi Nghĩa', 'Võ Thị Sáu'
+  ],
+  '771': [ // Quận 10
+    'Ba Tháng Hai', 'Nguyễn Tri Phương', 'Lý Thường Kiệt', 'Tô Hiến Thành', 'Ngô Gia Tự'
+  ],
+  '772': [ // Quận 11
+    'Lạc Long Quân', 'Ba Tháng Hai', 'Minh Phụng', 'Hàn Hải Nguyên', 'Tạ Uyên'
+  ],
+  '773': [ // Quận 4
+    'Đoàn Văn Bơ', 'Tôn Đản', 'Vĩnh Hội', 'Nguyễn Tất Thành', 'Hoàng Diệu'
+  ],
+  '774': [ // Quận 5
+    'Trần Hưng Đạo', 'Nguyễn Trãi', 'Châu Văn Liêm', 'An Dương Vương', 'Hùng Vương'
+  ],
+  '775': [ // Quận 6
+    'Hậu Giang', 'Minh Phụng', 'Phạm Văn Chí', 'Kinh Dương Vương', 'Bình Tiên'
+  ],
+  '776': [ // Quận 8
+    'Phạm Thế Hiển', 'Tạ Quang Bửu', 'Dương Bá Trạc', 'Nguyễn Duy', 'Hưng Phú'
+  ],
+  '777': [ // Bình Tân
+    'Kinh Dương Vương', 'Mã Lò', 'Lê Văn Quới', 'Tân Kỳ Tân Quý', 'Hương Lộ 2'
+  ],
+  '778': [ // Quận 7
+    'Nguyễn Thị Thập', 'Huỳnh Tấn Phát', 'Lê Văn Lương', 'Tân Mỹ', 'Nguyễn Hữu Thọ'
+  ],
+  '783': [ // Huyện Củ Chi
+    'Tỉnh lộ 8', 'Tỉnh lộ 15', 'Quốc lộ 22', 'Nguyễn Văn Khạ', 'Tỉnh lộ 2'
+  ],
+  '784': [ // Hóc Môn
+    'Song Hành', 'Nguyễn Ảnh Thủ', 'Đặng Thúc Vịnh', 'Phan Văn Hớn', 'Trần Văn Mười'
+  ],
+  '785': [ // Bình Chánh
+    'Quốc lộ 1A', 'Nguyễn Văn Linh', 'Đinh Đức Thiện', 'Võ Văn Vân', 'Trịnh Quang Nghị'
+  ],
+  '786': [ // Nhà Bè
+    'Nguyễn Hữu Thọ', 'Lê Văn Lương', 'Huỳnh Tấn Phát', 'Nguyễn Bình', 'Phạm Hữu Lầu'
+  ],
+  '787': [ // Cần Giờ
+    'Rừng Sác', 'Duyên Hải', 'Tắc Xuất', 'Thạnh Thới', 'Lý Nhơn'
+  ]
+};
 
 function ProfileUpdate() {
   const { user, isAuthenticated } = useAuth();
@@ -30,6 +267,19 @@ function ProfileUpdate() {
   const [addressError, setAddressError] = useState('');
   const [isCreateMode, setIsCreateMode] = useState(false);
 
+  // Thêm state cho từng trường địa chỉ
+  const [province, setProvince] = useState('');
+  const [district, setDistrict] = useState('');
+  const [ward, setWard] = useState('');
+  const [street, setStreet] = useState('');
+
+  // State cho ngày sinh tách biệt
+  const [birthDay, setBirthDay] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+
+  const navigate = useNavigate();
+
   // Static data for dropdowns
   const genders = [
     { value: 'Male', label: 'Nam' },
@@ -44,6 +294,13 @@ function ProfileUpdate() {
     { id: 7, name: 'AB+' }, { id: 8, name: 'AB-' },
   ];
 
+  // Tạo danh sách năm từ 1900 đến hiện tại
+  const years = Array.from({ length: new Date().getFullYear() - 1900 + 1 }, (_, i) => 1900 + i);
+  // Danh sách tháng
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  // Danh sách ngày (tối đa 31 ngày)
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
   // Lấy profile khi mở trang
   useEffect(() => {
     if (isAuthenticated && user?.userId) {
@@ -53,7 +310,18 @@ function ProfileUpdate() {
         setIsCreateMode(false);
         try {
           const res = await api.get(`/UserProfile/by-user/${user.userId}`);
-          // Có profile: hiển thị form cập nhật
+          // Tách địa chỉ thành các trường riêng nếu có
+          let provinceVal = '', districtVal = '', wardVal = '', streetVal = '';
+          if (res.data.address) {
+            // Giả sử địa chỉ lưu dạng: "Số nhà, Đường, Phường/Xã, Quận/Huyện, Tỉnh/Thành"
+            const parts = res.data.address.split(',').map(s => s.trim());
+            if (parts.length >= 5) {
+              streetVal = parts[0] + (parts[1] ? ', ' + parts[1] : '');
+              wardVal = parts[2];
+              districtVal = parts[3];
+              provinceVal = parts[4];
+            }
+          }
           setProfileData({
             fullName: res.data.fullName || '',
             dateOfBirth: res.data.dateOfBirth ? res.data.dateOfBirth.split('T')[0] : '',
@@ -68,10 +336,13 @@ function ProfileUpdate() {
             cccd: res.data.cccd || '',
             phoneNumber: res.data.phoneNumber || '',
           });
+          setProvince(provinceVal);
+          setDistrict(districtVal);
+          setWard(wardVal);
+          setStreet(streetVal);
           setIsCreateMode(false);
         } catch (err) {
           if (err.response && err.response.status === 404) {
-            // Không có profile: hiển thị form tạo mới
             setIsCreateMode(true);
             setProfileData({
               fullName: '',
@@ -87,6 +358,10 @@ function ProfileUpdate() {
               cccd: '',
               phoneNumber: '',
             });
+            setProvince('');
+            setDistrict('');
+            setWard('');
+            setStreet('');
           } else {
             setError('Lỗi hệ thống hoặc không thể lấy thông tin hồ sơ.');
           }
@@ -101,27 +376,41 @@ function ProfileUpdate() {
     }
   }, [isAuthenticated, user?.userId]);
 
+  // Khi chọn tỉnh, reset quận/huyện, xã/phường
+  useEffect(() => {
+    setDistrict('');
+    setWard('');
+  }, [province]);
+  useEffect(() => {
+    setWard('');
+  }, [district]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
-    if (name === 'address') {
-      setAddressError('');
-    }
+    if (name === 'address') setAddressError('');
   };
 
-  const handleAddressBlur = (e) => {
-    const address = e.target.value.trim();
-    if (!address) {
-      setAddressError('Vui lòng nhập địa chỉ chính xác.');
-      setProfileData(prev => ({
-        ...prev,
-        latitude: '',
-        longitude: ''
-      }));
-      return;
-    }
-    // Nếu backend đã tự lấy tọa độ thì có thể bỏ dòng dưới
-    // fetchLatLngFromAddress(address);
+  // Xây dựng địa chỉ từ các trường
+  const buildAddress = () => {
+    let addr = '';
+    if (profileData.houseNumber && profileData.houseNumber.trim()) addr += profileData.houseNumber;
+    if (street) addr += (addr ? ', ' : '') + street;
+    if (ward) addr += (addr ? ', ' : '') + ward;
+    if (district) addr += (addr ? ', ' : '') + districtsData[province].find(d => d.code === district)?.name;
+    if (province) addr += (addr ? ', ' : '') + provinces.find(p => p.code === province)?.name;
+    return addr;
+  };
+
+  // Lấy kinh độ/vĩ độ từ địa chỉ (giả lập, thực tế nên gọi API geocode)
+  const fetchLatLngFromAddress = async (address) => {
+    // Bạn nên dùng Google Maps Geocoding API hoặc Nominatim (OpenStreetMap)
+    // Ở đây chỉ giả lập
+    if (!address) return { lat: '', lng: '' };
+    // Ví dụ: luôn trả về 21.0285, 105.8542 cho Hà Nội
+    if (address.includes('Hà Nội')) return { lat: '21.0285', lng: '105.8542' };
+    if (address.includes('Hồ Chí Minh')) return { lat: '10.7769', lng: '106.7009' };
+    return { lat: '', lng: '' };
   };
 
   const handleSubmit = async (e) => {
@@ -136,8 +425,8 @@ function ProfileUpdate() {
       setSubmitting(false);
       return;
     }
-    if (!profileData.address.trim()) {
-      setError('Địa chỉ là bắt buộc và phải chính xác.');
+    if (!street.trim() || !province || !district || !ward) {
+      setError('Vui lòng nhập đầy đủ địa chỉ.');
       setSubmitting(false);
       return;
     }
@@ -157,33 +446,43 @@ function ProfileUpdate() {
       return;
     }
 
+    // Ghép ngày sinh
+    const dateOfBirth = birthYear && birthMonth && birthDay
+      ? `${birthYear}-${birthMonth}-${birthDay}`
+      : null;
+
+    // Ghép địa chỉ
+    const address = buildAddress();
+    const { lat, lng } = await fetchLatLngFromAddress(address);
+
+    const submitData = {
+      userId: user.userId,
+      fullName: profileData.fullName,
+      dateOfBirth: dateOfBirth,
+      gender: profileData.gender || null,
+      address: address,
+      latitude: lat ? parseFloat(lat) : null,
+      longitude: lng ? parseFloat(lng) : null,
+      bloodTypeId: profileData.bloodTypeId ? parseInt(profileData.bloodTypeId) : null,
+      rhFactor: profileData.rhFactor || null,
+      medicalHistory: profileData.medicalHistory || null,
+      lastBloodDonationDate: profileData.lastBloodDonationDate || null,
+      cccd: profileData.cccd || null,
+      phoneNumber: profileData.phoneNumber || null,
+    };
+
     try {
-      const submitData = {
-        userId: user.userId,
-        fullName: profileData.fullName,
-        dateOfBirth: profileData.dateOfBirth || null,
-        gender: profileData.gender || null,
-        address: profileData.address || null,
-        latitude: profileData.latitude ? parseFloat(profileData.latitude) : null,
-        longitude: profileData.longitude ? parseFloat(profileData.longitude) : null,
-        bloodTypeId: profileData.bloodTypeId ? parseInt(profileData.bloodTypeId) : null,
-        rhFactor: profileData.rhFactor || null,
-        medicalHistory: profileData.medicalHistory || null,
-        lastBloodDonationDate: profileData.lastBloodDonationDate || null,
-        cccd: profileData.cccd || null,
-        phoneNumber: profileData.phoneNumber || null,
-      };
-
-      let res, data;
+      let res;
       if (isCreateMode) {
-        res = await api.post(`/UserProfile`, submitData);
+        res = await api.post(`/UserProfile`, { dto: submitData });
       } else {
-        res = await api.put(`/UserProfile/by-user/${user.userId}`, submitData);
+        res = await api.put(`/UserProfile/by-user/${user.userId}`, { dto: submitData });
       }
-      data = res.data;
-
       setMessage(isCreateMode ? 'Hồ sơ của bạn đã được tạo thành công!' : 'Hồ sơ của bạn đã được cập nhật thành công!');
-      setIsCreateMode(false); // Sau khi tạo mới thành công, chuyển về chế độ cập nhật
+      setIsCreateMode(false);
+      setTimeout(() => {
+        navigate('/member/dashboard');
+      }, 1000);
     } catch (err) {
       if (err.response && err.response.data && err.response.data.message) {
         setError(err.response.data.message);
@@ -201,9 +500,18 @@ function ProfileUpdate() {
 
   if (loading) return <LoadingSpinner />;
 
+  // Lấy danh sách quận/huyện theo tỉnh
+  const districts = province ? (districtsData[province] || []) : [];
+  // Lấy danh sách xã/phường theo quận/huyện
+  const wards = district ? (wardsData[district] || []) : [];
+
+  // Tạo giá trị dateOfBirth từ ngày, tháng, năm
+  const dateOfBirth = birthYear && birthMonth && birthDay
+    ? `${birthYear}-${birthMonth}-${birthDay}`
+    : null;
+
   return (
     <div className="profile-page-wrapper" style={{ background: '#f6f8fa', minHeight: '100vh' }}>
-  
       <main className="container my-5">
         <h1 className="text-center mb-4 text-primary">{isCreateMode ? 'Tạo Hồ sơ cá nhân' : 'Cập nhật Hồ sơ cá nhân'}</h1>
         <p className="text-center lead">
@@ -230,9 +538,21 @@ function ProfileUpdate() {
                   value={profileData.cccd} onChange={handleChange} disabled={submitting} />
               </div>
               <div className="col-md-6">
-                <label htmlFor="dateOfBirth" className="form-label">Ngày sinh</label>
-                <input type="date" className="form-control" id="dateOfBirth" name="dateOfBirth"
-                  value={profileData.dateOfBirth} onChange={handleChange} disabled={submitting} />
+                <label className="form-label">Ngày sinh</label>
+                <div className="d-flex gap-2">
+                  <select className="form-select" style={{ width: '33%' }} value={birthDay} onChange={e => setBirthDay(e.target.value)} disabled={submitting}>
+                    <option value="">Ngày</option>
+                    {days.map(d => <option key={d} value={String(d).padStart(2, '0')}>{d}</option>)}
+                  </select>
+                  <select className="form-select" style={{ width: '33%' }} value={birthMonth} onChange={e => setBirthMonth(e.target.value)} disabled={submitting}>
+                    <option value="">Tháng</option>
+                    {months.map(m => <option key={m} value={String(m).padStart(2, '0')}>{m}</option>)}
+                  </select>
+                  <select className="form-select" style={{ width: '34%' }} value={birthYear} onChange={e => setBirthYear(e.target.value)} disabled={submitting}>
+                    <option value="">Năm</option>
+                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="col-md-6">
                 <label htmlFor="gender" className="form-label">Giới tính</label>
@@ -244,22 +564,71 @@ function ProfileUpdate() {
                   ))}
                 </select>
               </div>
+              {/* Địa chỉ chi tiết */}
               <div className="col-md-6">
-                <label htmlFor="address" className="form-label">Địa chỉ <span style={{ color: 'red' }}>*</span></label>
+                <label className="form-label">Tỉnh/Thành phố <span style={{ color: 'red' }}>*</span></label>
+                <select className="form-select" value={province} onChange={e => setProvince(e.target.value)} disabled={submitting}>
+                  <option value="">Chọn tỉnh/thành</option>
+                  {provinces.map(p => (
+                    <option key={p.code} value={p.code}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Quận/Huyện <span style={{ color: 'red' }}>*</span></label>
+                <select className="form-select" value={district} onChange={e => setDistrict(e.target.value)} disabled={!province || submitting}>
+                  <option value="">Chọn quận/huyện</option>
+                  {districts.map(d => (
+                    <option key={d.code} value={d.code}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Phường/Xã <span style={{ color: 'red' }}>*</span></label>
+                <select className="form-select" value={ward} onChange={e => setWard(e.target.value)} disabled={!district || submitting}>
+                  <option value="">Chọn phường/xã</option>
+                  {wards.map(w => (
+                    <option key={w.code} value={w.name}>{w.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Đường/Phố <span style={{ color: 'red' }}>*</span></label>
+                <select
+                  className="form-select"
+                  value={street}
+                  onChange={e => setStreet(e.target.value)}
+                  disabled={!district || submitting}
+                >
+                  <option value="">Chọn đường/phố</option>
+                  {(streetsByDistrict[district] || []).map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Số nhà</label>
                 <input
                   type="text"
-                  className={`form-control ${addressError ? 'is-invalid' : ''}`}
-                  id="address"
-                  name="address"
-                  value={profileData.address}
-                  onChange={handleChange}
-                  onBlur={handleAddressBlur}
-                  placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
+                  className="form-control"
+                  value={profileData.houseNumber || ''}
+                  onChange={e => setProfileData(prev => ({ ...prev, houseNumber: e.target.value }))}
                   disabled={submitting}
-                  required
+                  placeholder="Số nhà (không bắt buộc)"
                 />
-                {addressError && <div className="invalid-feedback">{addressError}</div>}
               </div>
+              {/* Hiển thị địa chỉ đã ghép */}
+              <div className="col-12">
+                <label className="form-label">Địa chỉ đầy đủ</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={buildAddress()}
+                  readOnly
+                  disabled
+                />
+              </div>
+              {/* Kinh độ/vĩ độ */}
               <div className="col-md-6">
                 <label htmlFor="latitude" className="form-label">Vĩ độ (Latitude)</label>
                 <input
@@ -323,8 +692,6 @@ function ProfileUpdate() {
           </form>
         </div>
       </main>
- 
-      {/* CSS nội bộ cho đẹp hơn */}
       <style>{`
         .profile-page-wrapper {
           background: #f6f8fa;

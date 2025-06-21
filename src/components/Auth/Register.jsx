@@ -87,8 +87,7 @@ function Register() {
       const response = await register(formData);
       setMessage('Đăng ký thành công!');
       await login(formData.email, formData.password);
-      
-      navigate('/member/dashboard');
+      navigate('/member/profile');
     } catch (err) {
       setError(err.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin và OTP.');
     } finally {
