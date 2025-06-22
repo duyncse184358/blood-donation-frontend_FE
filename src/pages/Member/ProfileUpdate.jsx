@@ -5,11 +5,9 @@ import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
 import { useNavigate } from 'react-router-dom';
 
-// Giả lập dữ liệu tỉnh/thành, quận/huyện, xã/phường (bạn nên lấy từ API hoặc file JSON thực tế)
+// Chỉ giữ TP. Hồ Chí Minh
 const provinces = [
-  { code: '01', name: 'Hà Nội' },
   { code: '79', name: 'TP. Hồ Chí Minh' },
-  // ... thêm các tỉnh/thành khác
 ];
 // Danh sách quận/huyện TP. Hồ Chí Minh (đã đầy đủ)
 const districtsData = {
@@ -404,11 +402,8 @@ function ProfileUpdate() {
 
   // Lấy kinh độ/vĩ độ từ địa chỉ (giả lập, thực tế nên gọi API geocode)
   const fetchLatLngFromAddress = async (address) => {
-    // Bạn nên dùng Google Maps Geocoding API hoặc Nominatim (OpenStreetMap)
-    // Ở đây chỉ giả lập
     if (!address) return { lat: '', lng: '' };
-    // Ví dụ: luôn trả về 21.0285, 105.8542 cho Hà Nội
-    if (address.includes('Hà Nội')) return { lat: '21.0285', lng: '105.8542' };
+    // Chỉ trả về Hồ Chí Minh
     if (address.includes('Hồ Chí Minh')) return { lat: '10.7769', lng: '106.7009' };
     return { lat: '', lng: '' };
   };
