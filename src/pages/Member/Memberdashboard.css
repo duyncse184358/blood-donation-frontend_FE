@@ -1,4 +1,4 @@
-/* MemberDashboard.css */
+/* src/pages/Member/MemberDashboard.css */
 
 /* General Styling */
 .member-dashboard-wrapper {
@@ -22,6 +22,10 @@
     margin-bottom: 40px;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
 }
+.dashboard-header .text-primary { /* Màu chữ primary cho tên user */
+    color: #007bff !important;
+}
+
 
 /* Notification Cards Section */
 .notification-cards-section {
@@ -61,28 +65,26 @@
 }
 .notification-card-base .icon-wrapper svg {
     color: white;
-    font-size: 2.5rem;
+    /* font-size: 2.5rem; */ /* Lucide icons dùng size prop, không dùng font-size */
 }
 
 .notification-card-base .title {
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 5px;
+    color: white; /* Đảm bảo màu chữ là trắng */
 }
 
 .notification-card-base .description {
     font-size: 1rem;
     opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9); /* Màu trắng hơi mờ */
 }
-.notification-card-base .count {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-left: 20px;
-    flex-shrink: 0;
-    background-color: rgba(255, 255, 255, 0.3);
-    padding: 8px 15px;
-    border-radius: 20px;
+/* Spinner styling for loading state in cards */
+.notification-card-base .spinner-border {
+    color: white !important; /* Đảm bảo spinner có màu trắng */
 }
+
 .notification-card-base .detail-button {
     background-color: rgba(255, 255, 255, 0.3);
     color: white;
@@ -93,6 +95,8 @@
     font-size: 0.9rem;
     transition: background-color 0.2s ease;
     margin-left: 20px;
+    text-decoration: none; /* Remove underline for Link */
+    white-space: nowrap; /* Ngăn nút xuống dòng */
 }
 .notification-card-base .detail-button:hover {
     background-color: rgba(255, 255, 255, 0.5);
@@ -147,7 +151,7 @@
 
 .feature-icon-circle svg {
     color: white; /* Icons remain white */
-    font-size: 2.5rem;
+    /* font-size: 2.5rem; */ /* Lucide icons dùng size prop, không dùng font-size */
 }
 
 .feature-card-title {
@@ -193,6 +197,64 @@
 .feature-card.reminder { background: linear-gradient(to right, #17a2b8, #138496); } /* Teal (similar to screenshot) */
 
 
+/* Custom Update Profile Button */
+.custom-update-profile-btn {
+    padding: 12px 30px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    color: white;
+    text-decoration: none;
+}
+.custom-update-profile-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    background: linear-gradient(90deg, #0056b3 0%, #004085 100%);
+}
+
+
+/* Modal Styling */
+.modal-backdrop-custom {
+    position: fixed;
+    z-index: 1050;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35); /* Soft dark overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content-custom {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 0; /* ProfileUpdate component sẽ có padding riêng */
+    max-width: 700px;
+    width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto; /* Cho phép cuộn nếu nội dung dài */
+    position: relative;
+}
+.btn-close-modal {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #dc3545; /* Màu đỏ cho nút đóng */
+    cursor: pointer;
+    z-index: 10; /* Đảm bảo nút đóng nằm trên nội dung modal */
+    padding: 0; /* Loại bỏ padding button mặc định */
+    line-height: 1; /* Căn chỉnh ký tự X */
+}
+.btn-close-modal:hover {
+    color: #a71d2a;
+}
+
+
 /* Responsive Adjustments */
 @media (max-width: 992px) {
     .dashboard-header {
@@ -213,7 +275,7 @@
     .notification-card-base .description {
         font-size: 0.9rem;
     }
-    .notification-card-base .count,
+    /* Đảm bảo button detail chiếm hết chiều rộng và căn giữa */
     .notification-card-base .detail-button {
         margin-top: 15px;
         margin-left: 0;
@@ -229,6 +291,10 @@
     .feature-card-button {
         padding: 8px 20px;
         font-size: 0.85rem;
+    }
+    .custom-update-profile-btn {
+        font-size: 1rem;
+        padding: 10px 20px;
     }
 }
 
@@ -247,14 +313,13 @@
         padding: 15px;
     }
     .notification-card-base .icon-wrapper svg {
-        font-size: 2rem;
+        font-size: 2rem; /* Lucide icons dùng size prop, không dùng font-size */
     }
     .notification-card-base .title {
         font-size: 1.1rem;
     }
-    .notification-card-base .count {
-        font-size: 1rem;
-        padding: 6px 12px;
+    .notification-card-base .description {
+        font-size: 0.85rem;
     }
     .feature-card {
         padding: 20px;
@@ -265,7 +330,7 @@
         margin-bottom: 15px;
     }
     .feature-icon-circle svg {
-        font-size: 2rem;
+        font-size: 2rem; /* Lucide icons dùng size prop, không dùng font-size */
     }
     .feature-card-title {
         font-size: 1.2rem;
@@ -276,5 +341,12 @@
     .feature-card-button {
         padding: 7px 15px;
         font-size: 0.8rem;
+    }
+    .custom-update-profile-btn {
+        font-size: 0.9rem;
+        padding: 8px 18px;
+    }
+    .modal-content-custom {
+        border-radius: 12px;
     }
 }

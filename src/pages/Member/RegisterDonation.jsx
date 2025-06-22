@@ -1,7 +1,7 @@
 // src/pages/Member/RegisterDonation.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/Header/Header';
-import Navbar from '../../components/Navbar/Navbar';
+import Navbar from '../../components/Navbar/Navbar'; // Đảm bảo đường dẫn chính xác
 import Footer from '../../components/Footer/Footer';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
@@ -15,25 +15,6 @@ const TIME_SLOTS = [
 const MAX_PER_SLOT = 10; // Số lượng tối đa mỗi khung giờ
 
 function RegisterDonation() {
-  const { user, isAuthenticated } = useAuth();
-  const [formData, setFormData] = useState({
-    bloodTypeId: '',
-    preferredDate: '',
-    preferredTimeSlot: '',
-    staffNotes: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [slotCounts, setSlotCounts] = useState({});
-  const [disabledSlots, setDisabledSlots] = useState([]);
-  const [disabledDates, setDisabledDates] = useState([]);
-  
-  const [profile, setProfile] = useState(null);
-  const [hasRejectedHistory, setHasRejectedHistory] = useState(false);
-
-  // Các tùy chọn nhóm máu
   const bloodTypes = [
     { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
     { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
@@ -41,72 +22,126 @@ function RegisterDonation() {
     { id: 7, name: 'AB+' }, { id: 8, name: 'AB-' },
   ];
 
-  // Lấy ngày hôm nay (yyyy-MM-dd)
+  const { user, isAuthenticated } = useAuth(); 
+  const [formData, setFormData] = useState({
+    bloodTypeId: '',
+    preferredDate: '',
+    preferredTimeSlot: '',
+    staffNotes: '',
+  });
+  const [loading, setLoading] = useState(false); // Dùng cho loading khi submit form
+  const [error, setError] = useState(''); // Lỗi từ API sau khi submit
+  const [message, setMessage] = useState(''); // Thông báo thành công sau khi submit
+  
+  const [fieldErrors, setFieldErrors] = useState({}); // Lỗi cụ thể của từng trường (chỉ hiển thị sau submit)
+  const [generalError, setGeneralError] = useState(''); // Lỗi chung (tuổi, lịch sử từ chối, 90 ngày) (chỉ hiển thị sau submit)
+
+  const [slotCounts, setSlotCounts] = useState({});
+  const [disabledSlots, setDisabledSlots] = useState([]);
+  const [disabledDates, setDisabledDates] = useState([]); 
+  
+  const [profile, setProfile] = useState(null);
+  const [hasRejectedHistory, setHasRejectedHistory] = useState(false);
+  // BỎ: const [hasRejectedRequest, setHasRejectedRequest] = useState(false); 
+  const [isProfileDataLoading, setIsProfileDataLoading] = useState(true); // Trạng thái loading riêng cho profile/history
+  
+  const [hasSubmitted, setHasSubmitted] = useState(false); // State để kiểm soát hiển thị lỗi sau khi submit
+
   const today = new Date().toISOString().split('T')[0];
 
-  // Lấy số lượng đăng ký từng khung giờ trong ngày đã chọn
+  // Fetch slot counts for the selected date
   useEffect(() => {
     if (formData.preferredDate) {
+      setLoading(true); 
       api.get(`/DonationRequest/SlotCounts?date=${formData.preferredDate}`)
         .then(res => {
           setSlotCounts(res.data || {});
-          // Disable slot nếu đủ số lượng
           const fullSlots = TIME_SLOTS.filter(slot => (res.data?.[slot] || 0) >= MAX_PER_SLOT);
           setDisabledSlots(fullSlots);
-          // Nếu tất cả slot đều full thì disable ngày này
           if (fullSlots.length === TIME_SLOTS.length) {
             setDisabledDates(prev => [...new Set([...prev, formData.preferredDate])]);
+          } else {
+            setDisabledDates(prev => prev.filter(date => date !== formData.preferredDate));
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error("Error fetching slot counts:", err);
+          setError('Không thể tải thông tin khung giờ. Vui lòng thử lại sau.');
           setSlotCounts({});
           setDisabledSlots([]);
+          setDisabledDates([]);
+        })
+        .finally(() => {
+          setLoading(false); 
         });
+    } else {
+      setSlotCounts({});
+      setDisabledSlots([]);
+      setDisabledDates([]);
     }
   }, [formData.preferredDate]);
 
-  // Lấy profile và kiểm tra lịch sử bị từ chối
-  useEffect(() => {
-    if (isAuthenticated && user?.userId) {
-      api.get(`/UserProfile/by-user/${user.userId}`)
-        .then(res => setProfile(res.data))
-        .catch(() => setProfile(null));
-      api.get(`/DonationHistory/by-donor/${user.userId}`)
-        .then(res => {
-          const rejected = (res.data || []).some(h => h.status === 'Rejected');
-          setHasRejectedHistory(rejected);
-        })
-        .catch(() => setHasRejectedHistory(false));
-    }
-  }, [isAuthenticated, user?.userId]);
+  // Fetch user profile and donation history (BỎ DonationRequest) for validation
+  const fetchUserData = useCallback(async () => {
+    if (isAuthenticated && user?.userId) { 
+      setIsProfileDataLoading(true); // BẮT ĐẦU loading cho profile data
+      try {
+        const [profileRes, historyRes] = await Promise.all([ // BỎ requestRes
+          api.get(`/UserProfile/by-user/${user.userId}`),
+          api.get(`/DonationHistory/by-donor/${user.userId}`),
+          // BỎ: api.get(`/DonationRequest/by-donor/${user.userId}`) 
+        ]);
+        
+        setProfile(profileRes.data); 
 
-  // Validate form trước khi gửi
-  const validate = () => {
-    const errs = {};
-    if (!formData.bloodTypeId) errs.bloodTypeId = 'Vui lòng chọn nhóm máu.';
-    if (!formData.preferredDate) errs.preferredDate = 'Vui lòng chọn ngày hiến máu.';
-    else if (formData.preferredDate < today)
-      errs.preferredDate = 'Không được chọn ngày trong quá khứ.';
-    if (!formData.preferredTimeSlot) errs.preferredTimeSlot = 'Vui lòng chọn khung giờ.';
-    // Kiểm tra slot đã đủ người chưa
-    if (disabledSlots.includes(formData.preferredTimeSlot))
-      errs.preferredTimeSlot = 'Khung giờ này đã đủ số lượng đăng ký, vui lòng chọn khung giờ khác.';
-    // Kiểm tra ngày đã full chưa
-    if (disabledDates.includes(formData.preferredDate))
-      errs.preferredDate = 'Ngày này đã đủ số lượng đăng ký, vui lòng chọn ngày khác.';
-    // Kiểm tra khoảng cách 90 ngày
-    const lastDate = profile && profile.lastBloodDonationDate ? profile.lastBloodDonationDate : null;
-    if (lastDate && formData.preferredDate) {
-      const last = new Date(lastDate);
-      const next = new Date(formData.preferredDate);
-      const diffDays = Math.floor((next - last) / (1000 * 60 * 60 * 24));
-      if (diffDays < 90) {
-        errs.preferredDate = `Bạn cần chờ ít nhất 90 ngày giữa 2 lần hiến máu. Lần gần nhất: ${lastDate}`;
+        const rejectedHistory = (historyRes.data || []).some(h => h.status === 'Rejected');
+        setHasRejectedHistory(rejectedHistory);
+
+        // BỎ: const rejectedRequests = (requestRes.data || []).some(req => req.status === 'Rejected');
+        // BỎ: setHasRejectedRequest(rejectedRequests); 
+
+      } catch (err) {
+        console.error("Error fetching user data for validation:", err);
+        setProfile(null); 
+        setHasRejectedHistory(false);
+        // BỎ: setHasRejectedRequest(false); 
+        setGeneralError("Không thể tải thông tin cá nhân hoặc lịch sử hiến máu để kiểm tra điều kiện. Vui lòng kiểm tra kết nối mạng."); // Sửa thông báo
+      } finally {
+        setIsProfileDataLoading(false); // KẾT THÚC loading cho profile data
       }
+    } else {
+        setProfile(null);
+        setHasRejectedHistory(false);
+        // BỎ: setHasRejectedRequest(false); 
+        setGeneralError(''); // Nếu không có user, xóa lỗi chung
+        setIsProfileDataLoading(false); // Nếu không có user, cũng kết thúc loading
     }
-    // Kiểm tra tuổi
-    if (profile && profile.dob) {
-      const dob = new Date(profile.dob);
+  }, [isAuthenticated, user?.userId]); // BỎ hasRejectedRequest khỏi dependencies
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
+  // Hàm performValidation (BỎ logic kiểm tra hasRejectedRequest)
+  const performValidation = useCallback(() => {
+    const errs = {};
+    let currentGeneralError = '';
+
+    // Kiểm tra trạng thái tải dữ liệu profile
+    if (isProfileDataLoading) {
+      currentGeneralError = 'Đang tải thông tin điều kiện hiến máu... Vui lòng đợi.';
+    } else if (
+      profile === null ||
+      (
+        (profile.dob === null || profile.dob === undefined || profile.dob === '') &&
+        (profile.dateOfBirth === null || profile.dateOfBirth === undefined || profile.dateOfBirth === '')
+      )
+    ) {
+      currentGeneralError = generalError || 'Vui lòng cập nhật ngày sinh trong hồ sơ để kiểm tra điều kiện hiến máu.';
+    } else {
+      // Kiểm tra tuổi (từ 18 đến 60)
+      const dobStr = profile.dob || profile.dateOfBirth;
+      const dob = new Date(dobStr);
       const now = new Date();
       let age = now.getFullYear() - dob.getFullYear();
       const m = now.getMonth() - dob.getMonth();
@@ -114,78 +149,132 @@ function RegisterDonation() {
         age--;
       }
       if (age < 18 || age > 60) {
-        errs.bloodTypeId = 'Bạn phải từ 18 đến 60 tuổi mới được đăng ký hiến máu.';
+        currentGeneralError = 'Bạn phải từ 18 đến 60 tuổi mới được đăng ký hiến máu.';
+      }
+
+      // Kiểm tra khoảng cách 90 ngày (chỉ nếu không có lỗi tuổi)
+      const lastDate = profile.lastBloodDonationDate ? new Date(profile.lastBloodDonationDate) : null;
+      if (lastDate && formData.preferredDate && !currentGeneralError) {
+        const next = new Date(formData.preferredDate);
+        const diffDays = Math.floor((next - lastDate) / (1000 * 60 * 60 * 24));
+        if (diffDays < 90) {
+          currentGeneralError = `Bạn cần chờ ít nhất 90 ngày giữa 2 lần hiến máu. Lần gần nhất: ${lastDate.toISOString().split('T')[0]}.`;
+        }
+      }
+
+      // Kiểm tra lịch sử bị từ chối
+      if (hasRejectedHistory && !currentGeneralError) {
+        currentGeneralError = 'Bạn đã từng bị từ chối hiến máu, không thể đăng ký hiến máu mới. Vui lòng liên hệ với bệnh viện để biết thêm chi tiết.';
       }
     }
-    // Kiểm tra lịch sử bị từ chối
-    if (hasRejectedHistory) {
-      errs.bloodTypeId = 'Bạn đã từng bị từ chối hiến máu, không thể đăng ký hiến máu mới.';
+
+    // Validation các trường form
+    if (!formData.bloodTypeId) errs.bloodTypeId = 'Vui lòng chọn nhóm máu.';
+    if (!formData.preferredDate) errs.preferredDate = 'Vui lòng chọn ngày hiến máu.';
+    else if (formData.preferredDate < today)
+      errs.preferredDate = 'Không được chọn ngày trong quá khứ.';
+    if (!formData.preferredTimeSlot) errs.preferredTimeSlot = 'Vui lòng chọn khung giờ.';
+    
+    if (formData.preferredTimeSlot && disabledSlots.includes(formData.preferredTimeSlot)) {
+      errs.preferredTimeSlot = 'Khung giờ này đã đủ số lượng đăng ký, vui lòng chọn khung giờ khác.';
     }
-    return errs;
-  };
+
+    return { fieldErrors: errs, generalError: currentGeneralError };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, profile, hasRejectedHistory, disabledSlots, disabledDates, today, isProfileDataLoading, generalError]); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setFieldErrors(prev => ({ ...prev, [name]: '' }));
-    // Nếu đổi ngày thì reset slot
-    if (name === 'preferredDate') {
-      setFormData(prev => ({ ...prev, preferredTimeSlot: '' }));
-    }
+    setFieldErrors({}); 
+    setError(''); 
+    setMessage(''); 
+    setGeneralError(''); 
+    setHasSubmitted(false); 
   };
+
+  // Reset preferredTimeSlot khi đổi preferredDate
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, preferredTimeSlot: '' }));
+  }, [formData.preferredDate]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setHasSubmitted(true); 
     setError('');
     setMessage('');
-    const errs = validate();
-    setFieldErrors(errs);
-    if (Object.keys(errs).length > 0) return;
+    
+    const { fieldErrors: currentFieldErrors, generalError: currentGeneralError } = performValidation();
+    setFieldErrors(currentFieldErrors); 
+    setGeneralError(currentGeneralError); 
 
-    if (!isAuthenticated || !user?.userId) {
+    if (Object.keys(currentFieldErrors).length > 0 || currentGeneralError) { 
+        console.log("Validation failed on submit:", currentFieldErrors, currentGeneralError);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return; 
+    }
+
+    if (!isAuthenticated || !user?.userId) { // SỬA ĐỔI: Dùng user?.userId
       setError('Bạn cần đăng nhập để đăng ký hiến máu.');
       return;
     }
 
-    setLoading(true);
+    setLoading(true); 
     try {
       const payload = {
-        donorUserId: user.userId,
+        donorUserId: user.userId, // SỬA ĐỔI: Dùng user.userId
         bloodTypeId: parseInt(formData.bloodTypeId),
+        componentId: 1, 
         preferredDate: formData.preferredDate,
         preferredTimeSlot: formData.preferredTimeSlot,
-        status: "Pending",
+        status: "Pending", 
         staffNotes: formData.staffNotes
       };
 
       await api.post('/DonationRequest/RegisterDonationRequest', payload);
-      setMessage('Yêu cầu hiến máu của bạn đã được gửi thành công!');
-      setFormData({
+      setMessage('Yêu cầu hiến máu của bạn đã được gửi thành công! Bạn sẽ nhận được thông báo về trạng thái yêu cầu.');
+      
+      setFormData({ 
         bloodTypeId: '',
         preferredDate: '',
         preferredTimeSlot: '',
         staffNotes: '',
       });
+      setFieldErrors({}); 
+      setGeneralError(''); 
+      setHasSubmitted(false); 
+
+      if (formData.preferredDate) {
+        api.get(`/DonationRequest/SlotCounts?date=${formData.preferredDate}`)
+          .then(res => {
+            setSlotCounts(res.data || {});
+            setDisabledSlots(TIME_SLOTS.filter(slot => (res.data?.[slot] || 0) >= MAX_PER_SLOT));
+          })
+          .catch(err => console.error("Error re-fetching slot counts after submission:", err));
+      }
+      fetchUserData(); 
+
     } catch (err) {
+      console.error("Error submitting donation request:", err);
       if (err.response && err.response.data && err.response.data.message) {
         setError(err.response.data.message);
       } else if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-        setError('Bạn chưa đăng nhập hoặc không có quyền.');
+        setError('Phiên đăng nhập đã hết hạn hoặc bạn không có quyền.');
       } else {
-        setError('Đã xảy ra lỗi khi gửi yêu cầu.');
+        setError('Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại sau.');
       }
     } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
-  // Disable ngày đã full slot
-  const isDateDisabled = (dateStr) => disabledDates.includes(dateStr);
+  const isFormDisabledDueToLoading = loading; 
 
   return (
     <div className="page-wrapper">
       <Header />
-      <Navbar />
+      <Navbar /> 
       <main className="container my-5">
         <h1 className="text-center mb-4 text-danger">Đăng ký Hiến máu</h1>
         <p className="text-center lead">
@@ -194,42 +283,46 @@ function RegisterDonation() {
         <div className="card shadow-lg p-4 mx-auto donation-card">
           {error && <div className="alert alert-danger">{error}</div>}
           {message && <div className="alert alert-success">{message}</div>}
+          
+          {isProfileDataLoading && !hasSubmitted && <div className="alert alert-info">Đang kiểm tra điều kiện hiến máu...</div>}
+          {(!isProfileDataLoading || hasSubmitted) && generalError && <div className="alert alert-danger">{generalError}</div>}
+
 
           <form onSubmit={handleSubmit} autoComplete="off">
             <div className="mb-3">
               <label htmlFor="bloodTypeId" className="form-label">Nhóm máu <span style={{color:'red'}}>*</span></label>
               <select
-                className={`form-select ${fieldErrors.bloodTypeId ? 'is-invalid' : ''}`}
+                className={`form-select ${hasSubmitted && fieldErrors.bloodTypeId ? 'is-invalid' : ''}`} 
                 id="bloodTypeId"
                 name="bloodTypeId"
                 value={formData.bloodTypeId}
                 onChange={handleChange}
                 required
-                disabled={loading}
+                disabled={isFormDisabledDueToLoading || isProfileDataLoading}
               >
                 <option value="">Chọn nhóm máu</option>
                 {bloodTypes.map(type => (
                   <option key={type.id} value={type.id}>{type.name}</option>
                 ))}
               </select>
-              {fieldErrors.bloodTypeId && <div className="invalid-feedback">{fieldErrors.bloodTypeId}</div>}
+              {hasSubmitted && fieldErrors.bloodTypeId && <div className="invalid-feedback">{fieldErrors.bloodTypeId}</div>} 
             </div>
 
             <div className="mb-3">
               <label htmlFor="preferredDate" className="form-label">Ngày hiến máu mong muốn <span style={{color:'red'}}>*</span></label>
               <input
                 type="date"
-                className={`form-control ${fieldErrors.preferredDate ? 'is-invalid' : ''}`}
+                className={`form-control ${hasSubmitted && fieldErrors.preferredDate ? 'is-invalid' : ''}`} 
                 id="preferredDate"
                 name="preferredDate"
                 value={formData.preferredDate}
                 onChange={handleChange}
                 min={today}
                 required
-                disabled={loading}
+                disabled={isFormDisabledDueToLoading || isProfileDataLoading} 
               />
-              {fieldErrors.preferredDate && <div className="invalid-feedback">{fieldErrors.preferredDate}</div>}
-              {isDateDisabled(formData.preferredDate) && (
+              {hasSubmitted && fieldErrors.preferredDate && <div className="invalid-feedback">{fieldErrors.preferredDate}</div>} 
+              {formData.preferredDate && disabledDates.includes(formData.preferredDate) && (
                 <div className="text-danger mt-1">Ngày này đã đủ số lượng đăng ký, vui lòng chọn ngày khác.</div>
               )}
             </div>
@@ -237,27 +330,27 @@ function RegisterDonation() {
             <div className="mb-3">
               <label htmlFor="preferredTimeSlot" className="form-label">Khung giờ mong muốn <span style={{color:'red'}}>*</span></label>
               <select
-                className={`form-select ${fieldErrors.preferredTimeSlot ? 'is-invalid' : ''}`}
+                className={`form-select ${hasSubmitted && fieldErrors.preferredTimeSlot ? 'is-invalid' : ''}`} 
                 id="preferredTimeSlot"
                 name="preferredTimeSlot"
                 value={formData.preferredTimeSlot}
                 onChange={handleChange}
                 required
-                disabled={loading || !formData.preferredDate || isDateDisabled(formData.preferredDate)}
+                disabled={isFormDisabledDueToLoading || isProfileDataLoading || !formData.preferredDate || disabledDates.includes(formData.preferredDate)}
               >
                 <option value="">Chọn khung giờ</option>
                 {TIME_SLOTS.map(slot => (
                   <option
                     key={slot}
                     value={slot}
-                    disabled={disabledSlots.includes(slot)}
+                    disabled={disabledSlots.includes(slot)} 
                   >
                     {slot} {slotCounts[slot] ? `(${slotCounts[slot]}/${MAX_PER_SLOT})` : ''}
                     {disabledSlots.includes(slot) ? ' - Đã đầy' : ''}
                   </option>
                 ))}
               </select>
-              {fieldErrors.preferredTimeSlot && <div className="invalid-feedback">{fieldErrors.preferredTimeSlot}</div>}
+              {hasSubmitted && fieldErrors.preferredTimeSlot && <div className="invalid-feedback">{fieldErrors.preferredTimeSlot}</div>} 
             </div>
 
             <div className="mb-3">
@@ -270,18 +363,17 @@ function RegisterDonation() {
                 onChange={handleChange}
                 rows="3"
                 placeholder="Ví dụ: Có thể hiến vào cuối tuần."
-                disabled={loading}
+                disabled={isFormDisabledDueToLoading || isProfileDataLoading} 
               ></textarea>
             </div>
 
-            <button type="submit" className="btn btn-danger btn-lg w-100" disabled={loading}>
+            <button type="submit" className="btn btn-danger btn-lg w-100" disabled={isFormDisabledDueToLoading || isProfileDataLoading}>
               {loading ? 'Đang gửi...' : 'Gửi yêu cầu hiến máu'}
             </button>
           </form>
         </div>
       </main>
       <Footer />
-      {/* CSS nội bộ cho đẹp hơn */}
       <style>{`
         .donation-card {
           max-width: 600px;

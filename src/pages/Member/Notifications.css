@@ -1,0 +1,101 @@
+/* src/styles/Notifications.css */
+
+.notification-page-main {
+    min-height: calc(100vh - 180px); /* Đảm bảo main content có chiều cao đủ */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.notification-list-container {
+    width: 100%;
+    max-width: 800px; /* Giới hạn chiều rộng tối đa của danh sách thông báo */
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden; /* Đảm bảo bo tròn góc */
+    border: 1px solid #e0e0e0; /* Viền nhẹ */
+}
+
+.notification-item {
+    padding: 1.25rem 1.5rem;
+    border-left: 5px solid transparent; /* Viền trái để chỉ trạng thái */
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+    margin-bottom: 0 !important; /* Loại bỏ margin giữa các item list-group nếu có */
+}
+
+.notification-item:not(:last-child) {
+    border-bottom: 1px solid #e9ecef; /* Đường phân cách giữa các item */
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa; /* Nền xám nhạt khi hover */
+    transform: translateY(-2px); /* Hiệu ứng nhấc nhẹ khi hover */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* Bóng nhẹ khi hover */
+}
+
+/* Style cho thông báo chưa đọc */
+.notification-unread {
+    background-color: #e9f5ff; /* Nền xanh nhạt hơn */
+    border-left-color: #007bff; /* Viền trái màu xanh đậm */
+    font-weight: 600; /* In đậm để dễ nhận biết */
+    color: #333;
+}
+
+.notification-unread .notification-type {
+    color: #0056b3; /* Màu chữ type đậm hơn cho chưa đọc */
+}
+
+/* Style cho thông báo đã đọc */
+.notification-read {
+    background-color: #ffffff; /* Nền trắng */
+    border-left-color: #6c757d; /* Viền trái màu xám */
+    color: #666;
+}
+
+.notification-read .notification-type {
+    color: #6c757d; /* Màu chữ type xám hơn cho đã đọc */
+}
+
+.notification-type {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.notification-message {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+}
+
+.notification-date {
+    font-size: 0.85rem;
+}
+
+.notification-status-text {
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .notification-list-container {
+        padding: 0;
+        border-radius: 8px;
+    }
+    .notification-item {
+        padding: 1rem;
+        border-left-width: 4px;
+    }
+    .notification-type {
+        font-size: 1rem;
+    }
+    .notification-message {
+        font-size: 0.9rem;
+    }
+    .notification-date,
+    .notification-status-text {
+        font-size: 0.8rem;
+    }
+}

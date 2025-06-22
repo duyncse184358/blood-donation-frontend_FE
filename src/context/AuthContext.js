@@ -117,7 +117,7 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = user?.role === 'Admin';
   const isStaff = user?.role === 'Staff';
-  const isMember = user?.role === 'Member' || user?.role === 'User';
+  const isMember = user?.role === 'Member' || user?.role === 'member';
   const isUserActive = user?.isActive === true;
 
   const authContextValue = {

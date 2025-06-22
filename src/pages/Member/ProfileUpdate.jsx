@@ -1,11 +1,9 @@
 // src/pages/Member/ProfileUpdate.jsx
-import React, { useState, useEffect } from 'react';
-import LoadingSpinner from '../../components/Shared/LoadingSpinner';
+import React, { useState, useEffect, useCallback } from 'react'; // Đảm bảo useCallback được import
+import LoadingSpinner from '../../components/Shared/LoadingSpinner'; // Đảm bảo đường dẫn đúng
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
-import { useNavigate } from 'react-router-dom';
 
-// Chỉ giữ TP. Hồ Chí Minh
 const provinces = [
   { code: '79', name: 'TP. Hồ Chí Minh' },
 ];
@@ -242,170 +240,194 @@ const streetsByDistrict = {
   ]
 };
 
-function ProfileUpdate() {
-  const { user, isAuthenticated } = useAuth();
-  const [profileData, setProfileData] = useState({
+
+const bloodTypes = [
+  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
+  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
+  { id: 5, name: 'O+' }, { id: 6, name: 'O-' },
+  { id: 7, name: 'AB+' }, { id: 8, name: 'AB-' },
+];
+
+
+
+
+function ProfileUpdate({ onClose }) { 
+  const { user, isAuthenticated } = useAuth(); 
+  const [formData, setFormData] = useState({
     fullName: '',
-    dateOfBirth: '',
+    dateOfBirth: '', 
     gender: '',
-    address: '',
+    address: '', 
     latitude: '',
     longitude: '',
-    bloodTypeId: '',
+    bloodTypeId: '', 
     rhFactor: '',
     medicalHistory: '',
     lastBloodDonationDate: '',
     cccd: '',
     phoneNumber: '',
+    houseNumber: '', 
   });
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [addressError, setAddressError] = useState('');
-  const [isCreateMode, setIsCreateMode] = useState(false);
+  const [loading, setLoading] = useState(true); 
+  const [submitting, setSubmitting] = useState(false); 
+  const [error, setError] = useState(''); 
+  const [message, setMessage] = useState(''); 
+  const [fieldErrors, setFieldErrors] = useState({}); 
+  const [isCreateMode, setIsCreateMode] = useState(false); 
 
-  // Thêm state cho từng trường địa chỉ
-  const [province, setProvince] = useState('');
-  const [district, setDistrict] = useState('');
-  const [ward, setWard] = useState('');
-  const [street, setStreet] = useState('');
-
-  // State cho ngày sinh tách biệt
+  const [provinceCode, setProvinceCode] = useState('');
+  const [districtCode, setDistrictCode] = useState('');
+  const [wardName, setWardName] = useState(''); 
+  const [streetName, setStreetName] = useState(''); 
+  
   const [birthDay, setBirthDay] = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear, setBirthYear] = useState('');
 
-  const navigate = useNavigate();
-
-  // Static data for dropdowns
   const genders = [
-    { value: 'Male', label: 'Nam' },
-    { value: 'Female', label: 'Nữ' },
-    { value: 'Other', label: 'Khác' }
+    { value: 'Male', label: 'Nam' }, { value: 'Female', label: 'Nữ' }, { value: 'Other', label: 'Khác' }
   ];
   const rhFactors = ['Rh+', 'Rh-'];
-  const bloodTypes = [
-    { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
-    { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
-    { id: 5, name: 'O+' }, { id: 6, name: 'O-' },
-    { id: 7, name: 'AB+' }, { id: 8, name: 'AB-' },
-  ];
+  
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i).sort((a,b) => b - a);
+  const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
 
-  // Tạo danh sách năm từ 1900 đến hiện tại
-  const years = Array.from({ length: new Date().getFullYear() - 1900 + 1 }, (_, i) => 1900 + i);
-  // Danh sách tháng
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  // Danh sách ngày (tối đa 31 ngày)
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  // Lấy profile khi mở trang
-  useEffect(() => {
-    if (isAuthenticated && user?.userId) {
-      const fetchProfile = async () => {
-        setLoading(true);
-        setError('');
-        setIsCreateMode(false);
-        try {
-          const res = await api.get(`/UserProfile/by-user/${user.userId}`);
-          // Tách địa chỉ thành các trường riêng nếu có
-          let provinceVal = '', districtVal = '', wardVal = '', streetVal = '';
-          if (res.data.address) {
-            // Giả sử địa chỉ lưu dạng: "Số nhà, Đường, Phường/Xã, Quận/Huyện, Tỉnh/Thành"
-            const parts = res.data.address.split(',').map(s => s.trim());
-            if (parts.length >= 5) {
-              streetVal = parts[0] + (parts[1] ? ', ' + parts[1] : '');
-              wardVal = parts[2];
-              districtVal = parts[3];
-              provinceVal = parts[4];
-            }
-          }
-          setProfileData({
-            fullName: res.data.fullName || '',
-            dateOfBirth: res.data.dateOfBirth ? res.data.dateOfBirth.split('T')[0] : '',
-            gender: res.data.gender || '',
-            address: res.data.address || '',
-            latitude: res.data.latitude !== null && res.data.latitude !== undefined ? String(res.data.latitude) : '',
-            longitude: res.data.longitude !== null && res.data.longitude !== undefined ? String(res.data.longitude) : '',
-            bloodTypeId: res.data.bloodTypeId ? String(res.data.bloodTypeId) : '',
-            rhFactor: res.data.rhFactor || '',
-            medicalHistory: res.data.medicalHistory || '',
-            lastBloodDonationDate: res.data.lastBloodDonationDate ? res.data.lastBloodDonationDate.split('T')[0] : '',
-            cccd: res.data.cccd || '',
-            phoneNumber: res.data.phoneNumber || '',
-          });
-          setProvince(provinceVal);
-          setDistrict(districtVal);
-          setWard(wardVal);
-          setStreet(streetVal);
-          setIsCreateMode(false);
-        } catch (err) {
-          if (err.response && err.response.status === 404) {
-            setIsCreateMode(true);
-            setProfileData({
-              fullName: '',
-              dateOfBirth: '',
-              gender: '',
-              address: '',
-              latitude: '',
-              longitude: '',
-              bloodTypeId: '',
-              rhFactor: '',
-              medicalHistory: '',
-              lastBloodDonationDate: '',
-              cccd: '',
-              phoneNumber: '',
-            });
-            setProvince('');
-            setDistrict('');
-            setWard('');
-            setStreet('');
-          } else {
-            setError('Lỗi hệ thống hoặc không thể lấy thông tin hồ sơ.');
-          }
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchProfile();
-    } else if (!isAuthenticated) {
+  // SỬA LỖI: fetchProfile phải nằm ngoài try-catch
+  const fetchProfile = useCallback(async () => {
+    if (!isAuthenticated || !user?.userId) { 
       setLoading(false);
       setError('Vui lòng đăng nhập để xem và cập nhật hồ sơ.');
+      return;
     }
-  }, [isAuthenticated, user?.userId]);
 
-  // Khi chọn tỉnh, reset quận/huyện, xã/phường
+    setLoading(true);
+    setError('');
+    setMessage('');
+    try {
+      const res = await api.get(`/UserProfile/by-user/${user.userId}`);
+      if (res.data) { 
+        const profile = res.data;
+        if (profile.dateOfBirth) {
+          const [year, month, day] = profile.dateOfBirth.split('T')[0].split('-');
+          setBirthDay(day);
+          setBirthMonth(month);
+          setBirthYear(year);
+        } else {
+          setBirthDay(''); setBirthMonth(''); setBirthYear('');
+        }
+
+        if (profile.address) {
+          const parts = profile.address.split(',').map(s => s.trim());
+          let foundHouseNumber = '';
+          let foundStreet = '';
+          let foundWard = '';
+          let foundDistrict = '';
+          let foundProvince = '';
+
+          if (parts.length >= 5) {
+            foundHouseNumber = parts[0];
+            foundStreet = parts[1];
+            foundWard = parts[2];
+            foundDistrict = parts[3];
+            foundProvince = parts[4];
+          } else if (parts.length === 4) { 
+            foundStreet = parts[0];
+            foundWard = parts[1];
+            foundDistrict = parts[2];
+            foundProvince = parts[3];
+          }
+          
+          const p = provinces.find(p => p.name === foundProvince);
+          if (p) setProvinceCode(p.code);
+          const d = districtsData[p?.code]?.find(d => d.name === foundDistrict);
+          if (d) setDistrictCode(d.code);
+          setWardName(foundWard); 
+          setStreetName(foundStreet);
+          setFormData(prev => ({ ...prev, houseNumber: foundHouseNumber }));
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          fullName: profile.fullName || '',
+          dateOfBirth: profile.dateOfBirth || '', 
+          gender: profile.gender || '',
+          address: profile.address || '',
+          latitude: profile.latitude !== null && profile.latitude !== undefined ? String(profile.latitude) : '',
+          longitude: profile.longitude !== null && profile.longitude !== undefined ? String(profile.longitude) : '',
+          bloodTypeId: profile.bloodTypeId ? String(profile.bloodTypeId) : '', 
+          rhFactor: profile.rhFactor || '',
+          medicalHistory: profile.medicalHistory || '',
+          lastBloodDonationDate: profile.lastBloodDonationDate ? profile.lastBloodDonationDate.split('T')[0] : '', 
+          cccd: profile.cccd || '',
+          phoneNumber: profile.phoneNumber || '',
+        }));
+        setIsCreateMode(false);
+      } else { 
+        setIsCreateMode(true);
+        setFormData({ 
+          fullName: '', dateOfBirth: '', gender: '', address: '',
+          latitude: '', longitude: '', bloodTypeId: '', rhFactor: '',
+          medicalHistory: '', lastBloodDonationDate: '', cccd: '', phoneNumber: '',
+          houseNumber: '', 
+        });
+        setProvinceCode(''); setDistrictCode(''); setWardName(''); setStreetName('');
+        setBirthDay(''); setBirthMonth(''); setBirthYear('');
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setError('Lỗi khi tải thông tin hồ sơ. Vui lòng thử lại.');
+      setIsCreateMode(true); 
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, user?.userId]); // SỬA ĐỔI: Dùng user?.userId cho dependencies
+
   useEffect(() => {
-    setDistrict('');
-    setWard('');
-  }, [province]);
+      fetchProfile();
+  }, [fetchProfile]); // Dependency là fetchProfile (đã bọc trong useCallback)
+
   useEffect(() => {
-    setWard('');
-  }, [district]);
+    setDistrictCode('');
+    setWardName('');
+    setStreetName('');
+  }, [provinceCode]);
+  useEffect(() => {
+    setWardName('');
+    setStreetName('');
+  }, [districtCode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProfileData(prev => ({ ...prev, [name]: value }));
-    if (name === 'address') setAddressError('');
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setError(''); 
+    setMessage(''); 
+    setFieldErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  // Xây dựng địa chỉ từ các trường
-  const buildAddress = () => {
-    let addr = '';
-    if (profileData.houseNumber && profileData.houseNumber.trim()) addr += profileData.houseNumber;
-    if (street) addr += (addr ? ', ' : '') + street;
-    if (ward) addr += (addr ? ', ' : '') + ward;
-    if (district) addr += (addr ? ', ' : '') + districtsData[province].find(d => d.code === district)?.name;
-    if (province) addr += (addr ? ', ' : '') + provinces.find(p => p.code === province)?.name;
-    return addr;
-  };
+  const buildAddress = useCallback(() => {
+    const provinceName = provinces.find(p => p.code === provinceCode)?.name || '';
+    const districtName = districtsData[provinceCode]?.find(d => d.code === districtCode)?.name || '';
+    const wardNameVal = wardsData[districtCode]?.find(w => w.name === wardName)?.name || wardName || '';
+    const streetNameVal = streetsByDistrict[districtCode]?.find(s => s === streetName) || streetName || '';
 
-  // Lấy kinh độ/vĩ độ từ địa chỉ (giả lập, thực tế nên gọi API geocode)
+    let addrParts = [];
+    if (formData.houseNumber?.trim()) addrParts.push(formData.houseNumber.trim());
+    if (streetNameVal?.trim()) addrParts.push(streetNameVal.trim());
+    if (wardNameVal?.trim()) addrParts.push(wardNameVal.trim());
+    if (districtName?.trim()) addrParts.push(districtName.trim());
+    if (provinceName?.trim()) addrParts.push(provinceName.trim());
+
+    return addrParts.join(', ');
+  }, [formData.houseNumber, streetName, wardName, districtCode, provinceCode]);
+
   const fetchLatLngFromAddress = async (address) => {
-    if (!address) return { lat: '', lng: '' };
-    // Chỉ trả về Hồ Chí Minh
+    if (!address) return { lat: null, lng: null };
+    if (address.includes('Hà Nội')) return { lat: '21.0285', lng: '105.8542' };
     if (address.includes('Hồ Chí Minh')) return { lat: '10.7769', lng: '106.7009' };
-    return { lat: '', lng: '' };
+    return { lat: null, lng: null }; 
   };
 
   const handleSubmit = async (e) => {
@@ -413,300 +435,332 @@ function ProfileUpdate() {
     setSubmitting(true);
     setError('');
     setMessage('');
+    setFieldErrors({}); 
 
-    // Validate cơ bản
-    if (!profileData.fullName.trim()) {
-      setError('Họ và tên là bắt buộc.');
-      setSubmitting(false);
-      return;
+    const currentErrors = {};
+
+    if (!formData.fullName.trim()) {
+      currentErrors.fullName = 'Họ và tên là bắt buộc.';
     }
-    if (!street.trim() || !province || !district || !ward) {
-      setError('Vui lòng nhập đầy đủ địa chỉ.');
-      setSubmitting(false);
-      return;
+    if (!provinceCode || !districtCode || !wardName || !streetName) {
+      currentErrors.address = 'Vui lòng chọn đầy đủ Tỉnh/Thành, Quận/Huyện, Phường/Xã và Đường/Phố.';
     }
-    if (profileData.phoneNumber && !/^(\+84|0)[0-9]{9,10}$/.test(profileData.phoneNumber)) {
-      setError('Số điện thoại không hợp lệ.');
-      setSubmitting(false);
-      return;
+    if (formData.phoneNumber && !/^(\+84|0)?[0-9]{9,10}$/.test(formData.phoneNumber)) { 
+      currentErrors.phoneNumber = 'Số điện thoại không hợp lệ (ví dụ: 0912345678 hoặc +84912345678).';
     }
-    if (profileData.cccd && !/^\d{12}$/.test(profileData.cccd)) {
-      setError('CCCD phải đủ 12 số.');
-      setSubmitting(false);
-      return;
-    }
-    if (profileData.dateOfBirth && new Date(profileData.dateOfBirth) > new Date()) {
-      setError('Ngày sinh không được lớn hơn ngày hiện tại.');
-      setSubmitting(false);
-      return;
+    if (formData.cccd && !/^\d{12}$/.test(formData.cccd)) {
+      currentErrors.cccd = 'CCCD phải chứa đúng 12 chữ số.';
     }
 
-    // Ghép ngày sinh
-    const dateOfBirth = birthYear && birthMonth && birthDay
-      ? `${birthYear}-${birthMonth}-${birthDay}`
-      : null;
+    const dateOfBirthCombined = (birthYear && birthMonth && birthDay)
+        ? `${birthYear}-${birthMonth}-${birthDay}`
+        : null; 
 
-    // Ghép địa chỉ
-    const address = buildAddress();
-    const { lat, lng } = await fetchLatLngFromAddress(address);
+    if (dateOfBirthCombined) {
+        try {
+            const dobDate = new Date(dateOfBirthCombined);
+            const todayDate = new Date();
+            todayDate.setHours(0,0,0,0); 
 
-    const submitData = {
-      userId: user.userId,
-      fullName: profileData.fullName,
-      dateOfBirth: dateOfBirth,
-      gender: profileData.gender || null,
-      address: address,
-      latitude: lat ? parseFloat(lat) : null,
-      longitude: lng ? parseFloat(lng) : null,
-      bloodTypeId: profileData.bloodTypeId ? parseInt(profileData.bloodTypeId) : null,
-      rhFactor: profileData.rhFactor || null,
-      medicalHistory: profileData.medicalHistory || null,
-      lastBloodDonationDate: profileData.lastBloodDonationDate || null,
-      cccd: profileData.cccd || null,
-      phoneNumber: profileData.phoneNumber || null,
+            if (dobDate > todayDate) {
+                currentErrors.dateOfBirth = 'Ngày sinh không được lớn hơn ngày hiện tại.';
+            }
+            const age = currentYear - parseInt(birthYear);
+            if (age < 0 || age > 100) {
+                 currentErrors.dateOfBirth = 'Tuổi phải lớn hơn 0 và nhỏ hơn 100 .';
+            }
+
+        } catch (e) {
+            currentErrors.dateOfBirth = 'Ngày sinh không hợp lệ.';
+        }
+    } else {
+        if (birthDay || birthMonth || birthYear) { 
+            currentErrors.dateOfBirth = 'Vui lòng chọn đầy đủ Ngày, Tháng, Năm sinh.';
+        }
+    }
+    
+    setFieldErrors(currentErrors);
+
+    if (Object.keys(currentErrors).length > 0) {
+      setError('Vui lòng kiểm tra lại các thông tin bị lỗi.');
+      setSubmitting(false);
+      return;
+    }
+
+
+    const finalAddress = buildAddress();
+    const { lat, lng } = await fetchLatLngFromAddress(finalAddress);
+
+    const payload = {
+      userId: user.userId, // SỬA ĐỔI: Dùng user.userId
+      fullName: formData.fullName.trim(),
+      dateOfBirth: dateOfBirthCombined, 
+      gender: formData.gender || null,
+      address: finalAddress || null, 
+      latitude: lat !== null ? parseFloat(lat) : null,
+      longitude: lng !== null ? parseFloat(lng) : null,
+      bloodTypeId: formData.bloodTypeId ? parseInt(formData.bloodTypeId) : null,
+      rhFactor: formData.rhFactor || null,
+      medicalHistory: formData.medicalHistory || null,
+      lastBloodDonationDate: formData.lastBloodDonationDate || null, 
+      cccd: formData.cccd.trim() || null,
+      phoneNumber: formData.phoneNumber.trim() || null,
     };
 
     try {
       let res;
       if (isCreateMode) {
-        res = await api.post(`/UserProfile`, { dto: submitData });
+        res = await api.post(`/UserProfile`, payload); 
       } else {
-        res = await api.put(`/UserProfile/by-user/${user.userId}`, { dto: submitData });
+        res = await api.put(`/UserProfile/by-user/${user.userId}`, payload); 
       }
       setMessage(isCreateMode ? 'Hồ sơ của bạn đã được tạo thành công!' : 'Hồ sơ của bạn đã được cập nhật thành công!');
-      setIsCreateMode(false);
-      setTimeout(() => {
-        navigate('/member/dashboard');
-      }, 1000);
+      setIsCreateMode(false); 
+
+      fetchProfile(); 
+      if (onClose) onClose(); 
+
     } catch (err) {
+      console.error('Error submitting profile:', err);
       if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else if (err.response && err.response.status === 404) {
-        setError('Không tìm thấy hồ sơ người dùng.');
-      } else if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-        setError('Bạn chưa đăng nhập hoặc không có quyền cập nhật.');
+        setError(err.response.data.message); 
       } else {
-        setError('Đã xảy ra lỗi khi cập nhật hồ sơ.');
+        setError('Đã xảy ra lỗi khi cập nhật hồ sơ. Vui lòng thử lại.');
       }
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) { 
+    return <LoadingSpinner />;
+  }
+  if (!isAuthenticated || !user?.userId) {
+      return (
+          <div className="alert alert-danger text-center p-3">
+              Bạn cần đăng nhập để xem và cập nhật hồ sơ cá nhân.
+          </div>
+      );
+  }
 
-  // Lấy danh sách quận/huyện theo tỉnh
-  const districts = province ? (districtsData[province] || []) : [];
-  // Lấy danh sách xã/phường theo quận/huyện
-  const wards = district ? (wardsData[district] || []) : [];
-
-  // Tạo giá trị dateOfBirth từ ngày, tháng, năm
-  const dateOfBirth = birthYear && birthMonth && birthDay
-    ? `${birthYear}-${birthMonth}-${birthDay}`
-    : null;
+  const districts = provinceCode ? (districtsData[provinceCode] || []) : [];
+  const wards = districtCode ? (wardsData[districtCode] || []) : [];
+  const streets = districtCode ? (streetsByDistrict[districtCode] || []) : [];
 
   return (
-    <div className="profile-page-wrapper" style={{ background: '#f6f8fa', minHeight: '100vh' }}>
-      <main className="container my-5">
-        <h1 className="text-center mb-4 text-primary">{isCreateMode ? 'Tạo Hồ sơ cá nhân' : 'Cập nhật Hồ sơ cá nhân'}</h1>
-        <p className="text-center lead">
-          Quản lý thông tin cá nhân, y tế và lịch sử hiến máu của bạn.
-        </p>
-        <div className="card shadow p-4 mx-auto" style={{ maxWidth: '700px', borderRadius: '18px', border: '1px solid #e3e6ea' }}>
-          {error && <div className="alert alert-danger">{error}</div>}
-          {message && <div className="alert alert-success">{message}</div>}
-          <form onSubmit={handleSubmit} autoComplete="off">
-            <div className="row g-3">
-              <div className="col-md-6">
-                <label htmlFor="fullName" className="form-label">Họ và tên <span style={{ color: 'red' }}>*</span></label>
-                <input type="text" className="form-control" id="fullName" name="fullName"
-                  value={profileData.fullName} onChange={handleChange} disabled={submitting} autoFocus />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="phoneNumber" className="form-label">Số điện thoại</label>
-                <input type="tel" className="form-control" id="phoneNumber" name="phoneNumber"
-                  value={profileData.phoneNumber} onChange={handleChange} disabled={submitting} />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="cccd" className="form-label">CCCD/CMND</label>
-                <input type="text" className="form-control" id="cccd" name="cccd"
-                  value={profileData.cccd} onChange={handleChange} disabled={submitting} />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Ngày sinh</label>
-                <div className="d-flex gap-2">
-                  <select className="form-select" style={{ width: '33%' }} value={birthDay} onChange={e => setBirthDay(e.target.value)} disabled={submitting}>
-                    <option value="">Ngày</option>
-                    {days.map(d => <option key={d} value={String(d).padStart(2, '0')}>{d}</option>)}
-                  </select>
-                  <select className="form-select" style={{ width: '33%' }} value={birthMonth} onChange={e => setBirthMonth(e.target.value)} disabled={submitting}>
-                    <option value="">Tháng</option>
-                    {months.map(m => <option key={m} value={String(m).padStart(2, '0')}>{m}</option>)}
-                  </select>
-                  <select className="form-select" style={{ width: '34%' }} value={birthYear} onChange={e => setBirthYear(e.target.value)} disabled={submitting}>
-                    <option value="">Năm</option>
-                    {years.map(y => <option key={y} value={y}>{y}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="gender" className="form-label">Giới tính</label>
-                <select className="form-select" id="gender" name="gender"
-                  value={profileData.gender} onChange={handleChange} disabled={submitting}>
-                  <option value="">Chọn giới tính</option>
-                  {genders.map(g => (
-                    <option key={g.value} value={g.value}>{g.label}</option>
-                  ))}
-                </select>
-              </div>
-              {/* Địa chỉ chi tiết */}
-              <div className="col-md-6">
-                <label className="form-label">Tỉnh/Thành phố <span style={{ color: 'red' }}>*</span></label>
-                <select className="form-select" value={province} onChange={e => setProvince(e.target.value)} disabled={submitting}>
-                  <option value="">Chọn tỉnh/thành</option>
-                  {provinces.map(p => (
-                    <option key={p.code} value={p.code}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Quận/Huyện <span style={{ color: 'red' }}>*</span></label>
-                <select className="form-select" value={district} onChange={e => setDistrict(e.target.value)} disabled={!province || submitting}>
-                  <option value="">Chọn quận/huyện</option>
-                  {districts.map(d => (
-                    <option key={d.code} value={d.code}>{d.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Phường/Xã <span style={{ color: 'red' }}>*</span></label>
-                <select className="form-select" value={ward} onChange={e => setWard(e.target.value)} disabled={!district || submitting}>
-                  <option value="">Chọn phường/xã</option>
-                  {wards.map(w => (
-                    <option key={w.code} value={w.name}>{w.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Đường/Phố <span style={{ color: 'red' }}>*</span></label>
-                <select
-                  className="form-select"
-                  value={street}
-                  onChange={e => setStreet(e.target.value)}
-                  disabled={!district || submitting}
-                >
-                  <option value="">Chọn đường/phố</option>
-                  {(streetsByDistrict[district] || []).map(st => (
-                    <option key={st} value={st}>{st}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">Số nhà</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={profileData.houseNumber || ''}
-                  onChange={e => setProfileData(prev => ({ ...prev, houseNumber: e.target.value }))}
-                  disabled={submitting}
-                  placeholder="Số nhà (không bắt buộc)"
-                />
-              </div>
-              {/* Hiển thị địa chỉ đã ghép */}
-              <div className="col-12">
-                <label className="form-label">Địa chỉ đầy đủ</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={buildAddress()}
-                  readOnly
-                  disabled
-                />
-              </div>
-              {/* Kinh độ/vĩ độ */}
-              <div className="col-md-6">
-                <label htmlFor="latitude" className="form-label">Vĩ độ (Latitude)</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  className="form-control"
-                  id="latitude"
-                  name="latitude"
-                  value={profileData.latitude}
-                  readOnly
-                  disabled
-                  placeholder="Tự động lấy từ địa chỉ"
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="longitude" className="form-label">Kinh độ (Longitude)</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  className="form-control"
-                  id="longitude"
-                  name="longitude"
-                  value={profileData.longitude}
-                  readOnly
-                  disabled
-                  placeholder="Tự động lấy từ địa chỉ"
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="bloodTypeId" className="form-label">Nhóm máu</label>
-                <select className="form-select" id="bloodTypeId" name="bloodTypeId"
-                  value={profileData.bloodTypeId} onChange={handleChange} disabled={submitting}>
-                  <option value="">Chọn nhóm máu</option>
-                  {bloodTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
-                </select>
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="rhFactor" className="form-label">Yếu tố Rh</label>
-                <select className="form-select" id="rhFactor" name="rhFactor"
-                  value={profileData.rhFactor} onChange={handleChange} disabled={submitting}>
-                  <option value="">Chọn yếu tố Rh</option>
-                  {rhFactors.map(factor => <option key={factor} value={factor}>{factor}</option>)}
-                </select>
-              </div>
-              <div className="col-12">
-                <label htmlFor="medicalHistory" className="form-label">Lịch sử bệnh án/y tế (nếu có)</label>
-                <textarea className="form-control" id="medicalHistory" name="medicalHistory" rows="3"
-                  value={profileData.medicalHistory} onChange={handleChange} placeholder="Ví dụ: Tiểu đường, cao huyết áp, dị ứng thuốc..." disabled={submitting} />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="lastBloodDonationDate" className="form-label">Ngày hiến máu gần nhất</label>
-                <input type="date" className="form-control" id="lastBloodDonationDate" name="lastBloodDonationDate"
-                  value={profileData.lastBloodDonationDate} onChange={handleChange} disabled={submitting} />
-              </div>
+    <div className="profile-page-container p-4"> 
+      <h2 className="text-center mb-4 text-primary">{isCreateMode ? 'Tạo Hồ sơ cá nhân' : 'Cập nhật Hồ sơ cá nhân'}</h2>
+      <p className="text-center text-muted mb-4">
+        Quản lý thông tin cá nhân, y tế và lịch sử hiến máu của bạn.
+      </p>
+
+      {error && <div className="alert alert-danger">{error}</div>}
+      {message && <div className="alert alert-success">{message}</div>}
+      
+      <form onSubmit={handleSubmit} autoComplete="off">
+        <div className="row g-3">
+          <div className="col-md-6">
+            <label htmlFor="fullName" className="form-label">Họ và tên <span style={{ color: 'red' }}>*</span></label>
+            <input
+              type="text"
+              className={`form-control ${fieldErrors.fullName ? 'is-invalid' : ''}`}
+              id="fullName"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              disabled={submitting}
+              autoFocus
+            />
+            {fieldErrors.fullName && <div className="invalid-feedback">{fieldErrors.fullName}</div>}
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="phoneNumber" className="form-label">Số điện thoại</label>
+            <input
+              type="tel"
+              className={`form-control ${fieldErrors.phoneNumber ? 'is-invalid' : ''}`}
+              id="phoneNumber"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              disabled={submitting}
+              placeholder="Ví dụ: 0912345678"
+            />
+            {fieldErrors.phoneNumber && <div className="invalid-feedback">{fieldErrors.phoneNumber}</div>}
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="cccd" className="form-label">CCCD/CMND</label>
+            <input
+              type="text"
+              className={`form-control ${fieldErrors.cccd ? 'is-invalid' : ''}`}
+              id="cccd"
+              name="cccd"
+              value={formData.cccd}
+              onChange={handleChange}
+              disabled={submitting}
+              placeholder="12 số CCCD"
+            />
+            {fieldErrors.cccd && <div className="invalid-feedback">{fieldErrors.cccd}</div>}
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">Ngày sinh</label>
+            <div className="d-flex gap-2">
+              <select className={`form-select ${fieldErrors.dateOfBirth ? 'is-invalid' : ''}`} value={birthDay} onChange={e => setBirthDay(e.target.value)} disabled={submitting}>
+                <option value="">Ngày</option>
+                {days.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <select className={`form-select ${fieldErrors.dateOfBirth ? 'is-invalid' : ''}`} value={birthMonth} onChange={e => setBirthMonth(e.target.value)} disabled={submitting}>
+                <option value="">Tháng</option>
+                {months.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <select className={`form-select ${fieldErrors.dateOfBirth ? 'is-invalid' : ''}`} value={birthYear} onChange={e => setBirthYear(e.target.value)} disabled={submitting}>
+                <option value="">Năm</option>
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
             </div>
-            <div className="d-grid gap-2 mt-4">
-              <button type="submit" className="btn btn-primary btn-lg" disabled={submitting}>
-                {submitting ? (isCreateMode ? 'Đang tạo...' : 'Đang cập nhật...') : (isCreateMode ? 'Tạo Hồ sơ' : 'Cập nhật Hồ sơ')}
-              </button>
-            </div>
-          </form>
+            {fieldErrors.dateOfBirth && <div className="invalid-feedback">{fieldErrors.dateOfBirth}</div>}
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="gender" className="form-label">Giới tính</label>
+            <select className="form-select" id="gender" name="gender"
+              value={formData.gender} onChange={handleChange} disabled={submitting}>
+              <option value="">Chọn giới tính</option>
+              {genders.map(g => (
+                <option key={g.value} value={g.value}>{g.label}</option>
+              ))}
+            </select>
+          </div>
+          {/* Địa chỉ chi tiết */}
+          <div className="col-md-6">
+            <label className="form-label">Tỉnh/Thành phố <span style={{ color: 'red' }}>*</span></label>
+            <select className={`form-select ${fieldErrors.address ? 'is-invalid' : ''}`} value={provinceCode} onChange={e => setProvinceCode(e.target.value)} disabled={submitting}>
+              <option value="">Chọn tỉnh/thành</option>
+              {provinces.map(p => (
+                <option key={p.code} value={p.code}>{p.name}</option>
+              ))}
+            </select>
+            {fieldErrors.address && <div className="invalid-feedback">{fieldErrors.address}</div>}
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">Quận/Huyện <span style={{ color: 'red' }}>*</span></label>
+            <select className={`form-select ${fieldErrors.address ? 'is-invalid' : ''}`} value={districtCode} onChange={e => setDistrictCode(e.target.value)} disabled={!provinceCode || submitting}>
+              <option value="">Chọn quận/huyện</option>
+              {districts.map(d => (
+                <option key={d.code} value={d.code}>{d.name}</option>
+              ))}
+            </select>
+            {fieldErrors.address && <div className="invalid-feedback">{fieldErrors.address}</div>}
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">Phường/Xã <span style={{ color: 'red' }}>*</span></label>
+            <select className={`form-select ${fieldErrors.address ? 'is-invalid' : ''}`} value={wardName} onChange={e => setWardName(e.target.value)} disabled={!districtCode || submitting}>
+              <option value="">Chọn phường/xã</option>
+              {wards.map(w => (
+                <option key={w.code} value={w.name}>{w.name}</option>
+              ))}
+            </select>
+            {fieldErrors.address && <div className="invalid-feedback">{fieldErrors.address}</div>}
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">Đường/Phố <span style={{ color: 'red' }}>*</span></label>
+            <select
+              className={`form-select ${fieldErrors.address ? 'is-invalid' : ''}`}
+              value={streetName}
+              onChange={e => setStreetName(e.target.value)}
+              disabled={!districtCode || submitting}
+            >
+              <option value="">Chọn đường/phố</option>
+              {streets.map(st => (
+                <option key={st} value={st}>{st}</option>
+              ))}
+            </select>
+            {fieldErrors.address && <div className="invalid-feedback">{fieldErrors.address}</div>}
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">Số nhà</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.houseNumber || ''}
+              onChange={e => setFormData(prev => ({ ...prev, houseNumber: e.target.value }))}
+              disabled={submitting}
+              placeholder="Số nhà (không bắt buộc)"
+            />
+          </div>
+          {/* Hiển thị địa chỉ đã ghép */}
+          <div className="col-12">
+            <label className="form-label">Địa chỉ đầy đủ</label>
+            <input
+              type="text"
+              className="form-control"
+              value={buildAddress()}
+              readOnly
+              disabled
+              placeholder="Địa chỉ sẽ tự động ghép"
+            />
+          </div>
+          {/* Kinh độ/vĩ độ */}
+          <div className="col-md-6">
+            <label htmlFor="latitude" className="form-label">Vĩ độ (Latitude)</label>
+            <input
+              type="number"
+              step="0.000001"
+              className="form-control"
+              id="latitude"
+              name="latitude"
+              value={formData.latitude}
+              readOnly
+              disabled
+              placeholder="Tự động lấy từ địa chỉ"
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="longitude" className="form-label">Kinh độ (Longitude)</label>
+            <input
+              type="number"
+              step="0.000001"
+              className="form-control"
+              id="longitude"
+              name="longitude"
+              value={formData.longitude}
+              readOnly
+              disabled
+              placeholder="Tự động lấy từ địa chỉ"
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="bloodTypeId" className="form-label">Nhóm máu</label>
+            <select className={`form-select ${fieldErrors.bloodTypeId ? 'is-invalid' : ''}`} id="bloodTypeId" name="bloodTypeId"
+              value={formData.bloodTypeId} onChange={handleChange} disabled={submitting}>
+              <option value="">Chọn nhóm máu</option>
+              {bloodTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
+            </select>
+            {fieldErrors.bloodTypeId && <div className="invalid-feedback">{fieldErrors.bloodTypeId}</div>}
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="rhFactor" className="form-label">Yếu tố Rh</label>
+            <select className="form-select" id="rhFactor" name="rhFactor"
+              value={formData.rhFactor} onChange={handleChange} disabled={submitting}>
+              <option value="">Chọn yếu tố Rh</option>
+              {rhFactors.map(factor => <option key={factor} value={factor}>{factor}</option>)}
+            </select>
+          </div>
+          <div className="col-12">
+            <label htmlFor="medicalHistory" className="form-label">Lịch sử bệnh án/y tế (nếu có)</label>
+            <textarea className="form-control" id="medicalHistory" name="medicalHistory" rows="3"
+              value={formData.medicalHistory} onChange={handleChange} placeholder="Ví dụ: Tiểu đường, cao huyết áp, dị ứng thuốc..." disabled={submitting} />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="lastBloodDonationDate" className="form-label">Ngày hiến máu gần nhất</label>
+            <input type="date" className="form-control" id="lastBloodDonationDate" name="lastBloodDonationDate"
+              value={formData.lastBloodDonationDate || ''} onChange={handleChange} disabled={submitting} />
+          </div>
         </div>
-      </main>
-      <style>{`
-        .profile-page-wrapper {
-          background: #f6f8fa;
-        }
-        .card {
-          border-radius: 18px;
-          border: 1px solid #e3e6ea;
-        }
-        .form-control:focus, .form-select:focus {
-          border-color: #86b7fe;
-          box-shadow: 0 0 0 0.2rem rgba(13,110,253,.15);
-        }
-        .btn-primary {
-          background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
-          border: none;
-        }
-        .btn-primary:active, .btn-primary:focus {
-          background: #0056b3;
-        }
-      `}</style>
+        <div className="d-grid gap-2 mt-4">
+          <button type="submit" className="btn btn-primary btn-lg" disabled={submitting}>
+            {submitting ? (isCreateMode ? 'Đang tạo...' : 'Đang cập nhật...') : (isCreateMode ? 'Tạo Hồ sơ' : 'Cập nhật Hồ sơ')}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
