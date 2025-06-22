@@ -86,6 +86,7 @@ function EmergencyRequestForm() {
           ))}
         </select>
       </div>
+{/*       
       <div className="col-md-6">
         <label className="form-label">Thành phần máu</label>
         <select className="form-select" name="componentId" value={form.componentId} onChange={handleChange} required>
@@ -94,7 +95,8 @@ function EmergencyRequestForm() {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
-      </div>
+      </div> */}
+
       <div className="col-md-4">
         <label className="form-label">Số lượng cần (ml)</label>
         <input type="number" className="form-control" name="quantityNeededMl" value={form.quantityNeededMl} onChange={handleChange} min={1} required />
