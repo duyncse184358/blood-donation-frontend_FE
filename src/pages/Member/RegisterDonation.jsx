@@ -345,8 +345,8 @@ function RegisterDonation() {
                     value={slot}
                     disabled={disabledSlots.includes(slot)} 
                   >
-                    {slot} {slotCounts[slot] ? `(${slotCounts[slot]}/${MAX_PER_SLOT})` : ''}
-                    {disabledSlots.includes(slot) ? ' - Đã đầy' : ''}
+                   {slot} {slotCounts[slot] !== undefined ? `(${slotCounts[slot]}/${MAX_PER_SLOT})` : ''} 
+                   {disabledSlots.includes(slot) ? ' - Đã đầy' : ''}
                   </option>
                 ))}
               </select>

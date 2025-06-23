@@ -9,14 +9,16 @@ import api from '../../services/Api';
 import './Notifications.css'; // Import CSS tùy chỉnh cho Notifications
 
 function Notifications() {
-  const { isAuthenticated, currentUser } = useAuth(); 
+  // SỬA ĐỔI: Dùng `user` thay vì `currentUser`
+  const { isAuthenticated, user } = useAuth(); 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchUserNotifications = async () => {
-      if (!isAuthenticated || !currentUser?.userId) { 
+      // SỬA ĐỔI: Kiểm tra `user?.userId`
+      if (!isAuthenticated || !user?.userId) { 
         setLoading(false);
         setError('Vui lòng đăng nhập để xem thông báo.');
         return;
@@ -24,9 +26,8 @@ function Notifications() {
       setLoading(true);
       setError('');
       try {
-        // Gọi API mới từ Backend để lọc theo userId
-        const res = await api.get(`/Notification/by-user/${currentUser.userId}`); 
-        // Backend đã sắp xếp và lọc, nên không cần .filter() và .sort() ở FE nữa
+        // SỬA ĐỔI: Gọi API `/Notification/by-user/${user.userId}`
+        const res = await api.get(`/Notification/by-user/${user.userId}`); 
         setNotifications(res.data || []); 
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
@@ -36,21 +37,19 @@ function Notifications() {
       }
     };
     fetchUserNotifications();
-  }, [isAuthenticated, currentUser?.userId]);
+  }, [isAuthenticated, user?.userId]); // Dependency: `user?.userId`
 
   // Đánh dấu đã đọc notification
   const markAsRead = async (notificationId) => {
     try {
-      // Gửi request PUT để cập nhật IsRead
-      // Bao gồm cả RecipientUserId trong body nếu API PUT yêu cầu (Backend của bạn có thể cần)
-      await api.put(`/Notification/${notificationId}`, { isRead: true, recipientUserId: currentUser.userId }); 
+      // SỬA ĐỔI: Bao gồm `user.userId` trong body
+      await api.put(`/Notification/${notificationId}`, { isRead: true, recipientUserId: user.userId }); 
       setNotifications(prev =>
         prev.map(n => n.notificationId === notificationId ? { ...n, isRead: true } : n)
       );
     } catch (err) {
         console.error("Failed to mark notification as read:", err);
-        // Có thể hiển thị lỗi nhỏ hoặc không làm gì
-        setError('Không thể đánh dấu đã đọc. Vui lòng thử lại.'); // Thêm lỗi cho người dùng
+        setError('Không thể đánh dấu đã đọc. Vui lòng thử lại.');
     }
   };
 
@@ -59,7 +58,8 @@ function Notifications() {
   return (
     <div className="page-wrapper">
       <Header />
-      <Navbar />
+      {/* SỬA ĐỔI: Đảm bảo đường dẫn đến Navbar là components/Shared/Navbar */}
+      <Navbar /> 
       <main className="container my-5 notification-page-main"> {/* Thêm class cho main content */}
         <h1 className="text-center mb-4 text-info animate__animated animate__fadeInDown">Thông báo của tôi</h1>
         <p className="text-center lead text-muted animate__animated animate__fadeIn">Chỉ hiển thị các thông báo gửi cho bạn hoặc thông báo chung.</p>
@@ -75,17 +75,14 @@ function Notifications() {
             {notifications.map((notification) => (
               <div
                 key={notification.notificationId}
-                // Class dựa trên trạng thái đọc
                 className={`list-group-item notification-item ${!notification.isRead ? 'notification-unread' : 'notification-read'}`}
                 aria-current={!notification.isRead ? 'true' : 'false'}
                 onClick={() => !notification.isRead && markAsRead(notification.notificationId)}
               >
                 <div className="d-flex w-100 justify-content-between align-items-center mb-1">
-                  {/* Loại thông báo */}
                   <h5 className={`mb-0 notification-type ${notification.type === 'Emergency' ? 'text-danger' : 'text-primary'}`}>
                     {notification.type === 'Emergency' ? '❗ Khẩn cấp' : notification.type || 'Thông báo chung'}
                   </h5>
-                  {/* Ngày gửi */}
                   <small className="notification-date text-muted">
                     {notification.sentDate ? 
                         new Date(notification.sentDate).toLocaleDateString('vi-VN') + ' ' + 

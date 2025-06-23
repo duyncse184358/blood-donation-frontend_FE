@@ -13,7 +13,7 @@ function BlogPage() {
             try {
                const res = await axios.get('https://newsapi.org/v2/everything', {
   params: {
-    q: 'blood donation OR blood donor OR blood bank',
+    q: 'blood donation',
     apiKey: process.env.REACT_APP_NEWS_API_KEY,
     language: 'en', // bỏ 'vi'
     pageSize: 9,

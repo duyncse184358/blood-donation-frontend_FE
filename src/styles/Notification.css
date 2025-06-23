@@ -1,0 +1,84 @@
+/* src/pages/Staff/NotificationForm.css */
+
+.notification-admin-main {
+    padding-top: 40px;
+    padding-bottom: 40px;
+    min-height: calc(100vh - 180px); /* Đảm bảo đủ chiều cao */
+    background-color: #f8f9fa; /* Nền nhẹ */
+}
+
+.notification-create-btn {
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.notification-table {
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden; /* Cho phép bo tròn góc của bảng */
+    border: 1px solid #dee2e6; /* Viền bảng */
+}
+
+.notification-table thead th {
+    background-color: #007bff; /* Màu header bảng */
+    color: white;
+    font-weight: 700;
+    vertical-align: middle;
+    border-bottom: none; /* Xóa viền dưới header */
+    padding: 15px;
+}
+
+.notification-table tbody tr:hover {
+    background-color: #e2f0ff; /* Màu khi hover dòng */
+    cursor: default;
+}
+
+/* Highlight dòng chưa đọc */
+.notification-table tbody tr.table-warning {
+    background-color: #fff3cd; /* Màu vàng nhạt */
+    font-weight: 500;
+}
+
+.notification-table tbody tr.table-warning:hover {
+    background-color: #ffe69c; /* Màu vàng đậm hơn khi hover */
+}
+
+/* Modal styling (giống với MemberDashboard.css nếu bạn muốn thống nhất) */
+.modal-backdrop-custom {
+    position: fixed;
+    z-index: 1050;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35); /* Soft dark overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content-custom {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 0; /* NotificationSend component sẽ có padding riêng */
+    max-width: 600px; /* Giới hạn chiều rộng modal */
+    width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto; /* Cho phép cuộn nếu nội dung dài */
+    position: relative;
+}
+.btn-close-modal {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #dc3545; /* Màu đỏ cho nút đóng */
+    cursor: pointer;
+    z-index: 10; /* Đảm bảo nút đóng nằm trên nội dung modal */
+    padding: 0; /* Loại bỏ padding button mặc định */
+    line-height: 1; /* Căn chỉnh ký tự X */
+}
+.btn-close-modal:hover {
+    color: #a71d2a;
+}
