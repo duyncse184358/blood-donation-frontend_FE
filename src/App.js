@@ -30,6 +30,7 @@ import StaffDashboardpage from './pages/Staff/StaffDashboard.jsx';
 import NotificationForm from './pages/Staff/NotificationForm.jsx';
 import NotificationSend from './pages/Staff/NotificationSend.jsx';
 import DonorProfile from './pages/Staff/DonorProfileModal.jsx';
+import BloodRequestManagement from './pages/Staff/BloodRequestManagement.jsx';
 
 // Admin
 import AdminDashboardPage from './pages/Admin/DashboardPage.jsx';
@@ -78,6 +79,7 @@ function App() {
                             <Route path="/staff/notifications" element={<NotificationForm />} />
                             <Route path="/staff/notification-send" element={<NotificationSend />} />
                             <Route path="/staff/donor/:userId" element={<DonorProfile />} />
+                            <Route path="/staff/blood-request-management" element={<BloodRequestManagement />} />
                         </Route>
 
                         {/* Admin Routes */}
