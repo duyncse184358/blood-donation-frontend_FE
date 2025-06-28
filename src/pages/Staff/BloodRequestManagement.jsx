@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/Api';
 
 const BLOOD_TYPES = [
@@ -22,25 +23,80 @@ const PRIORITIES = [
 function BloodRequestManagement() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+
+  // Lấy danh sách yêu cầu máu khẩn cấp
+  const fetchRequests = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/EmergencyRequest/list?status=Pending');
+      const mapped = res.data.map(item => ({
+        ...item,
+        id: item.emergencyId // Gán id = emergencyId để dùng thống nhất
+      }));
+      setRequests(mapped);
+    } catch {
+      setRequests([]);
+      setMessage('Không thể tải danh sách yêu cầu máu khẩn cấp.');
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      setLoading(true);
-      try {
-        // Gọi đúng endpoint mới, có thể truyền status nếu muốn lọc
-        const res = await api.get('/EmergencyRequest/list?status=Pending');
-        setRequests(res.data);
-      } catch {
-        setRequests([]);
-      }
-      setLoading(false);
-    };
     fetchRequests();
   }, []);
+
+  // Xem chi tiết thông báo: chuyển trang sang EmergencyNotificationSend
+  const handleViewNotification = async (requestId) => {
+    if (!requestId) {
+      setMessage('Không xác định được yêu cầu máu.');
+      return;
+    }
+    try {
+      const res = await api.get(`/EmergencyNotification/by-emergency/${requestId}`);
+      let notification = res.data;
+      // Nếu trả về mảng, lấy phần tử đầu tiên
+      if (Array.isArray(notification)) {
+        notification = notification[0];
+      }
+      if (notification && notification.notificationId) {
+        // Chuyển sang trang chi tiết thông báo
+        navigate(`/staff/emergency-notification/${notification.notificationId}`);
+      } else {
+        setMessage('Không tìm thấy thông báo liên kết với yêu cầu này.');
+      }
+    } catch (error) {
+      setMessage('Không tìm thấy thông báo liên kết với yêu cầu này.');
+    }
+  };
+
+  // Sửa yêu cầu máu khẩn cấp (cần triển khai modal hoặc trang chỉnh sửa)
+  const handleEditRequest = (request) => {
+    alert('Chức năng sửa chưa được triển khai.\nID: ' + request.id);
+    // TODO: Hiển thị modal hoặc chuyển sang trang chỉnh sửa với dữ liệu request
+  };
+
+  // Xóa yêu cầu máu khẩn cấp
+  const handleDeleteRequest = async (id) => {
+    if (!id) {
+      setMessage('Không xác định được yêu cầu máu để xóa.');
+      return;
+    }
+    if (!window.confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) return;
+    try {
+      await api.delete(`/EmergencyRequest/${id}`);
+      setRequests(prev => prev.filter(r => r.id !== id));
+      setMessage('Đã xóa yêu cầu thành công.');
+    } catch {
+      setMessage('Xóa yêu cầu thất bại.');
+    }
+  };
 
   return (
     <div className="container mt-4">
       <h4>Danh sách yêu cầu máu khẩn cấp</h4>
+
       {loading ? (
         <div>Đang tải...</div>
       ) : (
@@ -54,11 +110,14 @@ function BloodRequestManagement() {
               <th>Ưu tiên</th>
               <th>Hạn cần</th>
               <th>Mô tả</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {requests.length === 0 ? (
-              <tr><td colSpan="7" className="text-center">Không có dữ liệu</td></tr>
+              <tr>
+                <td colSpan="8" className="text-center">Không có dữ liệu</td>
+              </tr>
             ) : (
               requests.map((r, i) => (
                 <tr key={r.id}>
@@ -69,11 +128,35 @@ function BloodRequestManagement() {
                   <td>{PRIORITIES.find(p => p.value === r.priority)?.label}</td>
                   <td>{r.dueDate?.slice(0, 10)}</td>
                   <td>{r.description}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-primary me-2"
+                      onClick={() => handleViewNotification(r.id)}
+                    >
+                      Xem thông báo
+                    </button>
+                    <button
+                      className="btn btn-sm btn-warning me-2"
+                      onClick={() => handleEditRequest(r)}
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDeleteRequest(r.id)}
+                    >
+                      Xóa
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+      )}
+
+      {message && (
+        <div className="alert alert-warning mt-3">{message}</div>
       )}
     </div>
   );

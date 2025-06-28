@@ -31,11 +31,12 @@ import NotificationForm from './pages/Staff/NotificationForm.jsx';
 import NotificationSend from './pages/Staff/NotificationSend.jsx';
 import DonorProfile from './pages/Staff/DonorProfileModal.jsx';
 import BloodRequestManagement from './pages/Staff/BloodRequestManagement.jsx';
+import EmergencyNotificationSend from './pages/Staff/EmergencyNotificationSend';
 
 // Admin
-import AdminDashboardPage from './pages/Admin/DashboardPage.jsx';
-
-import NotificationSendAdmin from './pages/Admin/NotificationSend.jsx';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import DashboardPage from './pages/Admin/DashboardPage';
+import Report from './pages/Admin/Report';
 import ManageUserAccount from './pages/Admin/ManageUserAccount.jsx';
 
 // AuthContext và PrivateRoute
@@ -80,14 +81,16 @@ function App() {
                             <Route path="/staff/notification-send" element={<NotificationSend />} />
                             <Route path="/staff/donor/:userId" element={<DonorProfile />} />
                             <Route path="/staff/blood-request-management" element={<BloodRequestManagement />} />
+                            <Route path="/staff/emergency-notification/:id" element={<EmergencyNotificationSend />} />
                         </Route>
 
                         {/* Admin Routes */}
                         <Route element={<PrivateRoute roles={['Admin']} />}>
-                            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-                           
-                            <Route path="/admin/notification-send" element={<NotificationSendAdmin />} />
-                            <Route path="/admin/manage-users" element={<ManageUserAccount />} />
+                            <Route path="/admin" element={<AdminDashboard />}>
+                                <Route path="dashboard" element={<DashboardPage />} />
+                                <Route path="manage-users" element={<DashboardPage />} />
+                                <Route path="Report" element={<Report />} />
+                            </Route>
                         </Route>
                         
                         {/* Fallback Route */}

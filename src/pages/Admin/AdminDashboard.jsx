@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
-import ManageUserAccount from './ManageUserAccount';
-// import các component khác nếu có
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('users');
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  let mainContent;
-  if (activeTab === 'users') mainContent = <ManageUserAccount />;
-  else if (activeTab === 'donations') mainContent = <div>Quản lý hiến máu (đang phát triển)</div>;
-  else if (activeTab === 'statistics') mainContent = <div>Thống kê (đang phát triển)</div>;
-  else if (activeTab === 'settings') mainContent = <div>Cài đặt hệ thống (đang phát triển)</div>;
+  // Xác định tab đang active dựa vào pathname
+  const getActiveTab = () => {
+    if (location.pathname === '/admin/manage-users' || location.pathname === '/admin/dashboard') return 'users';
+    if (location.pathname === '/admin/donations') return 'donations';
+    if (location.pathname === '/admin/report' || location.pathname === '/admin/Report') return 'statistics';
+    if (location.pathname === '/admin/settings') return 'settings';
+    return '';
+  };
+
+  const activeTab = getActiveTab();
 
   return (
     <div style={{ background: '#f6f8fa', minHeight: '100vh' }}>
@@ -40,7 +45,7 @@ function AdminDashboard() {
                   fontWeight: activeTab === 'users' ? 'bold' : 'normal',
                   cursor: 'pointer'
                 }}
-                onClick={() => setActiveTab('users')}
+                onClick={() => navigate('/admin/manage-users')}
               >
                 <i className="fa fa-users me-2"></i> Quản lý người dùng
               </button>
@@ -54,7 +59,7 @@ function AdminDashboard() {
                   fontWeight: activeTab === 'donations' ? 'bold' : 'normal',
                   cursor: 'pointer'
                 }}
-                onClick={() => setActiveTab('donations')}
+                onClick={() => navigate('/admin/donations')}
               >
                 <i className="fa fa-tint me-2"></i> Quản lý hiến máu
               </button>
@@ -68,7 +73,7 @@ function AdminDashboard() {
                   fontWeight: activeTab === 'statistics' ? 'bold' : 'normal',
                   cursor: 'pointer'
                 }}
-                onClick={() => setActiveTab('statistics')}
+                onClick={() => navigate('/admin/Report')}
               >
                 <i className="fa fa-chart-bar me-2"></i> Thống kê
               </button>
@@ -82,7 +87,7 @@ function AdminDashboard() {
                   fontWeight: activeTab === 'settings' ? 'bold' : 'normal',
                   cursor: 'pointer'
                 }}
-                onClick={() => setActiveTab('settings')}
+                onClick={() => navigate('/admin/settings')}
               >
                 <i className="fa fa-cog me-2"></i> Cài đặt hệ thống
               </button>
@@ -91,7 +96,7 @@ function AdminDashboard() {
         </aside>
         {/* Nội dung chính */}
         <main className="container my-5" style={{ flex: 1 }}>
-          {mainContent}
+          <Outlet />
         </main>
       </div>
       <Footer />

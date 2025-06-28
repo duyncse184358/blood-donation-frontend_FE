@@ -166,8 +166,8 @@ function NotificationSend() {
         setSubmitting(true);
         setError('');
         setMessage('');
-        setPersonalSendStatus(''); 
-        
+        setPersonalSendStatus('');
+
         const errors = validateForm();
         setFieldErrors(errors);
 
@@ -178,31 +178,30 @@ function NotificationSend() {
         }
 
         try {
+            // ĐẢM BẢO recipientUserId = "ALL" nếu là thông báo chung
             const payload = {
-                recipientUserId: formData.recipientUserId,
+                recipientUserId: formData.type === 'Chung' ? 'ALL' : formData.recipientUserId,
                 message: formData.message.trim(),
                 type: formData.type.trim(),
-                sentDate: formData.sentDate ? new Date(formData.sentDate).toISOString() : null, 
-                isRead: false 
+                sentDate: formData.sentDate ? new Date(formData.sentDate).toISOString() : null,
+                isRead: false
             };
 
             await api.post('/Notification', payload);
             setMessage('Thông báo đã được gửi thành công!');
-            setFormData({ 
+            setFormData({
                 message: '',
-                type: '', 
-                recipientUserId: '', 
+                type: '',
+                recipientUserId: '',
                 sentDate: new Date().toISOString().slice(0, 16),
             });
-            setFieldErrors({}); 
-            
-            // Điều hướng về trang danh sách thông báo sau khi gửi thành công
-            setTimeout(() => navigate('/staff/dashboard'), 1500); 
+            setFieldErrors({});
+            setTimeout(() => navigate('/staff/dashboard'), 1500);
 
         } catch (err) {
             console.error("Error sending notification:", err.response || err);
             if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message); 
+                setError(err.response.data.message);
             } else if (err.response && (err.response.status === 401 || err.response.status === 403)) {
                 setError('Bạn không có quyền gửi thông báo.');
             } else {

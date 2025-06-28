@@ -128,13 +128,12 @@ function NotificationForm() {
                   </tr>
                 ) : (
                   notifications.map(n => (
-                    <tr key={n.notificationId} className={!n.isRead ? 'table-warning' : ''}> {/* Highlight thông báo chưa đọc */}
+                    <tr key={n.notificationId} className={!n.isRead ? 'table-warning' : ''}>
                       <td>{n.recipientUserId === 'ALL' ? 'Tất cả người dùng' : n.recipientUserId}</td>
                       <td>{n.type || 'Chung'}</td>
                       <td>{n.message}</td>
                       <td>{n.sentDate ? new Date(n.sentDate).toLocaleString('vi-VN') : 'N/A'}</td>
                       <td>{n.isRead ? '✔️' : '❌'}</td>
-                      {/* Có thể thêm cột Actions với nút Sửa/Xóa tại đây */}
                     </tr>
                   ))
                 )}

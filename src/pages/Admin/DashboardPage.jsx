@@ -1,7 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-import Header from '../../components/Header/Header';
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../services/Api';
 
@@ -169,130 +166,84 @@ function DashboardPage() {
 
   if (!isAuthenticated || user?.role !== 'Admin') {
     return (
-      <div>
-        <Header />
-        <Navbar />
-        <main className="container my-5">
-          <div className="alert alert-danger text-center mt-5">
-            Bạn không có quyền truy cập trang này.
-          </div>
-        </main>
-        <Footer />
-      </div>
+      <main className="container my-5">
+        <div className="alert alert-danger text-center mt-5">
+          Bạn không có quyền truy cập trang này.
+        </div>
+      </main>
     );
   }
 
   return (
-    <div style={{ background: '#f6f8fa', minHeight: '100vh' }}>
-      <Header />
-      <Navbar />
-      <div style={{ display: 'flex', minHeight: '80vh' }}>
-        {/* Sidebar bên trái */}
-        <aside
-          style={{
-            width: 240,
-            background: '#fff',
-            borderRight: '1px solid #e0e0e0',
-            padding: '32px 16px',
-            minHeight: '80vh'
-          }}
-        >
-          <h4 style={{ marginBottom: 32, color: '#e53935' }}>Admin Menu</h4>
-          <ul style={{ listStyle: 'none', padding: 0, fontSize: 16 }}>
-            <li style={{ marginBottom: 18 }}>
-              <a href="/admin/dashboard" style={{ color: '#333', textDecoration: 'none' }}>
-                <i className="fa fa-users me-2"></i> Quản lý người dùng
-              </a>
-            </li>
-            <li style={{ marginBottom: 18 }}>
-              <a href="/admin/donations" style={{ color: '#333', textDecoration: 'none' }}>
-                <i className="fa fa-tint me-2"></i> Quản lý hiến máu
-              </a>
-            </li>
-            <li style={{ marginBottom: 18 }}>
-              <a href="/admin/statistics" style={{ color: '#333', textDecoration: 'none' }}>
-                <i className="fa fa-chart-bar me-2"></i> Thống kê
-              </a>
-            </li>
-            <li style={{ marginBottom: 18 }}>
-              <a href="/admin/settings" style={{ color: '#333', textDecoration: 'none' }}>
-                <i className="fa fa-cog me-2"></i> Cài đặt hệ thống
-              </a>
-            </li>
-          </ul>
-        </aside>
-        {/* Nội dung chính */}
-        <main className="container my-5" style={{ flex: 1 }}>
-          <h1 className="text-center mb-4 text-danger">
-            <i className="fa-solid fa-gauge-high me-2"></i>
-            Trang quản trị hệ thống hiến máu
-          </h1>
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3>Danh sách người dùng</h3>
-            <button className="btn btn-success" onClick={handleOpenCreateModal}>
-              <i className="fa fa-plus me-2"></i> Tạo tài khoản mới
-            </button>
-          </div>
-          {error && <div className="alert alert-danger">{error}</div>}
-          {success && <div className="alert alert-success">{success}</div>}
-          {loading ? (
-            <div>Đang tải...</div>
-          ) : (
-            <div className="table-responsive">
-              <table className="table table-bordered table-hover bg-white">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên đăng nhập</th>
-                    <th>Email</th>
-                    <th>Vai trò</th>
-                    <th className="text-center">Trạng thái hoạt động</th>
-                    <th>Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="text-center">Không có người dùng nào.</td>
-                    </tr>
-                  ) : (
-                    users.map((u) => (
-                      <tr key={u.userId || u.UserId || u.id}>
-                        <td>{u.userId || u.UserId || u.id}</td>
-                        <td>{u.username || u.Username || u.name || u.fullName || '---'}</td>
-                        <td>{u.email || u.Email}</td>
-                        <td>
-                          {roleIdToName[u.roleId || u.RoleId] || u.role || u.Role || '---'}
-                        </td>
-                        <td className="text-center">
-                          {(u.isActive ?? u.IsActive)
-                            ? <i className="fa fa-check" style={{ color: 'green', fontWeight: 'bold' }}></i>
-                            : <i className="fa fa-times" style={{ color: 'red', fontWeight: 'bold' }}></i>
-                          }
-                        </td>
-                        <td>
-                          <button
-                            className="btn btn-primary btn-sm me-2"
-                            onClick={() => handleUpdate(u)}
-                          >
-                            Cập nhật
-                          </button>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleDelete(u.userId || u.UserId || u.id)}
-                          >
-                            Xóa
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) }
-                </tbody>
-              </table>
-            </div>
-          )}
-        </main>
+    <main className="container my-5" style={{ minHeight: '80vh' }}>
+      <h1 className="text-center mb-4 text-danger">
+        <i className="fa-solid fa-gauge-high me-2"></i>
+        Trang quản trị hệ thống hiến máu
+      </h1>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h3>Danh sách người dùng</h3>
+        <button className="btn btn-success" onClick={handleOpenCreateModal}>
+          <i className="fa fa-plus me-2"></i> Tạo tài khoản mới
+        </button>
       </div>
+      {error && <div className="alert alert-danger">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
+      {loading ? (
+        <div>Đang tải...</div>
+      ) : (
+        <div className="table-responsive">
+          <table className="table table-bordered table-hover bg-white">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên đăng nhập</th>
+                <th>Email</th>
+                <th>Vai trò</th>
+                <th className="text-center">Trạng thái hoạt động</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center">Không có người dùng nào.</td>
+                </tr>
+              ) : (
+                users.map((u) => (
+                  <tr key={u.userId || u.UserId || u.id}>
+                    <td>{u.userId || u.UserId || u.id}</td>
+                    <td>{u.username || u.Username || u.name || u.fullName || '---'}</td>
+                    <td>{u.email || u.Email}</td>
+                    <td>
+                      {roleIdToName[u.roleId || u.RoleId] || u.role || u.Role || '---'}
+                    </td>
+                    <td className="text-center">
+                      {(u.isActive ?? u.IsActive)
+                        ? <i className="fa fa-check" style={{ color: 'green', fontWeight: 'bold' }}></i>
+                        : <i className="fa fa-times" style={{ color: 'red', fontWeight: 'bold' }}></i>
+                      }
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-primary btn-sm me-2"
+                        onClick={() => handleUpdate(u)}
+                      >
+                        Cập nhật
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDelete(u.userId || u.UserId || u.id)}
+                      >
+                        Xóa
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) }
+            </tbody>
+          </table>
+        </div>
+      )}
       {/* Modal cập nhật tài khoản */}
       {showModal && (
         <div style={{
@@ -430,10 +381,7 @@ function DashboardPage() {
           </div>
         </div>
       )}
-      <Footer />
-      {/* Font Awesome CDN nếu chưa có */}
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    </div>
+    </main>
   );
 }
 

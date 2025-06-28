@@ -81,15 +81,19 @@ function MemberDashboard() {
     );
   }
 
-  // Classify notifications
-  // Kiểm tra type theo cả chữ thường và hoa để linh hoạt hơn
+  // Classify notifications rõ ràng
   const emergencyNotifs = notifications.filter(n => n.type?.toLowerCase() === 'emergency');
-  const normalNotifs = notifications.filter(n => n.type?.toLowerCase() !== 'emergency');
-  const unreadNormalNotifsCount = normalNotifs.filter(n => !n.isRead).length;
+  const generalNotifs = notifications.filter(
+    n => n.type?.toLowerCase() !== 'emergency' && (n.type?.toLowerCase() === 'chung' || n.recipientUserId === 'ALL')
+  );
+  const personalNotifs = notifications.filter(
+    n => n.type?.toLowerCase() !== 'emergency' && n.type?.toLowerCase() !== 'chung' && n.recipientUserId !== 'ALL'
+  );
+  const unreadGeneralNotifsCount = generalNotifs.filter(n => !n.isRead).length;
+  const unreadPersonalNotifsCount = personalNotifs.filter(n => !n.isRead).length;
 
   return (
     <div className="member-dashboard-wrapper">
-      {/* KHÔNG CÒN THẺ <style> TẠI ĐÂY NỮA - ĐÃ CHUYỂN VÀO MemberDashboard.css */}
       <Header />
       <Navbar />
       <main className="container my-5 member-dashboard-main animate__animated animate__fadeIn">
@@ -103,8 +107,8 @@ function MemberDashboard() {
           <div className="col-12 col-md-6 animate__animated animate__zoomIn">
             {notifLoading ? (
               <div className="notification-card-base emergency-notification-card d-flex justify-content-center align-items-center">
-                <div className="content text-center"> {/* Thêm text-center cho nội dung loading */}
-                  <span className="spinner-border spinner-border-sm me-2 text-white"></span> {/* Đổi màu spinner */}
+                <div className="content text-center">
+                  <span className="spinner-border spinner-border-sm me-2 text-white"></span>
                   <span className="text-white">Đang tải thông báo khẩn cấp...</span>
                 </div>
               </div>
@@ -112,13 +116,14 @@ function MemberDashboard() {
               <div className="notification-card-base emergency-notification-card d-flex justify-content-center align-items-center">
                 <div className="content text-center">
                   <div className="title text-white">Lỗi tải thông báo</div>
-                  <div className="description text-white-75">{notifError}</div> {/* Dùng text-white-75 cho độ mờ */}
+                  <div className="description text-white-75">{notifError}</div>
                 </div>
               </div>
             ) : emergencyNotifs.length > 0 ? (
-              <Link to="/notifications?type=emergency" className="notification-card-base emergency-notification-card">
+              // SỬA: Link tới trang EmergencyNotifications
+              <Link to="/member/emergency-notifications" className="notification-card-base emergency-notification-card">
                 <div className="icon-wrapper">
-                  <AlertCircle size={32} /> {/* Điều chỉnh kích thước icon */}
+                  <AlertCircle size={32} />
                 </div>
                 <div className="content">
                   <div className="title">THÔNG BÁO KHẨN CẤP</div>
@@ -127,7 +132,7 @@ function MemberDashboard() {
                 <span className="detail-button">Xem chi tiết</span>
               </Link>
             ) : (
-              <div className="notification-card-base emergency-notification-card" style={{ opacity: 0.8 }}> {/* Giảm opacity khi không có thông báo */}
+              <div className="notification-card-base emergency-notification-card" style={{ opacity: 0.8 }}>
                 <div className="icon-wrapper">
                   <AlertCircle size={32} />
                 </div>
@@ -135,8 +140,8 @@ function MemberDashboard() {
                   <div className="title">THÔNG BÁO KHẨN CẤP</div>
                   <div className="description">Hiện không có thông báo khẩn cấp nào.</div>
                 </div>
-                {/* Thay thế button bằng Link hoặc span nếu không thể click */}
-                <Link to="/notifications?type=emergency" className="detail-button">Xem chi tiết</Link>
+                {/* SỬA: Link tới trang EmergencyNotifications */}
+                <Link to="/member/emergency-notifications" className="detail-button">Xem chi tiết</Link>
               </div>
             )}
           </div>
@@ -147,7 +152,7 @@ function MemberDashboard() {
               <div className="notification-card-base general-notification-card d-flex justify-content-center align-items-center">
                 <div className="content text-center">
                   <span className="spinner-border spinner-border-sm me-2 text-white"></span>
-                  <span className="text-white">Đang tải thông báo chung...</span>
+                  <span className="text-white">Đang tải thông báo...</span>
                 </div>
               </div>
             ) : notifError ? (
@@ -164,7 +169,9 @@ function MemberDashboard() {
                 </div>
                 <div className="content">
                   <div className="title">Thông báo</div>
-                  <div className="description">Bạn có {unreadNormalNotifsCount} thông báo chưa đọc.</div>
+                  <div className="description">
+                    {unreadGeneralNotifsCount + unreadPersonalNotifsCount} thông báo chưa đọc.
+                  </div>
                 </div>
                 <span className="detail-button">Xem chi tiết</span>
               </Link>
@@ -246,7 +253,7 @@ function MemberDashboard() {
         </div>
 
         {/* Nút "Cập nhật hồ sơ" có thể mở Modal */}
-        <div className="text-center mt-5 mb-5 animate__animated animate__fadeInUp">
+        <div className="text-center mt-5 mb-5 animate__animated animate__fadeIn">
             <button
                 className="btn btn-primary btn-lg custom-update-profile-btn"
                 onClick={() => setShowProfileModal(true)}

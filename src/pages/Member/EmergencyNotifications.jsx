@@ -14,6 +14,7 @@ function EmergencyNotifications() {
   const [responding, setResponding] = useState('');
   const [error, setError] = useState('');
 
+  // Lấy danh sách thông báo khẩn cấp của user
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!isAuthenticated || !user?.userId) {
@@ -24,12 +25,23 @@ function EmergencyNotifications() {
       setLoading(true);
       setError('');
       try {
-        // Lấy tất cả emergency notifications, lọc theo user
-        const res = await api.get('/EmergencyNotification');
-        const list = (res.data || []).filter(n => n.recipientUserId === user.userId);
+        // Lấy thông báo khẩn cấp của user hiện tại (GET BY ID)
+        const res = await api.get(`/EmergencyNotification/${user.userId}`);
+        // Nếu backend trả về 1 object, chuyển thành mảng để map
+        let list = [];
+        if (res && res.data) {
+          if (Array.isArray(res.data)) list = res.data;
+          else if (Object.keys(res.data).length > 0) list = [res.data];
+        }
         setNotifications(list.sort((a, b) => new Date(b.sentDate) - new Date(a.sentDate)));
-      } catch {
-        setError('Không thể tải thông báo khẩn cấp.');
+      } catch (err) {
+        // Nếu là 404 thì coi như không có thông báo, không phải lỗi
+        if (err.response && err.response.status === 404) {
+          setNotifications([]);
+          setError('');
+        } else {
+          setError('Không thể tải thông báo khẩn cấp.');
+        }
       } finally {
         setLoading(false);
       }
