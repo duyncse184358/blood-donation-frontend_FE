@@ -8,7 +8,7 @@ import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Đảm bảo Bootstrap CSS được import
 import { User, Heart, Activity, Bell, MailCheck, Clock, AlertCircle } from 'lucide-react'; // Đảm bảo đã cài đặt lucide-react: npm install lucide-react
-import ProfileUpdate from './ProfileUpdate'; // Import ProfileUpdate component
+import ProfileUpdate from './CreateProfile'; // Import ProfileUpdate component
 
 // Đảm bảo đường dẫn và tên file này chính xác
 import './Memberdashboard.css'; 

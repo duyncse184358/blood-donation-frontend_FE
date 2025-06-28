@@ -3,7 +3,6 @@ import Header from '../../components/Header/Header';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 
-
 import EmergencyRequestForm from './EmergencyRequestForm';
 import DonationRequestManager from './DonationRequestManager';
 import DonationRecordForm from './DonationRecordForm';
@@ -11,7 +10,7 @@ import BloodInventoryManager from './BloodInventoryManager';
 import BloodDiscardForm from './BloodDiscardForm';
 import DonorSearch from './DonorSearch';
 import NotificationForm from './NotificationForm';
-import ProfileUpdate from '../Member/ProfileUpdate';
+import ProfileUpdate from '../Member/CreateProfile';
 import DonationHistoryByRequestModal from './DonationHistoryByRequestModal';
 import DonorProfileModal from './DonorProfileModal';
 
@@ -66,7 +65,9 @@ function StaffDashboard() {
       case 'emergency': return <EmergencyRequestForm />;
       case 'requests': return <DonationRequestManager openModal={openModal} />;
       case 'donation': return <DonationRecordForm />;
-      case 'inventory': return <BloodInventoryManager />;
+      case 'inventory':
+        if (modalType === 'inventory') return null;
+        return <BloodInventoryManager openModal={openModal} />; // Truyền openModal
       case 'discard': return <BloodDiscardForm />;
       case 'search': return <DonorSearch />;
       case 'notification': return <NotificationForm />;
@@ -114,8 +115,12 @@ function StaffDashboard() {
         </div>
 
         {modalType === 'detail' && selected && (
-          <div className="modal show d-block" tabIndex="-1">
-            <div className="modal-dialog modal-lg">
+          <div
+            className="modal show d-block"
+            tabIndex="-1"
+            onClick={closeModal}
+          >
+            <div className="modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Ghi nhận thực tế hiến máu</h5>
@@ -133,6 +138,27 @@ function StaffDashboard() {
 
         {modalType === 'profile' && selected && (
           <DonorProfileModal userId={selected.userId} onClose={closeModal} />
+        )}
+
+        {/* Modal inventory */}
+        {modalType === 'inventory' && (
+          <div
+            className="modal show d-block"
+            tabIndex="-1"
+            onClick={closeModal}
+          >
+            <div className="modal-dialog modal-xl" onClick={e => e.stopPropagation()}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Quản lý kho máu</h5>
+                  <button type="button" className="btn-close" onClick={closeModal}></button>
+                </div>
+                <div className="modal-body">
+                  <BloodInventoryManager openModal={openModal} />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {isAnyModalOpen && <div className="modal-backdrop fade show"></div>}

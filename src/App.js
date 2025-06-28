@@ -19,7 +19,8 @@ import MemberDashboardPage from './pages/Member/MemberDashboard';
 import RegisterDonationPage from './pages/Member/RegisterDonation'; 
 import DonationHistoryPage from './pages/Member/DonationHistory'; 
 import RemindersPage from './pages/Member/Reminders'; 
-import ProfileUpdatePage from './pages/Member/ProfileUpdate';
+import ProfileUpdatePage from './pages/Member/CreateProfile.jsx';
+import UpdateProfilePage from './pages/Member/UpdateProfile.jsx';
 
 // Import các trang thông báo mới
 import MemberNotificationsPage from './pages/Member/Notifications'; // Thông báo chung cho Member
@@ -71,6 +72,7 @@ function App() {
                             <Route path="/member/donation-history" element={<DonationHistoryPage />} />
                             <Route path="/member/reminders" element={<RemindersPage />} />
                             <Route path="/member/profile" element={<ProfileUpdatePage />} />
+                            <Route path="/member/profile/update" element={<UpdateProfilePage />} />
                             <Route path="/member/emergency-notifications" element={<EmergencyNotificationsPage />} />
                         </Route>
 

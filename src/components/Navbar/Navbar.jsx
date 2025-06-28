@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { User, LogOut, Settings, Bell, Heart, Edit } from 'lucide-react';
-import ProfileUpdate from '../../pages/Member/ProfileUpdate'; // Import component cập nhật hồ sơ
+import ProfileUpdate from '../../pages/Member/CreateProfile'; // Import component cập nhật hồ sơ
 
 import './Navbar.css';
 

@@ -5,6 +5,13 @@ import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import api from '../../services/Api';
 
+const BLOOD_TYPES = [
+  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
+  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
+  { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
+  { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
+];
+
 function EmergencyNotificationSend() {
   const { id } = useParams();
   const location = useLocation();
@@ -13,6 +20,15 @@ function EmergencyNotificationSend() {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Donor search state
+  const [bloodTypeId, setBloodTypeId] = useState('');
+  const [radius, setRadius] = useState(5);
+  const [donors, setDonors] = useState([]);
+  const [donorMessage, setDonorMessage] = useState('');
+  const [selectedDonors, setSelectedDonors] = useState([]);
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState('');
 
   // Lấy id từ state nếu chuyển trang bằng navigate và truyền state
   const notificationId = id || location.state?.notificationId;
@@ -36,7 +52,6 @@ function EmergencyNotificationSend() {
     setLoading(true);
     setError('');
     try {
-      // Giả sử backend có API tìm kiếm, ví dụ: /EmergencyNotification/search?keyword=...
       const res = await api.get(`/EmergencyNotification/search?keyword=${encodeURIComponent(search)}`);
       setSearchResults(res.data || []);
     } catch {
@@ -44,6 +59,64 @@ function EmergencyNotificationSend() {
       setSearchResults([]);
     }
     setLoading(false);
+  };
+
+  // Donor search
+  const handleDonorSearch = async (e) => {
+    e.preventDefault();
+    setDonorMessage('');
+    setDonors([]);
+    setSendResult('');
+    if (!bloodTypeId || !radius) {
+      setDonorMessage('Vui lòng chọn nhóm máu và bán kính.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.post('/DonorSearch/search', {
+        bloodTypeId: Number(bloodTypeId),
+        radiusInKm: Number(radius)
+      });
+      setDonorMessage(res.data.message);
+      setDonors(res.data.data || []);
+    } catch {
+      setDonorMessage('Có lỗi xảy ra khi tìm kiếm.');
+    }
+    setLoading(false);
+  };
+
+  // Chọn donor
+  const handleSelectDonor = (userId) => {
+    setSelectedDonors(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  // Gửi thông báo cho danh sách đã chọn
+  const handleSendNotification = async () => {
+    if (selectedDonors.length === 0) {
+      setSendResult('Vui lòng chọn ít nhất một người nhận.');
+      return;
+    }
+    setSending(true);
+    setSendResult('');
+    try {
+      // Gửi lần lượt từng người, hoặc backend hỗ trợ gửi nhiều thì truyền mảng userId
+      for (const userId of selectedDonors) {
+        await api.post('/EmergencyNotification', {
+          emergencyId: notification?.emergencyId,
+          recipientUserId: userId,
+          message: notification?.message || notification?.content || 'Hiến máu khẩn cấp'
+        });
+      }
+      setSendResult('Đã gửi thông báo thành công!');
+      setSelectedDonors([]);
+    } catch {
+      setSendResult('Gửi thông báo thất bại.');
+    }
+    setSending(false);
   };
 
   return (
@@ -99,6 +172,101 @@ function EmergencyNotificationSend() {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Tìm kiếm người hiến máu phù hợp */}
+        <div className="mt-5">
+          <h4>Tìm kiếm người hiến máu phù hợp</h4>
+          <form className="row g-3 mb-3" onSubmit={handleDonorSearch}>
+            <div className="col-md-4">
+              <label className="form-label">Nhóm máu</label>
+              <select
+                className="form-select"
+                value={bloodTypeId}
+                onChange={e => setBloodTypeId(e.target.value)}
+                required
+              >
+                <option value="">Chọn nhóm máu...</option>
+                {BLOOD_TYPES.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Bán kính (km)</label>
+              <input
+                type="number"
+                className="form-control"
+                min={1}
+                value={radius}
+                onChange={e => setRadius(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-md-4 d-flex align-items-end">
+              <button className="btn btn-success w-100" type="submit" disabled={loading}>
+                {loading ? 'Đang tìm...' : 'Tìm kiếm người hiến'}
+              </button>
+            </div>
+          </form>
+          {donorMessage && <div className="alert alert-info">{donorMessage}</div>}
+          {donors.length > 0 && (
+            <div>
+              <h5>Kết quả:</h5>
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Họ tên</th>
+                    <th>Ngày sinh</th>
+                    <th>Giới tính</th>
+                    <th>Địa chỉ</th>
+                    <th>Nhóm máu</th>
+                    <th>SĐT</th>
+                    <th>Lần hiến gần nhất</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {donors.map(d => (
+                    <tr key={d.profileId}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedDonors.includes(d.userId)}
+                          onChange={() => handleSelectDonor(d.userId)}
+                        />
+                      </td>
+                      <td>{d.fullName}</td>
+                      <td>{d.dateOfBirth}</td>
+                      <td>{d.gender === 1 ? 'Nam' : d.gender === 2 ? 'Nữ' : 'Khác'}</td>
+                      <td>{d.address}</td>
+                      <td>{BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}</td>
+                      <td>{d.phoneNumber}</td>
+                      <td>{d.lastDonationDate ? new Date(d.lastDonationDate).toLocaleString('vi-VN') : 'Chưa có'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Gửi thông báo cho người hiến máu */}
+        {selectedDonors.length > 0 && (
+          <div className="mt-4">
+            <h4>Gửi thông báo cho người hiến máu đã chọn</h4>
+            <div className="alert alert-warning">
+              {selectedDonors.length} người sẽ nhận được thông báo.
+            </div>
+            <button
+              className="btn btn-danger"
+              onClick={handleSendNotification}
+              disabled={sending}
+            >
+              {sending ? 'Đang gửi...' : 'Gửi thông báo'}
+            </button>
+            {sendResult && <div className="mt-2">{sendResult}</div>}
           </div>
         )}
       </main>
