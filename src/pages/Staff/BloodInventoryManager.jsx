@@ -3,12 +3,10 @@ import api from '../../services/Api';
 
 const PAGE_SIZE = 10;
 
-function BloodInventoryManager() {
+function BloodInventoryManager({ onEditUnit }) {
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [editUnit, setEditUnit] = useState(null); // Đơn vị máu đang sửa
-  const [editForm, setEditForm] = useState({});
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -29,48 +27,6 @@ function BloodInventoryManager() {
 
   const pagedUnits = units.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const totalPages = Math.ceil(units.length / PAGE_SIZE);
-
-  // Khi bấm "Sửa"
-  const handleEdit = (unit) => {
-    setEditUnit(unit);
-    setEditForm({ ...unit });
-    setMessage('');
-  };
-
-  // Đóng modal
-  const handleCloseModal = () => {
-    setEditUnit(null);
-    setEditForm({});
-    setMessage('');
-  };
-
-  // Lưu chỉnh sửa
-  const handleSave = async () => {
-    try {
-      const payload = {
-        unitId: editForm.unitId,
-        bloodTypeId: editForm.bloodTypeId,
-        componentId: editForm.componentId,
-        volumeMl: editForm.volumeMl,
-        collectionDate: editForm.collectionDate,
-        expirationDate: editForm.expirationDate,
-        storageLocation: editForm.storageLocation,
-        testResults: editForm.testResults,
-        status: editForm.status,
-        discardReason: editForm.discardReason,
-      };
-      const res = await api.put(`/BloodUnit/${editForm.unitId}`, payload);
-      setUnits(units =>
-        units.map(u =>
-          u.unitId === editForm.unitId ? { ...u, ...res.data } : u
-        )
-      );
-      setMessage('Cập nhật thành công!');
-      handleCloseModal();
-    } catch {
-      setMessage('Cập nhật thất bại!');
-    }
-  };
 
   // Xóa đơn vị máu
   const handleDelete = async (unitId) => {
@@ -121,7 +77,7 @@ function BloodInventoryManager() {
                     {u.status === 'Used' && 'Đã sử dụng'}
                   </td>
                   <td>
-                    <button className="btn btn-sm btn-warning me-1" onClick={() => handleEdit(u)}>Sửa</button>
+                    <button className="btn btn-sm btn-warning me-1" onClick={() => onEditUnit(u)}>Sửa</button>
                     <button className="btn btn-sm btn-danger" onClick={() => handleDelete(u.unitId)}>Xóa</button>
                   </td>
                 </tr>
@@ -150,61 +106,6 @@ function BloodInventoryManager() {
           </nav>
         </>
       )}
-
-      {/* Modal sửa */}
-      {editUnit && (
-        <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.2)' }} onClick={handleCloseModal}>
-          <div className="modal-dialog" onClick={e => e.stopPropagation()}>
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Sửa đơn vị máu</h5>
-                <button type="button" className="btn-close" onClick={handleCloseModal}></button>
-              </div>
-              <div className="modal-body">
-                <div className="mb-2"><b>Mã đơn vị:</b> {editForm.unitId}</div>
-                <div className="mb-2"><b>Nhóm máu:</b> {editForm.bloodTypeName}</div>
-                <div className="mb-2"><b>Thành phần:</b> {editForm.componentName}</div>
-                <div className="mb-2">
-                  <b>Thể tích (ml):</b>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={editForm.volumeMl || ''}
-                    onChange={e => setEditForm(f => ({ ...f, volumeMl: e.target.value }))}
-                  />
-                </div>
-                <div className="mb-2">
-                  <b>Trạng thái:</b>
-                  <select
-                    className="form-select"
-                    value={editForm.status || ''}
-                    onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
-                  >
-                    <option value="Available">Có sẵn</option>
-                    <option value="Reserved">Đã đặt</option>
-                    <option value="Discarded">Đã loại bỏ</option>
-                    <option value="Used">Đã sử dụng</option>
-                  </select>
-                </div>
-                <div className="mb-2">
-                  <b>Lý do loại bỏ:</b>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={editForm.discardReason || ''}
-                    onChange={e => setEditForm(f => ({ ...f, discardReason: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-success" type="button" onClick={handleSave}>Lưu</button>
-                <button className="btn btn-secondary" type="button" onClick={handleCloseModal}>Hủy</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {editUnit && <div className="modal-backdrop fade show"></div>}
     </div>
   );
 }
