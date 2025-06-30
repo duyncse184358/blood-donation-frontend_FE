@@ -31,22 +31,22 @@ function DonationRequestManager({ openModal }) {
         ...res.data,
         onUpdateStatus: async (newStatus, onDone) => {
           try {
-            const updateRes = await api.put(`/DonationRequest/${requestId}`, {
-              ...res.data,
+            const updateBody = {
+              bloodTypeId: res.data.bloodTypeId,
+              componentId: res.data.componentId,
+              preferredDate: res.data.preferredDate,
+              preferredTimeSlot: res.data.preferredTimeSlot,
               status: newStatus,
-            });
-            // Cập nhật lại danh sách
+              staffNotes: res.data.staffNotes,
+              donorUserId: res.data.donorUserId, // nếu BE yêu cầu
+            };
+            const updateRes = await api.put(`/DonationRequest/${requestId}`, updateBody);
             setRequests(reqs =>
               reqs.map(r =>
                 r.requestId === requestId ? { ...r, ...updateRes.data } : r
               )
             );
-            // Nếu trạng thái mới là Completed, cập nhật UserProfile
-            if (newStatus === 'Complete' && updateRes.data.preferredDate && res.data.donorUserId) {
-              await api.put(`/UserProfile/by-user/${res.data.donorUserId}`, {
-                dto: { lastBloodDonationDate: updateRes.data.preferredDate }
-              });
-            }
+            // Đã bỏ cập nhật UserProfile ở đây
             if (onDone) onDone(null, updateRes.data);
           } catch (err) {
             if (onDone) onDone(err);

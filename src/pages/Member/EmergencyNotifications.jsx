@@ -25,9 +25,8 @@ function EmergencyNotifications() {
       setLoading(true);
       setError('');
       try {
-        // Lấy thông báo khẩn cấp của user hiện tại (GET BY ID)
-        const res = await api.get(`/EmergencyNotification/${user.userId}`);
-        // Nếu backend trả về 1 object, chuyển thành mảng để map
+        // Gọi API mới lấy danh sách notification theo userId
+        const res = await api.get(`/EmergencyNotification/by-user/${user.userId}`);
         let list = [];
         if (res && res.data) {
           if (Array.isArray(res.data)) list = res.data;
@@ -57,6 +56,25 @@ function EmergencyNotifications() {
         notificationId,
         responseStatus
       });
+
+      // Nếu phản hồi là "Interested" thì tạo lịch sử hiến máu mới theo emergencyId
+      if (responseStatus === 'Interested') {
+        // Tìm notification để lấy emergencyId
+        const notification = notifications.find(n => n.notificationId === notificationId);
+        if (notification && notification.emergencyId) {
+          try {
+            await api.post('/DonationHistory', {
+              userId: user.userId,
+              emergencyId: notification.emergencyId,
+              donationDate: new Date().toISOString(),
+              status: 'Pending' // hoặc 'Complete' nếu muốn đánh dấu đã hiến luôn
+            });
+          } catch (err) {
+            // Có thể hiển thị thông báo lỗi nếu cần
+          }
+        }
+      }
+
       setNotifications(prev =>
         prev.map(n =>
           n.notificationId === notificationId
@@ -98,6 +116,18 @@ function EmergencyNotifications() {
                     </h5>
                     <p className="card-text mb-1">
                       <b>Thời gian gửi:</b> {new Date(n.sentDate).toLocaleString('vi-VN')}
+                    </p>
+                    <p className="card-text mb-1">
+                      <b>Nội dung:</b>{' '}
+                      {n.message
+                        ? n.message
+                            // Lọc thông tin: chỉ lấy phần sau dấu ":" và bỏ icon nếu có
+                            .replace(/^.*?:\s?/, '') // Bỏ phần đầu đến dấu ":"
+                            .replace(/(<([^>]+)>)/gi, '') // Bỏ thẻ HTML nếu có
+                            .replace(/(?:\r\n|\r|\n)/g, ' ') // Bỏ xuống dòng
+                            .replace(/[\[\]\{\}"]/g, '') // Bỏ [, ], {, }
+                            .trim()
+                        : ''}
                     </p>
                     <p className="card-text mb-1">
                       <b>Trạng thái phản hồi:</b>{' '}

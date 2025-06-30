@@ -35,7 +35,10 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
     api.get(`/DonationHistory/by-request/${requestId}`)
       .then(res => {
         setHistory(res.data);
-        setForm(res.data);
+        setForm(f => ({
+          ...res.data,
+          donorUserId: res.data.donorUserId || res.data.DonorUserId || (history && history.donorUserId) || '', // fallback nếu thiếu
+        }));
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
@@ -52,20 +55,42 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
     setMsg('');
     setErr('');
     try {
+      let donorUserId = form.donorUserId;
+
+      // Nếu chưa có donorUserId, tạo tài khoản tạm cho người hiến máu thực tế
+      if (!donorUserId) {
+        // Bạn có thể bổ sung các trường nhập nhanh như tên, số điện thoại ở form
+        // Ở đây ví dụ sinh username/email tự động, mật khẩu mặc định
+        const autoUsername = 'guest_' + Date.now();
+        const autoEmail = 'guest_' + Date.now() + '#gmail.com';
+        const createUserRes = await api.post('/ManageUserAccounts', {
+          username: autoUsername,
+          password: '12345',
+          email: autoEmail,
+          roleId: 3 // hoặc roleId mặc định cho người hiến máu
+        });
+        donorUserId = createUserRes.data.userId;
+      }
+
       const payload = {
-        donorUserId: form.donorUserId,
-        donationDate: form.donationDate,
-        bloodTypeId: form.bloodTypeId,
-        componentId: form.componentId,
-        quantityMl: form.quantityMl,
-        eligibilityStatus: form.eligibilityStatus,
-        reasonIneligible: form.reasonIneligible,
-        testingResults: form.testingResults,
-        staffUserId: user?.userId || form.staffUserId,
-        status: form.status,
-        emergencyId: form.emergencyId,
-        descriptions: form.descriptions,
-        donationRequestId: form.donationRequestId,
+        DonorUserId: donorUserId,
+        DonationDate: form.donationDate,
+        BloodTypeId: form.bloodTypeId,
+        ComponentId: form.componentId,
+        QuantityMl: form.quantityMl,
+        EligibilityStatus:
+          form.eligibilityStatus === true || form.eligibilityStatus === 'true'
+            ? 'true'
+            : form.eligibilityStatus === false || form.eligibilityStatus === 'false'
+            ? 'false'
+            : '',
+        ReasonIneligible: form.reasonIneligible,
+        TestingResults: form.testingResults,
+        StaffUserId: user?.userId || form.staffUserId,
+        Status: form.status,
+        EmergencyId: form.emergencyId,
+        Descriptions: form.descriptions,
+        DonationRequestId: form.donationRequestId,
       };
       const res = await api.put(`/DonationHistory/${form.donationId}`, payload);
       setHistory(res.data);
@@ -73,11 +98,25 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
       setMsg('Cập nhật thành công!');
       setEdit(false);
 
-      // Nếu trạng thái là Complete, cập nhật lastBloodDonationDate cho UserProfile
-      if (payload.status === 'Complete' && payload.donationDate && payload.donorUserId) {
-        await api.put(`/UserProfile/by-user/${payload.donorUserId}`, {
-          dto: { lastBloodDonationDate: payload.donationDate }
-        });
+      // Nếu trạng thái là Complete hoặc Completed, cập nhật lastBloodDonationDate cho UserProfile
+      if (
+        (payload.Status === 'Complete' || payload.Status === 'Completed') &&
+        payload.DonationDate &&
+        payload.DonorUserId
+      ) {
+        try {
+          const profileRes = await api.get(`/UserProfile/by-user/${payload.DonorUserId}`);
+          const profile = profileRes.data;
+          const updatedProfile = {
+            ...profile,
+            lastBloodDonationDate: payload.DonationDate
+          };
+          await api.put(`/UserProfile/by-user/${payload.DonorUserId}`, {
+            dto: updatedProfile
+          });
+        } catch (e) {
+          console.error('Không thể cập nhật ngày hiến máu gần nhất cho user profile');
+        }
       }
     } catch {
       setErr('Cập nhật thất bại!');
@@ -109,7 +148,13 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                   <div><b>Nhóm máu:</b> {history.bloodTypeName}</div>
                   <div><b>Thành phần máu:</b> {history.componentName}</div>
                   <div><b>Số lượng (ml):</b> {history.quantityMl}</div>
-                  <div><b>Tình trạng đủ điều kiện:</b> {history.eligibilityStatus === true ? 'Đủ điều kiện' : history.eligibilityStatus === false ? 'Không đủ điều kiện' : ''}</div>
+                  <div><b>Tình trạng đủ điều kiện:</b>{' '}
+                    {history.eligibilityStatus === 'true'
+                      ? 'Đủ điều kiện'
+                      : history.eligibilityStatus === 'false'
+                      ? 'Không đủ điều kiện'
+                      : ''}
+                  </div>
                   <div><b>Lý do không đủ điều kiện:</b> {history.reasonIneligible}</div>
                   <div><b>Kết quả xét nghiệm:</b> {history.testingResults}</div>
                   <div><b>Trạng thái:</b> {history.status === 'Complete' ? 'Hoàn thành'
@@ -158,7 +203,18 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                     <input type="text" className="form-control" name="reasonIneligible" value={form.reasonIneligible || ''} onChange={handleChange} />
                   </div>
                   <div className="mb-2"><b>Kết quả xét nghiệm:</b>
-                    <input type="text" className="form-control" name="testingResults" value={form.testingResults || ''} onChange={handleChange} />
+                    <select
+                      className="form-select"
+                      name="testingResults"
+                      value={form.testingResults || ''}
+                      onChange={handleChange}
+                    >
+                      <option value="">Chọn kết quả</option>
+                      <option value="Âm tính">Âm tính</option>
+                      <option value="Dương tính">Dương tính</option>
+                      <option value="Đang chờ">Đang chờ</option>
+                      <option value="Không xác định">Không xác định</option>
+                    </select>
                   </div>
                   <div className="mb-2"><b>Trạng thái:</b>
                     <select className="form-select" name="status" value={form.status || ''} onChange={handleChange}>

@@ -30,6 +30,9 @@ function EmergencyNotificationSend() {
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState('');
 
+  // Đã gửi thông báo cho ai
+  const [sentUserIds, setSentUserIds] = useState([]);
+
   // Lấy id từ state nếu chuyển trang bằng navigate và truyền state
   const notificationId = id || location.state?.notificationId;
 
@@ -44,6 +47,17 @@ function EmergencyNotificationSend() {
       .catch(() => setError('Không thể tải nội dung thông báo.'))
       .finally(() => setLoading(false));
   }, [notificationId]);
+
+  // Lấy danh sách userId đã gửi thông báo cho emergency này
+  useEffect(() => {
+    if (!notification?.emergencyId) return;
+    api.get(`/EmergencyNotification/by-emergency/${notification.emergencyId}`)
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setSentUserIds(res.data.map(n => n.recipientUserId));
+        }
+      });
+  }, [notification?.emergencyId]);
 
   // Hàm tìm kiếm thông báo khẩn cấp theo từ khóa
   const handleSearch = async (e) => {
@@ -85,7 +99,7 @@ function EmergencyNotificationSend() {
     setLoading(false);
   };
 
-  // Chọn donor
+  // Chọn donor: Khi chọn user thì tự động tạo 1 thông báo mới cho user đó dựa trên notification hiện tại
   const handleSelectDonor = (userId) => {
     setSelectedDonors(prev =>
       prev.includes(userId)
@@ -94,7 +108,7 @@ function EmergencyNotificationSend() {
     );
   };
 
-  // Gửi thông báo cho danh sách đã chọn
+  // Gửi thông báo cho danh sách đã chọn (nếu muốn gửi lại cho nhiều người)
   const handleSendNotification = async () => {
     if (selectedDonors.length === 0) {
       setSendResult('Vui lòng chọn ít nhất một người nhận.');
@@ -103,12 +117,16 @@ function EmergencyNotificationSend() {
     setSending(true);
     setSendResult('');
     try {
-      // Gửi lần lượt từng người, hoặc backend hỗ trợ gửi nhiều thì truyền mảng userId
       for (const userId of selectedDonors) {
         await api.post('/EmergencyNotification', {
           emergencyId: notification?.emergencyId,
           recipientUserId: userId,
-          message: notification?.message || notification?.content || 'Hiến máu khẩn cấp'
+          // Không gửi notificationId!
+          sentDate: new Date().toISOString(),
+          deliveryMethod: 'App Notification',
+          isRead: false,
+          message: notification?.message || notification?.content || 'Hiến máu khẩn cấp',
+          responseStatus: 'No Response'
         });
       }
       setSendResult('Đã gửi thông báo thành công!');
@@ -143,7 +161,7 @@ function EmergencyNotificationSend() {
         {notification && (
           <div className="card mb-4">
             <div className="card-header">
-              <strong>Tiêu đề:</strong> {notification.title || notification.message || 'Hiến máu khẩn cấp'}
+              <strong>Tiêu đề:</strong> {'Hiến máu khẩn cấp'}
             </div>
             <div className="card-body">
               <p><strong>Nội dung:</strong> {notification.content || notification.message}</p>
@@ -228,24 +246,63 @@ function EmergencyNotificationSend() {
                   </tr>
                 </thead>
                 <tbody>
-                  {donors.map(d => (
-                    <tr key={d.profileId}>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={selectedDonors.includes(d.userId)}
-                          onChange={() => handleSelectDonor(d.userId)}
-                        />
-                      </td>
-                      <td>{d.fullName}</td>
-                      <td>{d.dateOfBirth}</td>
-                      <td>{d.gender === 1 ? 'Nam' : d.gender === 2 ? 'Nữ' : 'Khác'}</td>
-                      <td>{d.address}</td>
-                      <td>{BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}</td>
-                      <td>{d.phoneNumber}</td>
-                      <td>{d.lastDonationDate ? new Date(d.lastDonationDate).toLocaleString('vi-VN') : 'Chưa có'}</td>
-                    </tr>
-                  ))}
+                  {donors
+                    .filter(d => {
+                      // 1. Kiểm tra tuổi từ 18 đến 60
+                      if (!d.dateOfBirth) return false;
+                      const dob = new Date(d.dateOfBirth);
+                      const now = new Date();
+                      let age = now.getFullYear() - dob.getFullYear();
+                      const m = now.getMonth() - dob.getMonth();
+                      if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) {
+                        age--;
+                      }
+                      if (age < 18 || age > 60) return false;
+
+                      // 2. Kiểm tra lần hiến máu gần nhất cách đây ít nhất 90 ngày
+                      if (d.lastDonationDate) {
+                        const last = new Date(d.lastDonationDate);
+                        const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+                        if (diffDays < 90) return false;
+                      }
+
+                      // 3. Kiểm tra lịch sử có bị reject không
+                      // Giả sử có trường d.donationHistory là mảng các lần hiến máu, mỗi lần có status
+                      if (Array.isArray(d.donationHistory)) {
+                        // Nếu có bất kỳ lần nào bị reject thì loại
+                        if (d.donationHistory.some(h => h.status && h.status.toLowerCase() === 'reject')) {
+                          return false;
+                        }
+                      }
+
+                      return true;
+                    })
+                    .map(d => {
+                      const isSent = sentUserIds.includes(d.userId);
+                      return (
+                        <tr key={d.profileId}>
+                          <td>
+                            {isSent ? (
+                              <span className="text-success" title="Đã gửi">&#10003;</span>
+                            ) : (
+                              <input
+                                type="checkbox"
+                                checked={selectedDonors.includes(d.userId)}
+                                onChange={() => handleSelectDonor(d.userId)}
+                                disabled={isSent}
+                              />
+                            )}
+                          </td>
+                          <td>{d.fullName}</td>
+                          <td>{d.dateOfBirth}</td>
+                          <td>{d.gender === 1 ? 'Nam' : d.gender === 2 ? 'Nữ' : 'Khác'}</td>
+                          <td>{d.address}</td>
+                          <td>{BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}</td>
+                          <td>{d.phoneNumber}</td>
+                          <td>{d.lastDonationDate ? new Date(d.lastDonationDate).toLocaleString('vi-VN') : 'Chưa có'}</td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
