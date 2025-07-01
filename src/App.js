@@ -33,12 +33,14 @@ import NotificationSend from './pages/Staff/NotificationSend.jsx';
 import DonorProfile from './pages/Staff/DonorProfileModal.jsx';
 import BloodRequestManagement from './pages/Staff/BloodRequestManagement.jsx';
 import EmergencyNotificationSend from './pages/Staff/EmergencyNotificationSend';
+import ReponseEmergencyRequesr from './pages/Staff/ReponseEmergencyRequest.jsx';
 
 // Admin
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import DashboardPage from './pages/Admin/DashboardPage';
 import Report from './pages/Admin/Report';
 import ManageUserAccount from './pages/Admin/ManageUserAccount.jsx';
+import AdminSettings from './pages/Admin/AdminSettings'; // Thêm dòng này
 
 // AuthContext và PrivateRoute
 import { AuthProvider } from './context/AuthContext';
@@ -84,6 +86,8 @@ function App() {
                             <Route path="/staff/donor/:userId" element={<DonorProfile />} />
                             <Route path="/staff/blood-request-management" element={<BloodRequestManagement />} />
                             <Route path="/staff/emergency-notification/:id" element={<EmergencyNotificationSend />} />
+                            {/* Thêm route danh sách phản hồi */}
+                            <Route path="/staff/emergency-responses/:requestId" element={<ReponseEmergencyRequesr />} />
                         </Route>
 
                         {/* Admin Routes */}
@@ -92,6 +96,7 @@ function App() {
                                 <Route path="dashboard" element={<DashboardPage />} />
                                 <Route path="manage-users" element={<DashboardPage />} />
                                 <Route path="Report" element={<Report />} />
+                                <Route path="settings" element={<AdminSettings />} /> {/* Thêm dòng này */}
                             </Route>
                         </Route>
                         

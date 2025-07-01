@@ -3,11 +3,42 @@ import api from '../../services/Api';
 
 const PAGE_SIZE = 10;
 
+// Nếu có sẵn danh sách nhóm máu và thành phần, bạn có thể import hoặc định nghĩa ở đây
+const BLOOD_TYPES = [
+  { value: '', label: '--Tất cả--' },
+  { value: 'A+', label: 'A+' },
+  { value: 'A-', label: 'A-' },
+  { value: 'B+', label: 'B+' },
+  { value: 'B-', label: 'B-' },
+  { value: 'AB+', label: 'AB+' },
+  { value: 'AB-', label: 'AB-' },
+  { value: 'O+', label: 'O+' },
+  { value: 'O-', label: 'O-' },
+];
+const COMPONENTS = [
+  { value: '', label: '--Tất cả--' },
+  { value: 'Hồng cầu', label: 'Hồng cầu' },
+  { value: 'Tiểu cầu', label: 'Tiểu cầu' },
+  { value: 'Huyết tương', label: 'Huyết tương' },
+  { value: 'Bạch cầu', label: 'Bạch cầu' },
+];
+const STATUSES = [
+  { value: '', label: '--Tất cả--' },
+  { value: 'Available', label: 'Có sẵn' },
+  { value: 'Reserved', label: 'Đã đặt' },
+  { value: 'Discarded', label: 'Đã loại bỏ' },
+  { value: 'Used', label: 'Đã sử dụng' },
+];
+
 function BloodInventoryManager({ onEditUnit }) {
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [message, setMessage] = useState('');
+  // Thêm state cho filter
+  const [filterBloodType, setFilterBloodType] = useState('');
+  const [filterComponent, setFilterComponent] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   useEffect(() => {
     fetchUnits();
@@ -25,8 +56,15 @@ function BloodInventoryManager({ onEditUnit }) {
       .finally(() => setLoading(false));
   };
 
-  const pagedUnits = units.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const totalPages = Math.ceil(units.length / PAGE_SIZE);
+  // Lọc dữ liệu theo filter
+  const filteredUnits = units.filter(u =>
+    (filterBloodType === '' || u.bloodTypeName === filterBloodType) &&
+    (filterComponent === '' || u.componentName === filterComponent) &&
+    (filterStatus === '' || u.status === filterStatus)
+  );
+
+  const pagedUnits = filteredUnits.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(filteredUnits.length / PAGE_SIZE);
 
   // Xóa đơn vị máu
   const handleDelete = async (unitId) => {
@@ -40,9 +78,53 @@ function BloodInventoryManager({ onEditUnit }) {
     }
   };
 
+  // Khi thay đổi filter thì về trang 1
+  useEffect(() => {
+    setPage(1);
+  }, [filterBloodType, filterComponent, filterStatus]);
+
   return (
     <div>
       <h4 className="mb-3">Quản lý kho máu</h4>
+      {/* Bộ lọc */}
+      <div className="row mb-3">
+        <div className="col-md-3">
+          <label className="form-label mb-1">Lọc theo nhóm máu</label>
+          <select
+            className="form-select"
+            value={filterBloodType}
+            onChange={e => setFilterBloodType(e.target.value)}
+          >
+            {BLOOD_TYPES.map(b => (
+              <option key={b.value} value={b.value}>{b.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="col-md-3">
+          <label className="form-label mb-1">Lọc theo thành phần</label>
+          <select
+            className="form-select"
+            value={filterComponent}
+            onChange={e => setFilterComponent(e.target.value)}
+          >
+            {COMPONENTS.map(c => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="col-md-3">
+          <label className="form-label mb-1">Lọc theo trạng thái</label>
+          <select
+            className="form-select"
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+          >
+            {STATUSES.map(s => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       {message && <div className="alert alert-info">{message}</div>}
       {loading ? (
         <div>Đang tải...</div>

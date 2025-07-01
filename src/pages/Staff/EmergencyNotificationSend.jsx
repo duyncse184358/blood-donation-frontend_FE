@@ -29,6 +29,7 @@ function EmergencyNotificationSend() {
   const [selectedDonors, setSelectedDonors] = useState([]);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState('App Notification'); // hoặc 'Email'
 
   // Đã gửi thông báo cho ai
   const [sentUserIds, setSentUserIds] = useState([]);
@@ -121,9 +122,8 @@ function EmergencyNotificationSend() {
         await api.post('/EmergencyNotification', {
           emergencyId: notification?.emergencyId,
           recipientUserId: userId,
-          // Không gửi notificationId!
           sentDate: new Date().toISOString(),
-          deliveryMethod: 'App Notification',
+          deliveryMethod, // <-- 'Email' hoặc 'App Notification'
           isRead: false,
           message: notification?.message || notification?.content || 'Hiến máu khẩn cấp',
           responseStatus: 'No Response'
@@ -136,6 +136,38 @@ function EmergencyNotificationSend() {
     }
     setSending(false);
   };
+
+  // Gửi email thông báo (KHÔNG CẦN DÙNG NỮA, đã chuyển sang BE xử lý)
+  // const handleSendEmailNotification = async () => {
+  //   if (!notificationId) return;
+  //   setLoading(true);
+  //   setError('');
+  //   try {
+  //     // Lặp qua danh sách người nhận đã chọn
+  //     for (const userId of selectedDonors) {
+  //       // Lấy thông tin người nhận
+  //       const userRes = await api.get(`/User/${userId}`);
+  //       const user = userRes.data;
+
+  //       // Gửi email thông báo
+  //       const emailRes = await api.post('/Email/SendEmergencyNotification', {
+  //         toEmail: user.email,
+  //         subject: 'Yêu cầu hiến máu khẩn cấp',
+  //         htmlMessage: `
+  //           <p>Bạn nhận được yêu cầu hiến máu khẩn cấp.</p>
+  //           <p>
+  //               <a href='https://yourdomain.com/emergency-response/accept/${notificationId}'>Tôi đồng ý hiến máu</a> |
+  //               <a href='https://yourdomain.com/emergency-response/decline/${notificationId}'>Tôi không thể tham gia</a>
+  //           </p>
+  //         `
+  //       });
+  //     }
+  //     setSendResult('Đã gửi thông báo qua email thành công!');
+  //   } catch {
+  //     setSendResult('Gửi thông báo qua email thất bại.');
+  //   }
+  //   setLoading(false);
+  // };
 
   return (
     <div className="page-wrapper">

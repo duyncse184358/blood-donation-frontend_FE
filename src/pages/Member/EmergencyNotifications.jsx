@@ -13,6 +13,7 @@ function EmergencyNotifications() {
   const [loading, setLoading] = useState(true);
   const [responding, setResponding] = useState('');
   const [error, setError] = useState('');
+  const [thankYou, setThankYou] = useState('');
 
   // Lấy danh sách thông báo khẩn cấp của user
   useEffect(() => {
@@ -51,6 +52,7 @@ function EmergencyNotifications() {
   // Phản hồi notification khẩn cấp
   const respondEmergency = async (notificationId, responseStatus) => {
     setResponding(notificationId + responseStatus);
+    setThankYou('');
     try {
       await api.post('/EmergencyNotification/respond', {
         notificationId,
@@ -67,12 +69,13 @@ function EmergencyNotifications() {
               userId: user.userId,
               emergencyId: notification.emergencyId,
               donationDate: new Date().toISOString(),
-              status: 'Pending' // hoặc 'Complete' nếu muốn đánh dấu đã hiến luôn
+              status: 'Pending'
             });
           } catch (err) {
             // Có thể hiển thị thông báo lỗi nếu cần
           }
         }
+        setThankYou('Cảm ơn bạn đã sẵn sàng tham gia hiến máu khẩn cấp!');
       }
 
       setNotifications(prev =>
@@ -99,6 +102,9 @@ function EmergencyNotifications() {
           <LoadingSpinner />
         ) : (
           <div className="p-4 bg-light rounded shadow-sm mt-4">
+            {thankYou && (
+              <div className="alert alert-success text-center">{thankYou}</div>
+            )}
             {error && <div className="alert alert-danger text-center">{error}</div>}
             {(!notifications || notifications.length === 0) ? (
               <div className="alert alert-secondary text-center mt-2">
