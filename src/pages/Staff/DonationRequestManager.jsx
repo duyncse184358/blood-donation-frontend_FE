@@ -2,11 +2,21 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/Api';
 
 const PAGE_SIZE = 10;
+const STATUS_OPTIONS = [
+  { value: '', label: 'Tất cả trạng thái' },
+  { value: 'Pending', label: 'Đang chờ' },
+  { value: 'Accepted', label: 'Chấp nhận' },
+  { value: 'Rejected', label: 'Từ chối' },
+  { value: 'Scheduled', label: 'Đã xếp lịch' },
+  { value: 'Completed', label: 'Đã hiến' },
+  { value: 'Cancelled', label: 'Đã hủy' }
+];
 
 function DonationRequestManager({ openModal }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -20,25 +30,32 @@ function DonationRequestManager({ openModal }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const pagedRequests = requests.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const totalPages = Math.ceil(requests.length / PAGE_SIZE);
+  // Lọc theo trạng thái
+  const filteredRequests = statusFilter
+    ? requests.filter(r => r.status === statusFilter)
+    : requests;
 
-  // Khi bấm "Xem chi tiết", chỉ cho phép cập nhật trạng thái
+  const pagedRequests = filteredRequests.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(filteredRequests.length / PAGE_SIZE);
+
+  // Khi bấm "Xem chi tiết", chỉ cho phép cập nhật trạng thái (BỎ phần thành phần)
   const handleShowDetail = async (requestId) => {
     try {
       const res = await api.get(`/DonationRequest/${requestId}`);
+      // Bỏ phần componentId/componentName khi truyền vào modal
+      const { componentId, componentName, ...rest } = res.data;
       openModal('detail', {
-        ...res.data,
+        ...rest,
         onUpdateStatus: async (newStatus, onDone) => {
           try {
             const updateBody = {
               bloodTypeId: res.data.bloodTypeId,
-              componentId: res.data.componentId,
+              // componentId: res.data.componentId, // Bỏ thành phần
               preferredDate: res.data.preferredDate,
               preferredTimeSlot: res.data.preferredTimeSlot,
               status: newStatus,
               staffNotes: res.data.staffNotes,
-              donorUserId: res.data.donorUserId, // nếu BE yêu cầu
+              donorUserId: res.data.donorUserId,
             };
             const updateRes = await api.put(`/DonationRequest/${requestId}`, updateBody);
             setRequests(reqs =>
@@ -46,7 +63,6 @@ function DonationRequestManager({ openModal }) {
                 r.requestId === requestId ? { ...r, ...updateRes.data } : r
               )
             );
-            // Đã bỏ cập nhật UserProfile ở đây
             if (onDone) onDone(null, updateRes.data);
           } catch (err) {
             if (onDone) onDone(err);
@@ -68,9 +84,28 @@ function DonationRequestManager({ openModal }) {
     openModal('profile', { userId: donorUserId });
   };
 
+  // Khi chọn lọc trạng thái, về trang 1
+  const handleStatusFilterChange = (e) => {
+    setStatusFilter(e.target.value);
+    setPage(1);
+  };
+
   return (
     <div>
       <h4 className="mb-3">Quản lý yêu cầu hiến máu</h4>
+      <div className="row mb-3">
+        <div className="col-md-4">
+          <select
+            className="form-select"
+            value={statusFilter}
+            onChange={handleStatusFilterChange}
+          >
+            {STATUS_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       {loading ? (
         <div>Đang tải...</div>
       ) : (

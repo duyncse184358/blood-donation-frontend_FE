@@ -14,6 +14,7 @@ function EmergencyNotifications() {
   const [responding, setResponding] = useState('');
   const [error, setError] = useState('');
   const [thankYou, setThankYou] = useState('');
+  const [remindMsg, setRemindMsg] = useState('');
 
   // Lấy danh sách thông báo khẩn cấp của user
   useEffect(() => {
@@ -53,15 +54,14 @@ function EmergencyNotifications() {
   const respondEmergency = async (notificationId, responseStatus) => {
     setResponding(notificationId + responseStatus);
     setThankYou('');
+    setRemindMsg('');
     try {
       await api.post('/EmergencyNotification/respond', {
         notificationId,
         responseStatus
       });
 
-      // Nếu phản hồi là "Interested" thì tạo lịch sử hiến máu mới theo emergencyId
       if (responseStatus === 'Interested') {
-        // Tìm notification để lấy emergencyId
         const notification = notifications.find(n => n.notificationId === notificationId);
         if (notification && notification.emergencyId) {
           try {
@@ -71,11 +71,19 @@ function EmergencyNotifications() {
               donationDate: new Date().toISOString(),
               status: 'Pending'
             });
-          } catch (err) {
-            // Có thể hiển thị thông báo lỗi nếu cần
-          }
+          } catch {}
         }
         setThankYou('Cảm ơn bạn đã sẵn sàng tham gia hiến máu khẩn cấp!');
+        // Sau 5 giây hiện thông báo nhắc nhở
+        setTimeout(() => {
+          if (notification && notification.sentDate) {
+            setRemindMsg(
+              `Bạn hãy đến hiến máu đúng thời gian: ${new Date(notification.sentDate).toLocaleString('vi-VN')}`
+            );
+          } else {
+            setRemindMsg('Bạn hãy đến hiến máu đúng thời gian theo thông báo khẩn cấp.');
+          }
+        }, 5000);
       }
 
       setNotifications(prev =>
@@ -94,7 +102,18 @@ function EmergencyNotifications() {
       <Header />
       <Navbar />
       <main className="container my-5">
-        <h1 className="text-center mb-4 text-danger">Thông báo Hiến máu Khẩn cấp</h1>
+        <h1 className="text-center mb-4 text-danger">
+          Thông báo Hiến máu Khẩn cấp
+          {notifications.filter(n => n.responseStatus === 'No Response').length > 0 && (
+            <span
+              className="badge bg-warning text-dark ms-3"
+              title="Số thông báo chưa phản hồi"
+              style={{ fontSize: 18, verticalAlign: 'middle' }}
+            >
+              {notifications.filter(n => n.responseStatus === 'No Response').length} chưa phản hồi
+            </span>
+          )}
+        </h1>
         <p className="text-center lead">
           Bạn có thể phản hồi các yêu cầu hiến máu khẩn cấp tại đây.
         </p>
@@ -104,6 +123,9 @@ function EmergencyNotifications() {
           <div className="p-4 bg-light rounded shadow-sm mt-4">
             {thankYou && (
               <div className="alert alert-success text-center">{thankYou}</div>
+            )}
+            {remindMsg && (
+              <div className="alert alert-info text-center">{remindMsg}</div>
             )}
             {error && <div className="alert alert-danger text-center">{error}</div>}
             {(!notifications || notifications.length === 0) ? (

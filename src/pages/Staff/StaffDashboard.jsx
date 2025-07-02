@@ -517,7 +517,7 @@ function DetailEditForm({ selected, closeModal }) {
     <form className="modal-body">
       <div className="mb-2"><b>Người hiến:</b> {selected.donorUserName || selected.donorUserId}</div>
       <div className="mb-2"><b>Nhóm máu:</b> {selected.bloodTypeName}</div>
-      <div className="mb-2"><b>Thành phần máu:</b> {selected.componentName}</div>
+      
       <div className="mb-2"><b>Ngày mong muốn hiến:</b> {selected.preferredDate}</div>
       <div className="mb-2"><b>Khung giờ mong muốn:</b> {selected.preferredTimeSlot}</div>
       <div className="mb-2">

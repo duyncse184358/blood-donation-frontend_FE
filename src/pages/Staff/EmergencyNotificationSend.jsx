@@ -119,11 +119,12 @@ function EmergencyNotificationSend() {
     setSendResult('');
     try {
       for (const userId of selectedDonors) {
+        if (sentUserIds.includes(userId)) continue; // Đảm bảo không gửi lại
         await api.post('/EmergencyNotification', {
           emergencyId: notification?.emergencyId,
           recipientUserId: userId,
           sentDate: new Date().toISOString(),
-          deliveryMethod, // <-- 'Email' hoặc 'App Notification'
+          deliveryMethod,
           isRead: false,
           message: notification?.message || notification?.content || 'Hiến máu khẩn cấp',
           responseStatus: 'No Response'
@@ -299,12 +300,8 @@ function EmergencyNotificationSend() {
                       }
 
                       // 3. Kiểm tra lịch sử có bị reject không
-                      // Giả sử có trường d.donationHistory là mảng các lần hiến máu, mỗi lần có status
-                      if (Array.isArray(d.donationHistory)) {
-                        // Nếu có bất kỳ lần nào bị reject thì loại
-                        if (d.donationHistory.some(h => h.status && h.status.toLowerCase() === 'reject')) {
-                          return false;
-                        }
+                      if (Array.isArray(d.donationHistory) && d.donationHistory.some(h => h.status && h.status.toLowerCase() === 'reject')) {
+                        return false;
                       }
 
                       return true;

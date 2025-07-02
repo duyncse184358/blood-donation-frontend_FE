@@ -14,17 +14,18 @@ import ProfileUpdate from './CreateProfile'; // Import ProfileUpdate component
 import './Memberdashboard.css'; 
 
 function MemberDashboard() {
-  // SỬA ĐỔI: Dùng user từ useAuth
+  // Hooks luôn đặt ở đầu function component
   const { user, isAuthenticated, isMember, loading: authLoading } = useAuth(); 
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [notifLoading, setNotifLoading] = useState(true);
   const [notifError, setNotifError] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [emergencyNotifs, setEmergencyNotifs] = useState([]);
+  const [unreadEmergencyCount, setUnreadEmergencyCount] = useState(0);
 
-  // Fetch notifications for the user (Sử dụng useCallback để tối ưu)
+  // Fetch notifications for the user
   const fetchNotifications = useCallback(async () => {
-    // SỬA ĐỔI: Kiểm tra user?.userId
     if (!isAuthenticated || !user?.userId) { 
       setNotifLoading(false);
       setNotifError('Vui lòng đăng nhập để xem thông báo.');
@@ -33,32 +34,44 @@ function MemberDashboard() {
     setNotifLoading(true);
     setNotifError('');
     try {
-      // Đảm bảo API Notification/by-user/{userId} đã được triển khai ở Backend
-      const res = await api.get(`/Notification/by-user/${user.userId}`); // SỬA ĐỔI: dùng user.userId
-      setNotifications(res.data || []); // Đảm bảo là mảng rỗng nếu null/undefined
+      const res = await api.get(`/Notification/by-user/${user.userId}`);
+      setNotifications(res.data || []);
     } catch (err) {
-      console.error("Error fetching notifications:", err);
       setNotifications([]);
       setNotifError('Không thể tải thông báo. Vui lòng thử lại sau.');
     } finally {
       setNotifLoading(false);
     }
-  }, [isAuthenticated, user?.userId]); // Dependencies cho useCallback
+  }, [isAuthenticated, user?.userId]);
 
-  // Effect để gọi fetchNotifications khi trạng thái auth thay đổi
   useEffect(() => {
     fetchNotifications();
-  }, [fetchNotifications]); 
+  }, [fetchNotifications]);
 
-  // Debugging logs for Auth state
   useEffect(() => {
-    console.log("MemberDashboard Debug: Component rendered.");
-    console.log("MemberDashboard Debug: isAuthenticated:", isAuthenticated);
-    console.log("MemberDashboard Debug: user object:", user); // SỬA ĐỔI: log user
-    console.log("MemberDashboard Debug: authLoading state:", authLoading);
-  }, [user, isAuthenticated, authLoading]); // SỬA ĐỔI: dependencies
+    if (!isAuthenticated || !user?.userId) return;
+    api.get(`/EmergencyNotification/by-user/${user.userId}`)
+      .then(res => {
+        let list = [];
+        if (res && res.data) {
+          if (Array.isArray(res.data)) list = res.data;
+          else if (Object.keys(res.data).length > 0) list = [res.data];
+        }
+        setEmergencyNotifs(list);
+        // Lọc theo cả hai trường, ưu tiên giống bên EmergencyNotifications.jsx
+        const count = list.filter(
+          n => (n.responseStatus === 'No Response') ||
+               (n.response_status && n.response_status.toLowerCase().replace(/[\s_]/g, '') === 'noresponse')
+        ).length;
+        setUnreadEmergencyCount(count);
+      })
+      .catch(() => {
+        setEmergencyNotifs([]);
+        setUnreadEmergencyCount(0);
+      });
+  }, [isAuthenticated, user?.userId]);
 
-  // Show loading spinner while authentication state is being determined
+  // Sau khi đã khai báo hết hook, mới return giao diện
   if (authLoading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100 text-danger fs-4">
@@ -67,11 +80,7 @@ function MemberDashboard() {
     );
   }
 
-  // Redirect if not authenticated or not a Member
-  // SỬA ĐỔI: Dùng isMember từ useAuth hook để kiểm tra vai trò
   if (!isAuthenticated || !isMember) { 
-    console.warn("MemberDashboard: Unauthorized access attempt or incorrect role.");
-    // Có thể điều hướng đến trang 403 (Forbidden) hoặc trang login với thông báo lỗi
     return (
       <div className="d-flex flex-column justify-content-center align-items-center vh-100 text-danger text-center">
         <h2 className="mb-3">Bạn không có quyền truy cập trang này.</h2>
@@ -81,8 +90,9 @@ function MemberDashboard() {
     );
   }
 
+  // Lấy danh sách thông báo khẩn cấp từ API riêng (CHỈ GỌI 1 LẦN useEffect NÀY)
+
   // Classify notifications rõ ràng
-  const emergencyNotifs = notifications.filter(n => n.type?.toLowerCase() === 'emergency');
   const generalNotifs = notifications.filter(
     n => n.type?.toLowerCase() !== 'emergency' && (n.type?.toLowerCase() === 'chung' || n.recipientUserId === 'ALL')
   );
@@ -119,30 +129,30 @@ function MemberDashboard() {
                   <div className="description text-white-75">{notifError}</div>
                 </div>
               </div>
-            ) : emergencyNotifs.length > 0 ? (
-              // SỬA: Link tới trang EmergencyNotifications
-              <Link to="/member/emergency-notifications" className="notification-card-base emergency-notification-card">
+            ) : (
+              <Link to="/member/emergency-notifications" className="notification-card-base emergency-notification-card position-relative">
                 <div className="icon-wrapper">
                   <AlertCircle size={32} />
+                  {unreadEmergencyCount > 0 && (
+                    <span
+                      className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                      style={{ fontSize: 13, zIndex: 2 }}
+                      title={`${unreadEmergencyCount} thông báo khẩn cấp chưa phản hồi`}
+                    >
+                      {unreadEmergencyCount}
+                    </span>
+                  )}
                 </div>
                 <div className="content">
                   <div className="title">THÔNG BÁO KHẨN CẤP</div>
-                  <div className="description">Có {emergencyNotifs.length} thông báo khẩn cấp mới!</div>
+                  <div className="description">
+                    {unreadEmergencyCount > 0
+                      ? `${unreadEmergencyCount} thông báo khẩn cấp chưa phản hồi`
+                      : 'Không có thông báo khẩn cấp chưa phản hồi.'}
+                  </div>
                 </div>
                 <span className="detail-button">Xem chi tiết</span>
               </Link>
-            ) : (
-              <div className="notification-card-base emergency-notification-card" style={{ opacity: 0.8 }}>
-                <div className="icon-wrapper">
-                  <AlertCircle size={32} />
-                </div>
-                <div className="content">
-                  <div className="title">THÔNG BÁO KHẨN CẤP</div>
-                  <div className="description">Hiện không có thông báo khẩn cấp nào.</div>
-                </div>
-                {/* SỬA: Link tới trang EmergencyNotifications */}
-                <Link to="/member/emergency-notifications" className="detail-button">Xem chi tiết</Link>
-              </div>
             )}
           </div>
 
