@@ -54,6 +54,14 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
     setSaving(true);
     setMsg('');
     setErr('');
+
+    // --- VALIDATION: Không cho phép hiến quá 450ml ---
+    if (Number(form.quantityMl) > 450) {
+      setErr('Số lượng hiến máu mỗi lần không được vượt quá 450ml.');
+      setSaving(false);
+      return;
+    }
+
     try {
       let donorUserId = form.donorUserId;
 

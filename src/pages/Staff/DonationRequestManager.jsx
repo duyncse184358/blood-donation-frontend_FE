@@ -46,15 +46,15 @@ function DonationRequestManager({ openModal }) {
       const { componentId, componentName, ...rest } = res.data;
       openModal('detail', {
         ...rest,
-        onUpdateStatus: async (newStatus, onDone) => {
+        staffNotes: res.data.staffNotes || '', // truyền staffNotes cho modal
+        onUpdateStatus: async (newStatus, newStaffNotes, onDone) => {
           try {
             const updateBody = {
               bloodTypeId: res.data.bloodTypeId,
-              // componentId: res.data.componentId, // Bỏ thành phần
               preferredDate: res.data.preferredDate,
               preferredTimeSlot: res.data.preferredTimeSlot,
               status: newStatus,
-              staffNotes: res.data.staffNotes,
+              staffNotes: newStaffNotes, // cập nhật staffNotes mới
               donorUserId: res.data.donorUserId,
             };
             const updateRes = await api.put(`/DonationRequest/${requestId}`, updateBody);
@@ -126,12 +126,17 @@ function DonationRequestManager({ openModal }) {
                   <td>{(page - 1) * PAGE_SIZE + idx + 1}</td>
                   <td>{r.donorUserName || r.donorUserId}</td>
                   <td>
-                    {r.status === 'Accepted' && 'Chấp nhận'}
-                    {r.status === 'Rejected' && 'Từ chối'}
-                    {r.status === 'Pending' && 'Đang chờ'}
-                    {r.status === 'Scheduled' && 'Đã xếp lịch'}
-                    {r.status === 'Completed' && 'Đã hiến'}
-                    {r.status === 'Cancelled' && 'Đã hủy'}
+                    {(() => {
+                      switch (r.status) {
+                        case 'Accepted': return 'Chấp nhận';
+                        case 'Rejected': return 'Từ chối';
+                        case 'Pending': return 'Đang chờ';
+                        case 'Scheduled': return 'Đã xếp lịch';
+                        case 'Completed': return 'Đã hiến';
+                        case 'Cancelled': return 'Đã hủy';
+                        default: return r.status || '';
+                      }
+                    })()}
                   </td>
                   <td>{r.requestDate ? new Date(r.requestDate).toLocaleString('vi-VN') : ''}</td>
                   <td>

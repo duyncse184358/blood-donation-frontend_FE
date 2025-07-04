@@ -494,6 +494,7 @@ function StaffDashboard() {
 
 function DetailEditForm({ selected, closeModal }) {
   const [status, setStatus] = useState(selected.status || 'Pending');
+  const [staffNotes, setStaffNotes] = useState(selected.staffNotes || '');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
@@ -502,7 +503,7 @@ function DetailEditForm({ selected, closeModal }) {
     setErr('');
     try {
       if (selected.onUpdateStatus) {
-        selected.onUpdateStatus(status, (err) => {
+        selected.onUpdateStatus(status, staffNotes, (err) => {
           if (!err) closeModal();
           else setErr('Cập nhật thất bại!');
         });
@@ -517,7 +518,6 @@ function DetailEditForm({ selected, closeModal }) {
     <form className="modal-body">
       <div className="mb-2"><b>Người hiến:</b> {selected.donorUserName || selected.donorUserId}</div>
       <div className="mb-2"><b>Nhóm máu:</b> {selected.bloodTypeName}</div>
-      
       <div className="mb-2"><b>Ngày mong muốn hiến:</b> {selected.preferredDate}</div>
       <div className="mb-2"><b>Khung giờ mong muốn:</b> {selected.preferredTimeSlot}</div>
       <div className="mb-2">
@@ -528,13 +528,21 @@ function DetailEditForm({ selected, closeModal }) {
           value={status}
           onChange={e => setStatus(e.target.value)}
         >
-         
           <option value="Accepted">Chấp nhận</option>
           <option value="Rejected">Từ chối</option>
-         
+            <option value="Pending">Đang Chờ</option>
         </select>
       </div>
-      <div className="mb-2"><b>Ghi chú của nhân viên:</b> {selected.staffNotes}</div>
+      <div className="mb-2">
+        <b>Ghi chú của nhân viên:</b>
+        <textarea
+          className="form-control"
+          value={staffNotes}
+          onChange={e => setStaffNotes(e.target.value)}
+          rows={3}
+          placeholder="Nhập ghi chú của nhân viên"
+        />
+      </div>
       {err && <div className="text-danger mb-2">{err}</div>}
       <div className="modal-footer">
         <button className="btn btn-success" type="button" onClick={handleSave} disabled={loading}>

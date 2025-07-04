@@ -59,6 +59,11 @@ function NotificationForm() {
     navigate('/staff/notification-send'); // Điều hướng sang trang tạo thông báo
   };
 
+  // Thêm nút về dashboard
+  const handleGoDashboard = () => {
+    navigate('/staff/dashboard');
+  };
+
   // Hàm gọi lại khi modal đóng hoặc gửi thành công (KHÔNG CẦN NỮA)
   /* const handleModalClose = (success = false) => {
     setShowSendModal(false);
@@ -81,26 +86,27 @@ function NotificationForm() {
 
   return (
     <div className="page-wrapper">
-      <Header />
-      <Navbar />
+      {/* BỎ Header và Navbar */}
       <main className="container my-5 notification-admin-main">
-        <h1 className="text-center mb-4 text-primary">Quản lý Thông báo</h1>
-        
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h1 className="text-primary mb-0">Quản lý Thông báo</h1>
+          <button className="btn btn-outline-secondary" onClick={handleGoDashboard}>
+            Về Dashboard
+          </button>
+        </div>
         {/* Nút tạo thông báo */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4>Danh sách thông báo hiện tại</h4>
-          {/* Chỉ hiển thị nút tạo thông báo nếu có quyền Admin hoặc Staff */}
           {(isAdmin || isStaff) && (
             <button
               className="btn btn-success notification-create-btn"
-              onClick={handleCreateNotification} // Gọi hàm điều hướng
-              disabled={loading} // Vô hiệu hóa khi đang tải
+              onClick={handleCreateNotification}
+              disabled={loading}
             >
               Tạo thông báo mới
             </button>
           )}
         </div>
-        
         {loading ? (
           <div className="text-center my-5">
             <LoadingSpinner />
@@ -118,7 +124,6 @@ function NotificationForm() {
                   <th>Nội dung</th>
                   <th>Ngày gửi</th>
                   <th>Đã đọc</th>
-                  {/* Thêm cột Actions nếu bạn muốn có nút Sửa/Xóa ngay trên bảng */}
                 </tr>
               </thead>
               <tbody>
@@ -142,23 +147,7 @@ function NotificationForm() {
           </div>
         )}
       </main>
-      <Footer />
-
-      {/* BỎ PHẦN RENDER MODAL NÀY */}
-      {/* {showSendModal && (
-        <div className="modal-backdrop-custom">
-          <div className="modal-content-custom">
-            <button
-              className="btn-close-modal"
-              onClick={() => handleModalClose()}
-              aria-label="Đóng"
-            >
-              &times;
-            </button>
-            <NotificationSend onClose={handleModalClose} /> 
-          </div>
-        </div>
-      )} */}
+      {/* BỎ Footer */}
     </div>
   );
 }

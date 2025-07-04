@@ -324,7 +324,15 @@ function EmergencyNotificationSend() {
                           </td>
                           <td>{d.fullName}</td>
                           <td>{d.dateOfBirth}</td>
-                          <td>{d.gender === 1 ? 'Nam' : d.gender === 2 ? 'Nữ' : 'Khác'}</td>
+                          <td>
+                            {d.gender === 1 || d.gender === 'Nam'
+                              ? 'Nam'
+                              : d.gender === 2 || d.gender === 'Nữ'
+                              ? 'Nữ'
+                              : d.gender === 3 || d.gender === 'Khác'
+                              ? 'Khác'
+                              : ''}
+                          </td>
                           <td>{d.address}</td>
                           <td>{BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}</td>
                           <td>{d.phoneNumber}</td>

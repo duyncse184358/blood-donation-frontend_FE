@@ -488,17 +488,7 @@ function CreateProfile({ onClose }) {
 
   useEffect(() => {
       fetchProfile();
-  }, [fetchProfile]); // Dependency là fetchProfile (đã bọc trong useCallback)
-
-  useEffect(() => {
-    setDistrictCode('');
-    setWardName('');
-    setStreetName('');
-  }, [provinceCode]);
-  useEffect(() => {
-    setWardName('');
-    setStreetName('');
-  }, [districtCode]);
+  }, [fetchProfile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -610,11 +600,10 @@ function CreateProfile({ onClose }) {
     };
 
     try {
-      let res;
       if (isCreateMode) {
-        res = await api.post(`/UserProfile`, payload); 
+        await api.post(`/UserProfile`, payload); // Tạo mới
       } else {
-        res = await api.put(`/UserProfile/by-user/${user.userId}`, payload); 
+        await api.put(`/UserProfile/by-user/${user.userId}`, payload); // Cập nhật
       }
       setMessage(isCreateMode ? 'Hồ sơ của bạn đã được tạo thành công!' : 'Hồ sơ của bạn đã được cập nhật thành công!');
       setIsCreateMode(false); 
@@ -662,6 +651,18 @@ function CreateProfile({ onClose }) {
       <p className="text-center text-muted mb-4">
         Quản lý thông tin cá nhân, y tế và lịch sử hiến máu của bạn.
       </p>
+
+      {/* Nút về trang chủ */}
+      <div className="mb-3 text-end">
+        <button
+          className="btn btn-outline-secondary"
+          onClick={() => navigate('/')}
+
+          type="button"
+        >
+          &larr; Về trang chủ
+        </button>
+      </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
       {message && <div className="alert alert-success">{message}</div>}
@@ -771,6 +772,7 @@ function CreateProfile({ onClose }) {
                 {genders.map(g => (
                   <option key={g.value} value={g.value}>{g.label}</option>
                 ))}
+
               </select>
             </div>
             {/* Địa chỉ chi tiết */}
@@ -825,7 +827,9 @@ function CreateProfile({ onClose }) {
                 type="text"
                 className="form-control"
                 value={formData.houseNumber || ''}
+
                 onChange={e => setFormData(prev => ({ ...prev, houseNumber: e.target.value }))}
+
                 disabled={submitting}
                 placeholder="Số nhà (không bắt buộc)"
               />

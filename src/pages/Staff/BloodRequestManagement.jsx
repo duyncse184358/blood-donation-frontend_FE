@@ -40,15 +40,16 @@ function BloodRequestManagement() {
   const [responsesLoading, setResponsesLoading] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [noResponseAlert, setNoResponseAlert] = useState(false);
-  const [statusEdits, setStatusEdits] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const noResponseTimer = useRef(null);
   const navigate = useNavigate();
 
-  // Lấy danh sách yêu cầu máu khẩn cấp
+  // Lấy toàn bộ danh sách yêu cầu máu khẩn cấp
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/EmergencyRequest/list?status=Pending');
+      const res = await api.get('/EmergencyRequest/list');
       const mapped = res.data.map(item => ({
         ...item,
         id: item.emergencyId // Gán id = emergencyId để dùng thống nhất
@@ -108,19 +109,13 @@ function BloodRequestManagement() {
     setEditForm(prev => ({ ...prev, [name]: value }));
   };
 
+  // Cập nhật trạng thái (chỉ status)
   const handleUpdateRequest = async () => {
     if (!editingRequest) return;
     setUpdating(true);
     try {
-      await api.put(`/EmergencyRequest/${editingRequest.id}`, {
-        ...editForm,
-        quantityNeededMl: Number(editForm.quantityNeededMl),
-        bloodTypeId: Number(editForm.bloodTypeId),
-        componentId: Number(editForm.componentId),
-        priority: editForm.priority,
-        dueDate: editForm.dueDate,
-        description: editForm.description,
-        status: editForm.status // Gửi status lên BE
+      await api.put(`/EmergencyRequest/${editingRequest.id}/status`, JSON.stringify(editForm.status), {
+        headers: { 'Content-Type': 'application/json' }
       });
       setRequests(prev =>
         prev.map(r =>
@@ -220,29 +215,11 @@ function BloodRequestManagement() {
     if (noResponseTimer.current) clearTimeout(noResponseTimer.current);
   };
 
-  // Hàm xử lý thay đổi trạng thái tạm thời
-  const handleStatusChange = (id, value) => {
-    setStatusEdits(prev => ({ ...prev, [id]: value }));
-  };
-
-  // Hàm cập nhật trạng thái lên server
-  const handleUpdateStatus = async (id) => {
-    const newStatus = statusEdits[id];
-    if (!newStatus) return;
-    try {
-      await api.put(`/EmergencyRequest/${id}`, { status: newStatus });
-      setRequests(prev =>
-        prev.map(r =>
-          r.id === id
-            ? { ...r, status: newStatus }
-            : r
-        )
-      );
-      setMessage('Cập nhật trạng thái thành công.');
-    } catch {
-      setMessage('Cập nhật trạng thái thất bại.');
-    }
-  };
+  // Nhóm các yêu cầu theo status
+  const groupedRequests = STATUS_OPTIONS.reduce((acc, opt) => {
+    acc[opt.value] = requests.filter(r => r.status === opt.value);
+    return acc;
+  }, {});
 
   return (
     <>
@@ -254,76 +231,84 @@ function BloodRequestManagement() {
         {loading ? (
           <div>Đang tải...</div>
         ) : (
-          <table className="table table-bordered mt-3">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Nhóm máu</th>
-                <th>Số lượng (ml)</th>
-                <th>Ưu tiên</th>
-                <th>Hạn cần</th>
-                <th>Mô tả</th>
-                <th>Trạng thái</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="text-center">Không có dữ liệu</td>
-                </tr>
-              ) : (
-                requests.map((r, i) => (
-                  <tr key={r.id}>
-                    <td>{i + 1}</td>
-                    <td>{BLOOD_TYPES.find(b => b.id === r.bloodTypeId)?.name}</td>
-                    <td>{r.quantityNeededMl}</td>
-                    <td>{PRIORITIES.find(p => p.value === r.priority)?.label}</td>
-                    <td>{r.dueDate?.slice(0, 10)}</td>
-                    <td>{r.description}</td>
-                    <td>
-                      <span className={
-                        r.status === 'Pending' ? "badge bg-warning text-dark" :
-                        r.status === 'Responded' ? "badge bg-info text-dark" :
-                        r.status === 'Approved' ? "badge bg-success" :
-                        r.status === 'Rejected' ? "badge bg-danger" :
-                        "badge bg-secondary"
-                      }>
-                        {STATUS_OPTIONS.find(s => s.value === r.status)?.label || r.status}
-                      </span>
-                      {/* Đã bỏ dropdown và nút cập nhật trạng thái tại đây */}
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-primary me-2"
-                        onClick={() => handleViewNotification(r.id)}
-                      >
-                        Xem thông báo
-                      </button>
-                      <button
-                        className="btn btn-sm btn-info me-2"
-                        onClick={() => navigate(`/staff/emergency-responses/${r.id}`)}
-                      >
-                        Danh sách phản hồi
-                      </button>
-                      <button
-                        className="btn btn-sm btn-warning me-2"
-                        onClick={() => handleEditRequest(r)}
-                      >
-                        Sửa
-                      </button>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleDeleteRequest(r.id)}
-                      >
-                        Xóa
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <>
+            {STATUS_OPTIONS.map(statusOpt => (
+              <div key={statusOpt.value} className="mb-5">
+                <h5>
+                  {statusOpt.label} ({groupedRequests[statusOpt.value]?.length || 0})
+                </h5>
+                <table className="table table-bordered mt-2">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nhóm máu</th>
+                      <th>Số lượng (ml)</th>
+                      <th>Ưu tiên</th>
+                      <th>Hạn cần</th>
+                      <th>Mô tả</th>
+                      <th>Trạng thái</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupedRequests[statusOpt.value] && groupedRequests[statusOpt.value].length > 0 ? (
+                      groupedRequests[statusOpt.value].map((r, i) => (
+                        <tr key={r.id}>
+                          <td>{i + 1}</td>
+                          <td>{BLOOD_TYPES.find(b => b.id === r.bloodTypeId)?.name}</td>
+                          <td>{r.quantityNeededMl}</td>
+                          <td>{PRIORITIES.find(p => p.value === r.priority)?.label}</td>
+                          <td>{r.dueDate?.slice(0, 10)}</td>
+                          <td>{r.description}</td>
+                          <td>
+                            <span className={
+                              r.status === 'Pending' ? "badge bg-warning text-dark" :
+                              r.status === 'Responded' ? "badge bg-info text-dark" :
+                              r.status === 'Approved' ? "badge bg-success" :
+                              r.status === 'Rejected' ? "badge bg-danger" :
+                              "badge bg-secondary"
+                            }>
+                              {STATUS_OPTIONS.find(s => s.value === r.status)?.label || r.status}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-primary me-2"
+                              onClick={() => handleViewNotification(r.id)}
+                            >
+                              Xem thông báo
+                            </button>
+                            <button
+                              className="btn btn-sm btn-info me-2"
+                              onClick={() => navigate(`/staff/emergency-responses/${r.id}`)}
+                            >
+                              Danh sách phản hồi
+                            </button>
+                            <button
+                              className="btn btn-sm btn-warning me-2"
+                              onClick={() => handleEditRequest(r)}
+                            >
+                              Sửa
+                            </button>
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => handleDeleteRequest(r.id)}
+                            >
+                              Xóa
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className="text-center text-muted">Không có dữ liệu</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </>
         )}
 
         {message && (

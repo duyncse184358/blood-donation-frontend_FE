@@ -80,14 +80,15 @@ function App() {
 
                         {/* Staff Routes */}
                         <Route element={<PrivateRoute roles={['Staff']} />}>
-                            <Route path="/staff/dashboard" element={<StaffDashboardpage />} />
-                            <Route path="/staff/notifications" element={<NotificationForm />} />
-                            <Route path="/staff/notification-send" element={<NotificationSend />} />
-                            <Route path="/staff/donor/:userId" element={<DonorProfile />} />
-                            <Route path="/staff/blood-request-management" element={<BloodRequestManagement />} />
-                            <Route path="/staff/emergency-notification/:id" element={<EmergencyNotificationSend />} />
-                            {/* Thêm route danh sách phản hồi */}
-                            <Route path="/staff/emergency-responses/:requestId" element={<ReponseEmergencyRequesr />} />
+                            <Route path="/staff">
+                                <Route path="dashboard" element={<StaffDashboardpage />} />
+                                <Route path="notifications" element={<NotificationForm />} />
+                                <Route path="notification-send" element={<NotificationSend />} />
+                                <Route path="donor/:userId" element={<DonorProfile />} />
+                                <Route path="blood-request-management" element={<BloodRequestManagement />} />
+                                <Route path="emergency-notification/:id" element={<EmergencyNotificationSend />} />
+                                <Route path="emergency-responses/:requestId" element={<ReponseEmergencyRequesr />} />
+                            </Route>
                         </Route>
 
                         {/* Admin Routes */}

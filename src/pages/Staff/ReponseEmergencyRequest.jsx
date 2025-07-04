@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/Api';
 import { AuthContext } from '../../context/AuthContext';
+import DonorProfileModal from './DonorProfileModal'; // Thêm dòng này nếu chưa import
 
 const BLOOD_TYPES = [
   { id: 1, name: 'A' },
@@ -47,6 +48,10 @@ function ReponseEmergencyRequesr() {
   const [modalMsg, setModalMsg] = useState('');
   const [modalErr, setModalErr] = useState('');
   const [history, setHistory] = useState(null);
+
+  // Modal xem hồ sơ người hiến máu
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileUserId, setProfileUserId] = useState(null);
 
   useEffect(() => {
     if (!requestId) return;
@@ -252,6 +257,15 @@ function ReponseEmergencyRequesr() {
                 </td>
                 <td>{resp.message}</td>
                 <td>
+                  <button
+                    className="btn btn-sm btn-info me-2"
+                    onClick={() => {
+                      setProfileUserId(resp.recipientUserId);
+                      setShowProfileModal(true);
+                    }}
+                  >
+                    Xem hồ sơ
+                  </button>
                   {resp.responseStatus === 'Interested' && (
                     <button
                       className="btn btn-sm btn-primary"
@@ -413,6 +427,14 @@ function ReponseEmergencyRequesr() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal xem hồ sơ người hiến máu */}
+      {showProfileModal && profileUserId && (
+        <DonorProfileModal
+          userId={profileUserId}
+          onClose={() => setShowProfileModal(false)}
+        />
       )}
     </div>
   );

@@ -84,10 +84,12 @@ function Register() {
     }
 
     try {
-      const response = await register(formData);
+      await register(formData);
       setMessage('Đăng ký thành công!');
+      // Đăng nhập ngay sau khi đăng ký
       await login(formData.email, formData.password);
-      navigate('/member/profile');
+      // Sau khi login, AuthContext sẽ cập nhật user và role
+      navigate('/member/dashboard');
     } catch (err) {
       setError(err.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin và OTP.');
     } finally {

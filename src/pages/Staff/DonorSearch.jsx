@@ -89,9 +89,21 @@ function DonorSearch() {
                 <tr key={d.profileId}>
                   <td>{d.fullName}</td>
                   <td>{d.dateOfBirth}</td>
-                  <td>{d.gender === 1 ? 'Nam' : d.gender === 2 ? 'Nữ' : 'Khác'}</td>
+                  <td>
+                    {d.gender === 1 || d.gender === 'Nam'
+                      ? 'Nam'
+                      : d.gender === 2 || d.gender === 'Nữ'
+                      ? 'Nữ'
+                      : d.gender === 3 || d.gender === 'Khác'
+                      ? 'Khác'
+                      : ''}
+                  </td>
                   <td>{d.address}</td>
-                  <td>{d.bloodTypeName}</td>
+                  <td>
+                    {d.bloodTypeName
+                      ? d.bloodTypeName
+                      : BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}
+                  </td>
                   <td>{d.phoneNumber}</td>
                   <td>{d.lastDonationDate || 'Chưa có dữ liệu'}</td>
                 </tr>

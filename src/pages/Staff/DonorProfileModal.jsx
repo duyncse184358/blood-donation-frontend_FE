@@ -45,10 +45,10 @@ function DonorProfileModal({ userId, onClose }) {
                 {profile && profile.fullName ? (
                   <ul>
                     <li><b>Họ tên:</b> {profile.fullName}</li>
-                    <li><b>Email:</b> {profile.email}</li>
-                    <li><b>Số điện thoại:</b> {profile.phoneNumber}</li>
+                    {/* <li><b>Email:</b> {profile.email}</li> */}
                     <li><b>Ngày sinh:</b> {profile.dob ? new Date(profile.dob).toLocaleDateString('vi-VN') : ''}</li>
                     <li><b>Nhóm máu:</b> {profile.bloodTypeName}</li>
+                    <li><b>Số điện thoại:</b> {profile.phoneNumber}</li>
                     <li><b>Địa chỉ:</b> {profile.address}</li>
                   </ul>
                 ) : (

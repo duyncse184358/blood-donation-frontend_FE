@@ -84,39 +84,35 @@ function RegisterDonation() {
   // Fetch user profile and donation history (BỎ DonationRequest) for validation
   const fetchUserData = useCallback(async () => {
     if (isAuthenticated && user?.userId) { 
-      setIsProfileDataLoading(true); // BẮT ĐẦU loading cho profile data
+      setIsProfileDataLoading(true);
       try {
-        const [profileRes, historyRes] = await Promise.all([ // BỎ requestRes
+        const [profileRes, historyRes] = await Promise.all([
           api.get(`/UserProfile/by-user/${user.userId}`),
-          api.get(`/DonationHistory/by-donor/${user.userId}`),
-          // BỎ: api.get(`/DonationRequest/by-donor/${user.userId}`) 
+          api.get(`/DonationHistory/by-donor/${user.userId}`).catch(err => {
+            if (err.response && err.response.status === 404) return { data: [] }; // Nếu 404 thì coi như chưa có lịch sử
+            throw err;
+          }),
         ]);
-        
-        setProfile(profileRes.data); 
+        // Gán lịch sử vào profile để validation không lỗi
+        setProfile({ ...profileRes.data, donationHistory: historyRes.data || [] });
 
         const rejectedHistory = (historyRes.data || []).some(h => h.status === 'Rejected');
         setHasRejectedHistory(rejectedHistory);
-
-        // BỎ: const rejectedRequests = (requestRes.data || []).some(req => req.status === 'Rejected');
-        // BỎ: setHasRejectedRequest(rejectedRequests); 
-
       } catch (err) {
         console.error("Error fetching user data for validation:", err);
         setProfile(null); 
         setHasRejectedHistory(false);
-        // BỎ: setHasRejectedRequest(false); 
-        setGeneralError("Không thể tải thông tin cá nhân hoặc lịch sử hiến máu để kiểm tra điều kiện. Vui lòng kiểm tra kết nối mạng."); // Sửa thông báo
+        setGeneralError("Không thể tải thông tin cá nhân hoặc lịch sử hiến máu để kiểm tra điều kiện. Vui lòng kiểm tra kết nối mạng.");
       } finally {
-        setIsProfileDataLoading(false); // KẾT THÚC loading cho profile data
+        setIsProfileDataLoading(false);
       }
     } else {
-        setProfile(null);
-        setHasRejectedHistory(false);
-        // BỎ: setHasRejectedRequest(false); 
-        setGeneralError(''); // Nếu không có user, xóa lỗi chung
-        setIsProfileDataLoading(false); // Nếu không có user, cũng kết thúc loading
+      setProfile(null);
+      setHasRejectedHistory(false);
+      setGeneralError('');
+      setIsProfileDataLoading(false);
     }
-  }, [isAuthenticated, user?.userId]); // BỎ hasRejectedRequest khỏi dependencies
+  }, [isAuthenticated, user?.userId]);
 
   useEffect(() => {
     fetchUserData();
@@ -152,13 +148,30 @@ function RegisterDonation() {
         currentGeneralError = 'Bạn phải từ 18 đến 60 tuổi mới được đăng ký hiến máu.';
       }
 
-      // Kiểm tra khoảng cách 90 ngày (chỉ nếu không có lỗi tuổi)
-      const lastDate = profile.lastBloodDonationDate ? new Date(profile.lastBloodDonationDate) : null;
-      if (lastDate && formData.preferredDate && !currentGeneralError) {
-        const next = new Date(formData.preferredDate);
-        const diffDays = Math.floor((next - lastDate) / (1000 * 60 * 60 * 24));
-        if (diffDays < 90) {
-          currentGeneralError = `Bạn cần chờ ít nhất 90 ngày giữa 2 lần hiến máu. Lần gần nhất: ${lastDate.toISOString().split('T')[0]}.`;
+      // Kiểm tra khoảng cách 90 ngày giữa 2 lần hiến máu (dựa vào lịch sử hiến máu)
+      if (!currentGeneralError && formData.preferredDate && !isProfileDataLoading) {
+        // Lấy ngày hiến máu gần nhất từ lịch sử (status Completed)
+        let lastDonationDate = null;
+        if (Array.isArray(profile?.donationHistory)) {
+          const completed = profile.donationHistory
+            .filter(h => h.status === 'Completed')
+            .sort((a, b) => new Date(b.donationDate) - new Date(a.donationDate));
+          if (completed.length > 0) {
+            lastDonationDate = new Date(completed[0].donationDate);
+          }
+        }
+        // Nếu không có trong profile, thử lấy từ historyRes (nếu bạn lưu riêng)
+        // Nếu profile.lastBloodDonationDate có, ưu tiên dùng
+        if (!lastDonationDate && profile?.lastBloodDonationDate) {
+          lastDonationDate = new Date(profile.lastBloodDonationDate);
+        }
+
+        if (lastDonationDate) {
+          const next = new Date(formData.preferredDate);
+          const diffDays = Math.floor((next - lastDonationDate) / (1000 * 60 * 60 * 24));
+          if (diffDays < 90) {
+            currentGeneralError = `Bạn cần chờ ít nhất 90 ngày giữa 2 lần hiến máu. Lần gần nhất: ${lastDonationDate.toLocaleDateString('vi-VN')}.`;
+          }
         }
       }
 
