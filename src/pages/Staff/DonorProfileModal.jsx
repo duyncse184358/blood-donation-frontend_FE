@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/Api';
 
+const BLOOD_TYPES = [
+  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
+  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
+  { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
+  { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
+];
+
 function DonorProfileModal({ userId, onClose }) {
   const [profile, setProfile] = useState(null);
   const [history, setHistory] = useState([]);
@@ -42,14 +49,32 @@ function DonorProfileModal({ userId, onClose }) {
               <>
                 {/* Thông tin cá nhân */}
                 <h6 className="mb-3 text-primary">Thông tin cá nhân</h6>
-                {profile && profile.fullName ? (
+                {profile && (profile.fullName || profile.phoneNumber || profile.bloodTypeName || profile.dob || profile.dateOfBirth) ? (
                   <ul>
-                    <li><b>Họ tên:</b> {profile.fullName}</li>
-                    {/* <li><b>Email:</b> {profile.email}</li> */}
-                    <li><b>Ngày sinh:</b> {profile.dob ? new Date(profile.dob).toLocaleDateString('vi-VN') : ''}</li>
-                    <li><b>Nhóm máu:</b> {profile.bloodTypeName}</li>
-                    <li><b>Số điện thoại:</b> {profile.phoneNumber}</li>
-                    <li><b>Địa chỉ:</b> {profile.address}</li>
+                    <li><b>Họ tên:</b> {profile.fullName || 'Chưa có'}</li>
+                    <li><b>Ngày sinh:</b> 
+                      {profile.dob
+                        ? new Date(profile.dob).toLocaleDateString('vi-VN')
+                        : profile.dateOfBirth
+                          ? new Date(profile.dateOfBirth).toLocaleDateString('vi-VN')
+                          : 'Chưa có'}
+                    </li>
+                    <li><b>Giới tính:</b> {profile.gender || 'Chưa có'}</li>
+                    <li><b>CCCD/CMND:</b> {profile.cccd || profile.cmnd || 'Chưa có'}</li>
+                    <li><b>Nhóm máu:</b> {
+                      profile.bloodTypeName ||
+                      (profile.bloodTypeId
+                        ? (BLOOD_TYPES.find(bt => String(bt.id) === String(profile.bloodTypeId))?.name || 'Chưa có')
+                        : 'Chưa có')
+                    }</li>
+                    <li><b>Số điện thoại:</b> {profile.phoneNumber || 'Chưa có'}</li>
+                    <li><b>Địa chỉ:</b> {profile.address || 'Chưa có'}</li>
+                    <li><b>Lịch sử bệnh án/y tế:</b> {profile.medicalHistory || 'Chưa có'}</li>
+                    <li><b>Ngày hiến máu gần nhất:</b> 
+                      {profile.lastBloodDonationDate
+                        ? new Date(profile.lastBloodDonationDate).toLocaleDateString('vi-VN')
+                        : 'Chưa có'}
+                    </li>
                   </ul>
                 ) : (
                   <div className="alert alert-warning mb-3">Không tìm thấy hồ sơ cá nhân cho người hiến máu này.</div>

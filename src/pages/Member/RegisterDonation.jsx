@@ -14,6 +14,17 @@ const TIME_SLOTS = [
 ];
 const MAX_PER_SLOT = 10; // Số lượng tối đa mỗi khung giờ
 
+// Thêm danh sách các bệnh liên quan đến hiến máu
+const DONATION_MEDICAL_OPTIONS = [
+  "Đang cảm sốt",
+  "Đang dùng thuốc kháng sinh",
+  "Đang mang thai/cho con bú",
+  "Có bệnh truyền nhiễm",
+  "Đã phẫu thuật gần đây",
+  "Đang điều trị bệnh mãn tính",
+  "Khác"
+];
+
 function RegisterDonation() {
   const bloodTypes = [
     { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
@@ -46,6 +57,9 @@ function RegisterDonation() {
   const [isProfileDataLoading, setIsProfileDataLoading] = useState(true); // Trạng thái loading riêng cho profile/history
   
   const [hasSubmitted, setHasSubmitted] = useState(false); // State để kiểm soát hiển thị lỗi sau khi submit
+
+  const [donationMedicalChecks, setDonationMedicalChecks] = useState([]);
+  const [donationOtherMedical, setDonationOtherMedical] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -245,7 +259,13 @@ function RegisterDonation() {
         staffNotes: formData.staffNotes
       };
 
-      await api.post('/DonationRequest/RegisterDonationRequest', payload);
+      // Khi submit, bạn có thể xử lý lưu thông tin này vào staffNotes hoặc trường riêng:
+      const staffNotesValue = [
+        ...donationMedicalChecks.filter(opt => opt !== "Khác"),
+        ...(donationMedicalChecks.includes("Khác") && donationOtherMedical ? [donationOtherMedical] : [])
+      ].join(', ');
+
+      await api.post('/DonationRequest/RegisterDonationRequest', { ...payload, staffNotes: staffNotesValue });
       setMessage('Yêu cầu hiến máu của bạn đã được gửi thành công! Bạn sẽ nhận được thông báo về trạng thái yêu cầu.');
       
       setFormData({ 
@@ -367,17 +387,43 @@ function RegisterDonation() {
             </div>
 
             <div className="mb-3">
-              <label htmlFor="staffNotes" className="form-label">Ghi chú thêm (tùy chọn)</label>
-              <textarea
-                className="form-control"
-                id="staffNotes"
-                name="staffNotes"
-                value={formData.staffNotes}
-                onChange={handleChange}
-                rows="3"
-                placeholder="Ví dụ: Có thể hiến vào cuối tuần."
-                disabled={isFormDisabledDueToLoading || isProfileDataLoading} 
-              ></textarea>
+              <label className="form-label">Các yếu tố/bệnh liên quan đến hiến máu (chọn nếu có)</label>
+              <div className="d-flex flex-wrap gap-3">
+                {DONATION_MEDICAL_OPTIONS.map(opt => (
+                  <div key={opt} className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id={`donation-medical-${opt}`}
+                      value={opt}
+                      checked={donationMedicalChecks.includes(opt)}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setDonationMedicalChecks([...donationMedicalChecks, opt]);
+                        } else {
+                          setDonationMedicalChecks(donationMedicalChecks.filter(item => item !== opt));
+                          if (opt === "Khác") setDonationOtherMedical('');
+                        }
+                      }}
+                      disabled={isFormDisabledDueToLoading || isProfileDataLoading}
+                    />
+                    <label className="form-check-label" htmlFor={`donation-medical-${opt}`}>
+                      {opt}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {donationMedicalChecks.includes("Khác") && (
+                <input
+                  type="text"
+                  className="form-control mt-2"
+                  placeholder="Nhập yếu tố/bệnh khác..."
+                  value={donationOtherMedical}
+                  onChange={e => setDonationOtherMedical(e.target.value)}
+                  disabled={isFormDisabledDueToLoading || isProfileDataLoading}
+                />
+              )}
+              <small className="text-muted">Nếu không có, hãy để trống.</small>
             </div>
 
             <button type="submit" className="btn btn-danger btn-lg w-100" disabled={isFormDisabledDueToLoading || isProfileDataLoading}>

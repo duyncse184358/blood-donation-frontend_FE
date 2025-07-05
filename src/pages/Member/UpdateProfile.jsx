@@ -244,6 +244,19 @@ const genders = [
 const rhFactors = ['Rh+', 'Rh-'];
 const genderMap = { Male: 'Nam', Female: 'Nữ', Other: 'Khác' };
 
+// Thêm danh sách lựa chọn bệnh án/y tế
+const MEDICAL_OPTIONS = [
+  "Viêm gan B/C",
+  "HIV/AIDS",
+  "Bệnh tim mạch",
+  "Tiểu đường",
+  "Cao huyết áp",
+  "Ung thư",
+  "Đang mang thai",
+  "Đang dùng thuốc chống đông máu",
+  "Khác"
+];
+
 function UpdateProfile() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -262,6 +275,9 @@ function UpdateProfile() {
   const [birthYear, setBirthYear] = useState('');
   // Thêm state cho houseNumber
   const [houseNumber, setHouseNumber] = useState('');
+  // Thêm state cho select multiple và bệnh khác
+  const [medicalChecks, setMedicalChecks] = useState([]);
+  const [otherMedical, setOtherMedical] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -390,12 +406,19 @@ function UpdateProfile() {
     // Lấy lat/lng từ địa chỉ mới
     const { lat, lng } = await fetchLatLngFromAddress(finalAddress);
 
+    // Khi submit, lưu medicalHistory đúng định dạng:
+    const medicalHistoryValue = [
+      ...medicalChecks.filter(opt => opt !== "Khác"),
+      ...(medicalChecks.includes("Khác") && otherMedical ? [otherMedical] : [])
+    ].join(', ');
+
     const payload = {
       ...formData,
       address: finalAddress,
       latitude: lat ? parseFloat(lat) : null,
       longitude: lng ? parseFloat(lng) : null,
       gender: genderMap[formData.gender] || null,
+      medicalHistory: medicalHistoryValue,
     };
 
     try {
@@ -420,6 +443,18 @@ function UpdateProfile() {
       }
     }
   };
+
+  // Khi load profile, đồng bộ lại medicalChecks
+  useEffect(() => {
+    if (formData?.medicalHistory) {
+      const arr = formData.medicalHistory.split(',').map(s => s.trim());
+      setMedicalChecks(arr.filter(opt => MEDICAL_OPTIONS.includes(opt)));
+      setOtherMedical(arr.filter(opt => !MEDICAL_OPTIONS.includes(opt)).join(', '));
+    } else {
+      setMedicalChecks([]);
+      setOtherMedical('');
+    }
+  }, [formData?.medicalHistory]);
 
   if (loading) return (
     <>
@@ -643,16 +678,43 @@ function UpdateProfile() {
               </select>
             </div>
             <div className="col-12">
-              <label htmlFor="medicalHistory" className="form-label">Lịch sử bệnh án/y tế (nếu có)</label>
-              <textarea
-                className="form-control"
-                id="medicalHistory"
-                name="medicalHistory"
-                rows="3"
-                value={formData.medicalHistory || ''}
-                onChange={handleChange}
-                disabled={submitting}
-              />
+              <label className="form-label">Lịch sử bệnh án/y tế (nếu có)</label>
+              <div className="d-flex flex-wrap gap-3">
+                {MEDICAL_OPTIONS.map(opt => (
+                  <div key={opt} className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id={`medical-${opt}`}
+                      value={opt}
+                      checked={medicalChecks.includes(opt)}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setMedicalChecks([...medicalChecks, opt]);
+                        } else {
+                          setMedicalChecks(medicalChecks.filter(item => item !== opt));
+                          if (opt === "Khác") setOtherMedical('');
+                        }
+                      }}
+                      disabled={submitting}
+                    />
+                    <label className="form-check-label" htmlFor={`medical-${opt}`}>
+                      {opt}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {medicalChecks.includes("Khác") && (
+                <input
+                  type="text"
+                  className="form-control mt-2"
+                  placeholder="Nhập bệnh khác..."
+                  value={otherMedical}
+                  onChange={e => setOtherMedical(e.target.value)}
+                  disabled={submitting}
+                />
+              )}
+              <small className="text-muted">Nếu không có, hãy để trống.</small>
             </div>
             <div className="col-md-6">
               <label htmlFor="lastBloodDonationDate" className="form-label">Ngày hiến máu gần nhất</label>

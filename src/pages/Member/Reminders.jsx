@@ -33,36 +33,15 @@ function Reminders() {
             const nextDate = new Date(lastDate);
             nextDate.setMonth(nextDate.getMonth() + 3);
             setNextEligibleDate(nextDate);
-
-            // Thêm nhắc nhở dựa trên ngày đủ điều kiện
-            if (new Date() < nextDate) {
-              setReminders([{
-                id: 1,
-                type: 'Eligibility',
-                message: `Bạn sẽ đủ điều kiện hiến máu lại vào ngày ${nextDate.toLocaleDateString('vi-VN')}.`,
-                date: nextDate
-              }]);
-            } else {
-              setReminders([{
-                id: 1,
-                type: 'Eligibility',
-                message: `Bạn hiện đủ điều kiện để hiến máu! Hãy đăng ký ngay!`,
-                date: new Date()
-              }]);
-            }
-          } else {
-            setReminders([{
-              id: 2,
-              type: 'Information',
-              message: 'Bạn chưa có lịch sử hiến máu nào được ghi nhận. Hãy là người hiến máu đầu tiên!',
-              date: new Date()
-            }]);
           }
 
-          // Có thể fetch thêm các reminders khác từ API nếu có
-          // const remindersResponse = await api.get(`/Reminders/ForUser/${user.userId}`);
-          // setReminders(prev => [...prev, ...remindersResponse.data]);
-
+          // Lấy các nhắc nhở từ API backend (theo user)
+          const remindersResponse = await api.get(`/DonationReminder/ForUser/${user.userId}`);
+          if (Array.isArray(remindersResponse.data)) {
+            setReminders(remindersResponse.data);
+          } else {
+            setReminders([]);
+          }
         } catch (err) {
           setError(err.response?.data?.message || err.message || 'Đã xảy ra lỗi khi tải nhắc nhở.');
         } finally {
@@ -103,7 +82,7 @@ function Reminders() {
                   {nextEligibleDate && (
                     <p><strong>Ngày đủ điều kiện hiến máu tiếp theo:</strong> {nextEligibleDate.toLocaleDateString('vi-VN')}</p>
                   )}
-                  {new Date() < nextEligibleDate ? (
+                  {nextEligibleDate && new Date() < nextEligibleDate ? (
                     <div className="alert alert-warning mt-3">
                       Bạn chưa đủ điều kiện hiến máu lại. Vui lòng chờ đến ngày {nextEligibleDate?.toLocaleDateString('vi-VN')}.
                     </div>
@@ -131,9 +110,27 @@ function Reminders() {
               ) : (
                 <ul className="list-group list-group-flush">
                   {reminders.map(reminder => (
-                    <li key={reminder.id} className="list-group-item d-flex justify-content-between align-items-center">
-                      <span>{reminder.message}</span>
-                      <span className="badge bg-secondary rounded-pill">{new Date(reminder.date).toLocaleDateString('vi-VN')}</span>
+                    <li
+                      key={reminder.id || reminder.reminderId || Math.random()}
+                      className="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center"
+                    >
+                      <div>
+                        <span className="fw-semibold">
+                          {reminder.message || reminder.ReminderType || 'Nhắc nhở'}
+                        </span>
+                        {reminder.ReminderType && (
+                          <span className="ms-2 badge bg-info text-dark">{reminder.ReminderType}</span>
+                        )}
+                        {reminder.Via && (
+                          <span className="ms-2 badge bg-secondary">{reminder.Via}</span>
+                        )}
+                      </div>
+                      <span className="badge bg-light text-dark mt-2 mt-md-0">
+                        {reminder.SentAt
+                          ? new Date(reminder.SentAt).toLocaleString('vi-VN')
+                          : (reminder.date ? new Date(reminder.date).toLocaleString('vi-VN') : '')
+                        }
+                      </span>
                     </li>
                   ))}
                 </ul>

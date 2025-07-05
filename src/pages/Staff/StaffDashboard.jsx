@@ -97,7 +97,22 @@ function StaffDashboard() {
         discardReason: editForm.discardReason,
       };
       await api.put(`/BloodUnit/${editForm.unitId}`, payload);
-      setEditMessage('Cập nhật thành công!');
+
+      // Nếu trạng thái là "Separating" và thành phần là "Toàn phần", gọi API tách thành phần máu
+      if (
+        (editForm.status === 'Separating' || payload.status === 'Separating') &&
+        (editForm.componentName === 'Toàn phần' || payload.componentName === 'Toàn phần')
+      ) {
+        try {
+          await api.post(`/BloodUnit/separate/${editForm.unitId}`);
+          setEditMessage('Đã tách thành phần máu thành công!');
+        } catch (err) {
+          setEditMessage('Cập nhật thành công, nhưng tách thành phần máu thất bại!');
+        }
+      } else {
+        setEditMessage('Cập nhật thành công!');
+      }
+
       setEditUnit(null);
       setIsEditModalOpen(false);
       // Có thể reload lại data nếu muốn
@@ -307,6 +322,11 @@ function StaffDashboard() {
                       <option value="Reserved">Đã đặt</option>
                       <option value="Discarded">Đã loại bỏ</option>
                       <option value="Used">Đã sử dụng</option>
+                      <option value="Testing">Đang kiểm tra</option>
+                      <option value="Separating">Đang tách</option>
+                      <option value="Separated">Đã tách</option>
+                      <option value="Usable">Có thể sử dụng</option>
+                      <option value="Pending">Đang chờ xử lý</option>
                     </select>
                   </div>
                   <div className="mb-2">
@@ -318,6 +338,12 @@ function StaffDashboard() {
                       onChange={e => handleEditFormChange('discardReason', e.target.value)}
                     />
                   </div>
+                  {/* Nếu trạng thái là Separating và thành phần là Toàn phần, hiển thị hướng dẫn */}
+                  {editForm.status === 'Separating' && editForm.componentName === 'Toàn phần' && (
+                    <div className="alert alert-info mt-2">
+                      Sau khi chuyển sang trạng thái <b>Đang tách</b>, bạn có thể tách thành phần máu tại giao diện kho máu.
+                    </div>
+                  )}
                   {editMessage && <div className="alert alert-info">{editMessage}</div>}
                 </div>
                 <div className="modal-footer">
