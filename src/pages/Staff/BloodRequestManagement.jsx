@@ -45,16 +45,103 @@ function BloodRequestManagement() {
   const noResponseTimer = useRef(null);
   const navigate = useNavigate();
 
+  // Hàm để map status từ database thành status hiển thị
+  const mapStatusToDisplay = (status) => {
+    if (!status) return 'Pending';
+    
+    // Kiểm tra exact match trước
+    if (status === 'Pending' || status === 'Responded' || status === 'Approved' || status === 'Rejected') {
+      return status;
+    }
+    
+    const normalizedStatus = status.toLowerCase();
+    
+    if (normalizedStatus.includes('pending') || normalizedStatus.includes('no response')) {
+      return 'Pending';
+    }
+    if (normalizedStatus.includes('interested') || normalizedStatus.includes('responded')) {
+      return 'Responded';
+    }
+    if (normalizedStatus.includes('approved') || normalizedStatus.includes('completed') || normalizedStatus.includes('complete')) {
+      return 'Approved';
+    }
+    if (normalizedStatus.includes('rejected') || normalizedStatus.includes('declined')) {
+      return 'Rejected';
+    }
+    
+    return 'Pending'; // Mặc định là Pending
+  };
+
   // Lấy toàn bộ danh sách yêu cầu máu khẩn cấp
   const fetchRequests = async () => {
     setLoading(true);
     try {
       const res = await api.get('/EmergencyRequest/list');
-      const mapped = res.data.map(item => ({
-        ...item,
-        id: item.emergencyId // Gán id = emergencyId để dùng thống nhất
-      }));
-      setRequests(mapped);
+      console.log('Raw API response:', res.data);
+      
+      // Lấy thông tin phản hồi cho từng yêu cầu để xác định trạng thái thực tế
+      const mappedWithStatus = await Promise.all(
+        res.data.map(async (item) => {
+          let actualStatus = item.status || 'Pending';
+          
+          try {
+            // Lấy danh sách phản hồi cho yêu cầu này
+            const notificationRes = await api.get(`/EmergencyNotification/by-emergency/${item.emergencyId}`);
+            const notifications = Array.isArray(notificationRes.data) ? notificationRes.data : [notificationRes.data];
+            
+            // Lọc các phản hồi từ người dùng (không phải 'ALL')
+            const userResponses = notifications.filter(n => n.recipientUserId !== 'ALL');
+            
+            if (userResponses.length > 0) {
+              // Kiểm tra trạng thái phản hồi
+              const hasInterested = userResponses.some(n => n.responseStatus === 'Interested');
+              const hasDeclined = userResponses.some(n => n.responseStatus === 'Declined');
+              const hasNoResponse = userResponses.some(n => n.responseStatus === 'No Response');
+              const allDeclined = userResponses.length > 0 && userResponses.every(n => n.responseStatus === 'Declined');
+              
+              console.log(`Request ${item.emergencyId} responses:`, {
+                hasInterested,
+                hasDeclined,
+                hasNoResponse,
+                allDeclined,
+                responses: userResponses.map(r => ({ userId: r.recipientUserId, status: r.responseStatus }))
+              });
+              
+              // Logic ưu tiên:
+              // 1. Nếu có ít nhất 1 người đồng ý → "Responded" (Đã có phản hồi)
+              // 2. Nếu tất cả đều từ chối → "Rejected" (Từ chối)
+              // 3. Nếu còn người chưa phản hồi → giữ nguyên "Pending"
+              
+              if (hasInterested) {
+                actualStatus = 'Responded'; // Ưu tiên: có người đồng ý
+                console.log(`Request ${item.emergencyId}: Set to Responded (has interested)`);
+              } else if (allDeclined) {
+                actualStatus = 'Rejected'; // Tất cả đều từ chối
+                console.log(`Request ${item.emergencyId}: Set to Rejected (all declined)`);
+              }
+              // Nếu còn người chưa phản hồi (hasNoResponse), giữ nguyên Pending
+              
+              // Nếu status trong database là 'Approved', luôn giữ nguyên (cao nhất)
+              if (item.status === 'Approved') {
+                actualStatus = 'Approved';
+                console.log(`Request ${item.emergencyId}: Kept as Approved from database`);
+              }
+            }
+          } catch (error) {
+            console.log('Error fetching notifications for request:', item.emergencyId, error);
+          }
+          
+          return {
+            ...item,
+            id: item.emergencyId,
+            actualStatus,
+            displayStatus: mapStatusToDisplay(actualStatus)
+          };
+        })
+      );
+      
+      console.log('Mapped requests with actual status:', mappedWithStatus);
+      setRequests(mappedWithStatus);
     } catch {
       setRequests([]);
       setMessage('Không thể tải danh sách yêu cầu máu khẩn cấp.');
@@ -64,6 +151,16 @@ function BloodRequestManagement() {
 
   useEffect(() => {
     fetchRequests();
+  }, []);
+
+  // Thêm refresh khi quay lại trang từ trang khác
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchRequests();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   // Xem chi tiết thông báo: chuyển trang sang EmergencyNotificationSend
@@ -100,7 +197,7 @@ function BloodRequestManagement() {
       priority: request.priority,
       dueDate: request.dueDate ? request.dueDate.slice(0, 10) : '',
       description: request.description,
-      status: request.status // Thêm trường status vào form sửa
+      status: request.actualStatus || request.status // Sử dụng actualStatus nếu có
     });
   };
 
@@ -120,7 +217,12 @@ function BloodRequestManagement() {
       setRequests(prev =>
         prev.map(r =>
           r.id === editingRequest.id
-            ? { ...r, ...editForm }
+            ? { 
+                ...r, 
+                ...editForm,
+                actualStatus: editForm.status,
+                displayStatus: mapStatusToDisplay(editForm.status)
+              }
             : r
         )
       );
@@ -217,7 +319,7 @@ function BloodRequestManagement() {
 
   // Nhóm các yêu cầu theo status
   const groupedRequests = STATUS_OPTIONS.reduce((acc, opt) => {
-    acc[opt.value] = requests.filter(r => r.status === opt.value);
+    acc[opt.value] = requests.filter(r => r.actualStatus === opt.value);
     return acc;
   }, {});
 
@@ -262,13 +364,13 @@ function BloodRequestManagement() {
                           <td>{r.description}</td>
                           <td>
                             <span className={
-                              r.status === 'Pending' ? "badge bg-warning text-dark" :
-                              r.status === 'Responded' ? "badge bg-info text-dark" :
-                              r.status === 'Approved' ? "badge bg-success" :
-                              r.status === 'Rejected' ? "badge bg-danger" :
+                              r.actualStatus === 'Pending' ? "badge bg-warning text-dark" :
+                              r.actualStatus === 'Responded' ? "badge bg-info text-dark" :
+                              r.actualStatus === 'Approved' ? "badge bg-success" :
+                              r.actualStatus === 'Rejected' ? "badge bg-danger" :
                               "badge bg-secondary"
                             }>
-                              {STATUS_OPTIONS.find(s => s.value === r.status)?.label || r.status}
+                              {STATUS_OPTIONS.find(s => s.value === r.actualStatus)?.label || r.actualStatus}
                             </span>
                           </td>
                           <td>

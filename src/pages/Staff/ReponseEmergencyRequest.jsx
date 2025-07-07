@@ -201,6 +201,17 @@ function ReponseEmergencyRequesr() {
         await api.post('/DonationHistory', payload);
         setModalMsg('Ghi nhận thành công!');
       }
+      
+      // Cập nhật trạng thái emergency request nếu donation hoàn thành
+      if (modalForm.status === 'Complete') {
+        try {
+          await api.put(`/EmergencyRequest/${requestId}/status`, JSON.stringify('Approved'), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } catch (error) {
+          console.log('Error updating emergency request status:', error);
+        }
+      }
     } catch {
       setModalErr('Ghi nhận thất bại!');
     }
