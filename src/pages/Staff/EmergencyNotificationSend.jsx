@@ -15,6 +15,24 @@ const BLOOD_TYPES = [
 function EmergencyNotificationSend() {
   const { id } = useParams();
   const location = useLocation();
+  
+  // Helper function to clean up text display
+  const cleanText = (text) => {
+    if (!text) return '';
+    try {
+      // Try to decode URI component and clean up special characters
+      let cleaned = decodeURIComponent(text);
+      // Remove question marks and other unwanted characters
+      cleaned = cleaned.replace(/\?\?/g, '').replace(/\?/g, '');
+      // Clean up common encoding issues
+      cleaned = cleaned.replace(/á»?/g, 'ư').replace(/á»±/g, 'ứ').replace(/á»?/g, 'ều');
+      return cleaned.trim();
+    } catch (e) {
+      // If decoding fails, just clean the original text
+      return text.replace(/\?\?/g, '').replace(/\?/g, '').trim();
+    }
+  };
+  
   const [notification, setNotification] = useState(null);
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -133,7 +151,7 @@ function EmergencyNotificationSend() {
           sentDate: new Date().toISOString(),
           deliveryMethod,
           isRead: false,
-          message: notification?.message || notification?.content || 'Hiến máu khẩn cấp',
+          message: cleanText(notification?.message || notification?.content || 'Hiến máu khẩn cấp'),
           responseStatus: 'No Response'
         });
         successCount++;
@@ -216,11 +234,11 @@ function EmergencyNotificationSend() {
               <strong>Tiêu đề:</strong> {'Hiến máu khẩn cấp'}
             </div>
             <div className="card-body">
-              <p><strong>Nội dung:</strong> {notification.content || notification.message}</p>
+              <p><strong>Nội dung:</strong> {cleanText(notification.content || notification.message)}</p>
               <p><strong>Ngày gửi:</strong> {notification.sentDate ? new Date(notification.sentDate).toLocaleString('vi-VN') : 'N/A'}</p>
               {notification.detail && (
                 <div className="alert alert-info mt-2">
-                  <strong>Chi tiết:</strong> {notification.detail}
+                  <strong>Chi tiết:</strong> {cleanText(notification.detail)}
                 </div>
               )}
             </div>
@@ -234,8 +252,8 @@ function EmergencyNotificationSend() {
             <ul className="list-group">
               {searchResults.map((n, idx) => (
                 <li key={n.notificationId ? n.notificationId : `search-${idx}`} className="list-group-item">
-                  <strong>{n.title || n.message}</strong>
-                  <div>{n.content || n.message}</div>
+                  <strong>{cleanText(n.title || n.message)}</strong>
+                  <div>{cleanText(n.content || n.message)}</div>
                   <div>
                     <small>Ngày gửi: {n.sentDate ? new Date(n.sentDate).toLocaleString('vi-VN') : 'N/A'}</small>
                   </div>
