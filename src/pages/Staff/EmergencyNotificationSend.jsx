@@ -29,6 +29,7 @@ function EmergencyNotificationSend() {
   const [selectedDonors, setSelectedDonors] = useState([]);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState('');
+  const [showResultModal, setShowResultModal] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState('App Notification'); // hoặc 'Email'
 
   // Đã gửi thông báo cho ai
@@ -112,14 +113,20 @@ function EmergencyNotificationSend() {
   // Gửi thông báo cho danh sách đã chọn (nếu muốn gửi lại cho nhiều người)
   const handleSendNotification = async () => {
     if (selectedDonors.length === 0) {
-      setSendResult('Vui lòng chọn ít nhất một người nhận.');
+      setSendResult('error:Vui lòng chọn ít nhất một người nhận.');
       return;
     }
     setSending(true);
     setSendResult('');
     try {
+      let successCount = 0;
+      let skipCount = 0;
+      
       for (const userId of selectedDonors) {
-        if (sentUserIds.includes(userId)) continue; // Đảm bảo không gửi lại
+        if (sentUserIds.includes(userId)) {
+          skipCount++;
+          continue; // Đảm bảo không gửi lại
+        }
         await api.post('/EmergencyNotification', {
           emergencyId: notification?.emergencyId,
           recipientUserId: userId,
@@ -129,11 +136,23 @@ function EmergencyNotificationSend() {
           message: notification?.message || notification?.content || 'Hiến máu khẩn cấp',
           responseStatus: 'No Response'
         });
+        successCount++;
       }
-      setSendResult('Đã gửi thông báo thành công!');
+      
+      if (successCount > 0) {
+        setSendResult(`success:Đã gửi thông báo thành công cho ${successCount} người!${skipCount > 0 ? ` (Bỏ qua ${skipCount} người đã được gửi trước đó)` : ''}`);
+        // Cập nhật danh sách đã gửi
+        setSentUserIds(prev => [...prev, ...selectedDonors.filter(id => !prev.includes(id))]);
+        setShowResultModal(true); // Hiển thị modal thông báo
+      } else {
+        setSendResult('warning:Không có thông báo nào được gửi. Tất cả người được chọn đã nhận thông báo trước đó.');
+        setShowResultModal(true);
+      }
       setSelectedDonors([]);
-    } catch {
-      setSendResult('Gửi thông báo thất bại.');
+    } catch (error) {
+      console.error('Send notification error:', error);
+      setSendResult('error:Gửi thông báo thất bại. Vui lòng thử lại.');
+      setShowResultModal(true);
     }
     setSending(false);
   };
@@ -351,19 +370,108 @@ function EmergencyNotificationSend() {
           <div className="mt-4">
             <h4>Gửi thông báo cho người hiến máu đã chọn</h4>
             <div className="alert alert-warning">
-              {selectedDonors.length} người sẽ nhận được thông báo.
+              <i className="bi bi-info-circle"></i> {selectedDonors.length} người sẽ nhận được thông báo.
             </div>
             <button
               className="btn btn-danger"
               onClick={handleSendNotification}
               disabled={sending}
             >
-              {sending ? 'Đang gửi...' : 'Gửi thông báo'}
+              {sending ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Đang gửi...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-send"></i> Gửi thông báo
+                </>
+              )}
             </button>
-            {sendResult && <div className="mt-2">{sendResult}</div>}
+            
+            {/* Hiển thị kết quả gửi thông báo */}
+            {sendResult && (
+              <div className="mt-3">
+                {sendResult.startsWith('success:') && (
+                  <div className="alert alert-success">
+                    <i className="bi bi-check-circle"></i> {sendResult.replace('success:', '')}
+                  </div>
+                )}
+                {sendResult.startsWith('error:') && (
+                  <div className="alert alert-danger">
+                    <i className="bi bi-exclamation-triangle"></i> {sendResult.replace('error:', '')}
+                  </div>
+                )}
+                {sendResult.startsWith('warning:') && (
+                  <div className="alert alert-warning">
+                    <i className="bi bi-exclamation-circle"></i> {sendResult.replace('warning:', '')}
+                  </div>
+                )}
+                {!sendResult.includes(':') && (
+                  <div className="alert alert-info">
+                    <i className="bi bi-info-circle"></i> {sendResult}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
+      
+      {/* Modal thông báo kết quả */}
+      {showResultModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {sendResult.startsWith('success:') && (
+                    <>
+                      <i className="bi bi-check-circle text-success me-2"></i>
+                      Gửi thông báo thành công
+                    </>
+                  )}
+                  {sendResult.startsWith('error:') && (
+                    <>
+                      <i className="bi bi-x-circle text-danger me-2"></i>
+                      Gửi thông báo thất bại
+                    </>
+                  )}
+                  {sendResult.startsWith('warning:') && (
+                    <>
+                      <i className="bi bi-exclamation-triangle text-warning me-2"></i>
+                      Cảnh báo
+                    </>
+                  )}
+                </h5>
+                <button type="button" className="btn-close" onClick={() => setShowResultModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">
+                  {sendResult.startsWith('success:') && sendResult.replace('success:', '')}
+                  {sendResult.startsWith('error:') && sendResult.replace('error:', '')}
+                  {sendResult.startsWith('warning:') && sendResult.replace('warning:', '')}
+                  {!sendResult.includes(':') && sendResult}
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className={`btn ${
+                    sendResult.startsWith('success:') ? 'btn-success' :
+                    sendResult.startsWith('error:') ? 'btn-danger' :
+                    'btn-warning'
+                  }`}
+                  onClick={() => setShowResultModal(false)}
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <Footer />
     </div>
   );
