@@ -424,7 +424,7 @@ function UpdateProfile() {
     try {
       await api.put(`/UserProfile/by-user/${formData.userId}`, payload);
       setMessage('Cập nhật hồ sơ thành công!');
-      setTimeout(() => navigate('/member/dashboard'), 1000);
+      setTimeout(() => navigate('/member/dashboard'), 5000);
     } catch (err) {
       setSubmitting(false);
       const validationErrors = err.response?.data?.errors;
@@ -719,13 +719,20 @@ function UpdateProfile() {
             <div className="col-md-6">
               <label htmlFor="lastBloodDonationDate" className="form-label">Ngày hiến máu gần nhất</label>
               <input
-                type="date"
+                type="text"
                 className="form-control"
                 id="lastBloodDonationDate"
                 name="lastBloodDonationDate"
-                value={formData.lastBloodDonationDate || ''}
-                onChange={handleChange}
-                disabled={submitting}
+                value={
+                  formData.lastBloodDonationDate
+                    ? new Date(formData.lastBloodDonationDate).toLocaleDateString('vi-VN')
+                    : 'Chưa có thông tin'
+                }
+                readOnly
+                style={{
+                  backgroundColor: '#f8f9fa',
+                  cursor: 'not-allowed',
+                }}
               />
             </div>
             <div className="d-grid gap-2 mt-4">

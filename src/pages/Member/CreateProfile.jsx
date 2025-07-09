@@ -954,8 +954,15 @@ function CreateProfile({ onClose }) {
             </div>
             <div className="col-md-6">
               <label htmlFor="lastBloodDonationDate" className="form-label">Ngày hiến máu gần nhất</label>
-              <input type="date" className="form-control" id="lastBloodDonationDate" name="lastBloodDonationDate"
-                value={formData.lastBloodDonationDate || ''} onChange={handleChange} disabled={submitting} />
+              <input
+                type="date"
+                className="form-control"
+                id="lastBloodDonationDate"
+                name="lastBloodDonationDate"
+                value={formData.lastBloodDonationDate || ''}
+                onChange={handleChange}
+                disabled={submitting}
+              />
             </div>
           </div>
           <div className="d-grid gap-2 mt-4">
