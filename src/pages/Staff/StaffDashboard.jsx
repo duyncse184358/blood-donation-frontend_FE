@@ -523,19 +523,28 @@ function DetailEditForm({ selected, closeModal }) {
   const [staffNotes, setStaffNotes] = useState(selected.staffNotes || '');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleSave = async () => {
     setLoading(true);
     setErr('');
+    setSuccess('');
     try {
       if (selected.onUpdateStatus) {
-        selected.onUpdateStatus(status, staffNotes, (err) => {
-          if (!err) closeModal();
-          else setErr('Cập nhật thất bại!');
+        selected.onUpdateStatus(status, staffNotes, (error, result) => {
+          if (!error) {
+            setSuccess('Cập nhật trạng thái thành công!');
+            // Tự động đóng modal sau 2 giây
+            setTimeout(() => {
+              closeModal();
+            }, 2000);
+          } else {
+            setErr('Cập nhật thất bại! Vui lòng thử lại.');
+          }
         });
       }
     } catch (e) {
-      setErr('Cập nhật thất bại!');
+      setErr('Cập nhật thất bại! Vui lòng thử lại.');
     }
     setLoading(false);
   };
@@ -569,7 +578,8 @@ function DetailEditForm({ selected, closeModal }) {
           placeholder="Nhập ghi chú của nhân viên"
         />
       </div>
-      {err && <div className="text-danger mb-2">{err}</div>}
+      {err && <div className="alert alert-danger mb-2">{err}</div>}
+      {success && <div className="alert alert-success mb-2">{success}</div>}
       <div className="modal-footer">
         <button className="btn btn-success" type="button" onClick={handleSave} disabled={loading}>
           {loading ? 'Đang lưu...' : 'Lưu trạng thái'}

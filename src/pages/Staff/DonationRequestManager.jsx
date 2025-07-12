@@ -144,19 +144,19 @@ function DonationRequestManager({ openModal }) {
                       className="btn btn-sm btn-primary me-1"
                       onClick={() => handleShowDetail(r.requestId)}
                     >
-                      Xem chi tiết
+                      Xử lý yêu cầu
                     </button>
                     <button
                       className="btn btn-sm btn-info me-1"
                       onClick={() => handleShowHistory(r.requestId)}
                     >
-                      Lịch sử
+                      Lịch sử hiến máu
                     </button>
                     <button
                       className="btn btn-sm btn-secondary"
                       onClick={() => handleShowProfile(r.donorUserId)}
                     >
-                      Hồ sơ
+                      Thông tin người hiến
                     </button>
                   </td>
                 </tr>
