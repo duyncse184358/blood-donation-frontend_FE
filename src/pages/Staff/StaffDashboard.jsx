@@ -523,21 +523,30 @@ function DetailEditForm({ selected, closeModal }) {
   const [staffNotes, setStaffNotes] = useState(selected.staffNotes || '');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleSave = async () => {
     setLoading(true);
     setErr('');
+    setSuccess('');
     try {
       if (selected.onUpdateStatus) {
         selected.onUpdateStatus(status, staffNotes, (err) => {
-          if (!err) closeModal();
-          else setErr('Cập nhật thất bại!');
+          setLoading(false);
+          if (!err) {
+            setSuccess('Cập nhật trạng thái thành công!');
+            setTimeout(() => {
+              closeModal();
+            }, 1500); // Đóng modal sau 1.5 giây để người dùng thấy thông báo thành công
+          } else {
+            setErr('Cập nhật thất bại! Vui lòng thử lại.');
+          }
         });
       }
     } catch (e) {
-      setErr('Cập nhật thất bại!');
+      setErr('Cập nhật thất bại! Vui lòng thử lại.');
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -569,12 +578,18 @@ function DetailEditForm({ selected, closeModal }) {
           placeholder="Nhập ghi chú của nhân viên"
         />
       </div>
-      {err && <div className="text-danger mb-2">{err}</div>}
+      {success && <div className="alert alert-success mb-2">{success}</div>}
+      {err && <div className="alert alert-danger mb-2">{err}</div>}
       <div className="modal-footer">
         <button className="btn btn-success" type="button" onClick={handleSave} disabled={loading}>
-          {loading ? 'Đang lưu...' : 'Lưu trạng thái'}
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Đang lưu...
+            </>
+          ) : 'Lưu trạng thái'}
         </button>
-        <button className="btn btn-outline-secondary" type="button" onClick={closeModal}>Đóng</button>
+        <button className="btn btn-outline-secondary" type="button" onClick={closeModal} disabled={loading}>Đóng</button>
       </div>
     </form>
   );
