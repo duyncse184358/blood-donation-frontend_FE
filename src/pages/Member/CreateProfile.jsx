@@ -836,34 +836,8 @@ function CreateProfile({ onClose }) {
               </select>
               {fieldErrors.address && <div className="invalid-feedback">{fieldErrors.address}</div>}
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Đường/Phố</label>
-              <select
-                className={`form-select ${fieldErrors.address ? 'is-invalid' : ''}`}
-                value={streetName}
-                onChange={e => setStreetName(e.target.value)}
-                disabled={!districtCode || submitting}
-              >
-                <option value="">Chọn đường/phố</option>
-                {streets.map(st => (
-                  <option key={st} value={st}>{st}</option>
-                ))}
-              </select>
-              {fieldErrors.address && <div className="invalid-feedback">{fieldErrors.address}</div>}
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Số nhà</label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.houseNumber || ''}
-
-                onChange={e => setFormData(prev => ({ ...prev, houseNumber: e.target.value }))}
-
-                disabled={submitting}
-                placeholder="Số nhà (không bắt buộc)"
-              />
-            </div>
+           
+           
             {/* Hiển thị địa chỉ đã ghép */}
             <div className="col-12">
               <label className="form-label">Địa chỉ đầy đủ</label>

@@ -460,12 +460,12 @@ section h2::after {
 /* Benefits Grid Section (inside its card) */
 .benefits-grid-section {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr); /* 3 thẻ mỗi hàng */
+    gap: 20px; /* Khoảng cách giữa các thẻ */
     padding-top: 10px;
-    flex-grow: 1;
     align-content: start;
     width: 100%;
+    justify-content: center; /* Căn giữa lưới */
 }
 .benefit-card {
     background-color: #ffffff;

@@ -55,20 +55,6 @@ function AdminDashboard() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: activeTab === 'donations' ? '#e53935' : '#333',
-                  fontWeight: activeTab === 'donations' ? 'bold' : 'normal',
-                  cursor: 'pointer'
-                }}
-                onClick={() => navigate('/admin/donations')}
-              >
-                <i className="fa fa-tint me-2"></i> Quản lý hiến máu
-              </button>
-            </li>
-            <li style={{ marginBottom: 18 }}>
-              <button
-                style={{
-                  background: 'none',
-                  border: 'none',
                   color: activeTab === 'statistics' ? '#e53935' : '#333',
                   fontWeight: activeTab === 'statistics' ? 'bold' : 'normal',
                   cursor: 'pointer'
@@ -76,20 +62,6 @@ function AdminDashboard() {
                 onClick={() => navigate('/admin/Report')}
               >
                 <i className="fa fa-chart-bar me-2"></i> Thống kê
-              </button>
-            </li>
-            <li style={{ marginBottom: 18 }}>
-              <button
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: activeTab === 'settings' ? '#e53935' : '#333',
-                  fontWeight: activeTab === 'settings' ? 'bold' : 'normal',
-                  cursor: 'pointer'
-                }}
-                onClick={() => navigate('/admin/settings')}
-              >
-                <i className="fa fa-cog me-2"></i> Cài đặt hệ thống
               </button>
             </li>
           </ul>

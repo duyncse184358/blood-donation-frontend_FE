@@ -582,31 +582,8 @@ function UpdateProfile() {
                 ))}
               </select>
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Đường/Phố</label>
-              <select
-                className="form-select"
-                value={streetName}
-                onChange={e => setStreetName(e.target.value)}
-                disabled={!districtCode || submitting}
-              >
-                <option value="">Chọn đường/phố</option>
-                {(streetsByDistrict[districtCode] || []).map(st => (
-                  <option key={st} value={st}>{st}</option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Số nhà</label>
-              <input
-                type="text"
-                className="form-control"
-                value={houseNumber || ''}
-                onChange={e => setHouseNumber(e.target.value)}
-                disabled={submitting}
-                placeholder="Số nhà (không bắt buộc)"
-              />
-            </div>
+            
+            
             <div className="col-12">
               <label className="form-label">Địa chỉ đầy đủ</label>
               <input

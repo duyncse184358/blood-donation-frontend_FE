@@ -50,32 +50,32 @@ function DonorProfileModal({ userId, onClose }) {
                 {/* Thông tin cá nhân */}
                 <h6 className="mb-3 text-primary">Thông tin cá nhân</h6>
                 {profile && (profile.fullName || profile.phoneNumber || profile.bloodTypeName || profile.dob || profile.dateOfBirth) ? (
-                  <div>
-                    <div><b>Họ tên:</b> {profile.fullName || 'Chưa có'}</div>
-                    <div><b>Ngày sinh:</b> 
+                  <ul>
+                    <li><b>Họ tên:</b> {profile.fullName || 'Chưa có'}</li>
+                    <li><b>Ngày sinh:</b> 
                       {profile.dob
                         ? new Date(profile.dob).toLocaleDateString('vi-VN')
                         : profile.dateOfBirth
                           ? new Date(profile.dateOfBirth).toLocaleDateString('vi-VN')
                           : 'Chưa có'}
-                    </div>
-                    <div><b>Giới tính:</b> {profile.gender || 'Chưa có'}</div>
-                    <div><b>CCCD/CMND:</b> {profile.cccd || profile.cmnd || 'Chưa có'}</div>
-                    <div><b>Nhóm máu:</b> {
+                    </li>
+                    <li><b>Giới tính:</b> {profile.gender || 'Chưa có'}</li>
+                    <li><b>CCCD/CMND:</b> {profile.cccd || profile.cmnd || 'Chưa có'}</li>
+                    <li><b>Nhóm máu:</b> {
                       profile.bloodTypeName ||
                       (profile.bloodTypeId
                         ? (BLOOD_TYPES.find(bt => String(bt.id) === String(profile.bloodTypeId))?.name || 'Chưa có')
                         : 'Chưa có')
-                    }</div>
-                    <div><b>Số điện thoại:</b> {profile.phoneNumber || 'Chưa có'}</div>
-                    <div><b>Địa chỉ:</b> {profile.address || 'Chưa có'}</div>
-                    <div><b>Lịch sử bệnh án/y tế:</b> {profile.medicalHistory || 'Chưa có'}</div>
-                    <div><b>Ngày hiến máu gần nhất:</b> 
+                    }</li>
+                    <li><b>Số điện thoại:</b> {profile.phoneNumber || 'Chưa có'}</li>
+                    <li><b>Địa chỉ:</b> {profile.address || 'Chưa có'}</li>
+                    <li><b>Lịch sử bệnh án/y tế:</b> {profile.medicalHistory || 'Chưa có'}</li>
+                    <li><b>Ngày hiến máu gần nhất:</b> 
                       {profile.lastBloodDonationDate
                         ? new Date(profile.lastBloodDonationDate).toLocaleDateString('vi-VN')
                         : 'Chưa có'}
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 ) : (
                   <div className="alert alert-warning mb-3">Không tìm thấy hồ sơ cá nhân cho người hiến máu này.</div>
                 )}

@@ -126,12 +126,21 @@ function Report() {
         Báo cáo tổng hợp hệ thống hiến máu
       </h2>
       {loading ? (
-        <div>Đang tải dữ liệu...</div>
+        <div className="text-center">
+          <div className="spinner-border text-danger" role="status">
+            <span className="visually-hidden">Đang tải dữ liệu...</span>
+          </div>
+          <p className="mt-3">Đang tải dữ liệu...</p>
+        </div>
       ) : (
         <div className="row g-4">
+          {/* Người sử dụng theo vai trò */}
           <div className="col-md-6">
-            <div className="card p-3">
-              <h5 className="mb-3">Người sử dụng theo vai trò</h5>
+            <div className="card shadow-sm p-3 border-0 rounded-4">
+              <div className="d-flex align-items-center mb-3">
+                <i className="fa-solid fa-users text-primary me-2" style={{ fontSize: '1.5rem' }}></i>
+                <h5 className="mb-0 text-primary">Người sử dụng theo vai trò</h5>
+              </div>
               <Doughnut
                 data={{
                   labels: Object.keys(userRoleCount),
@@ -140,17 +149,47 @@ function Report() {
                     backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d'],
                   }]
                 }}
+                options={{
+                  plugins: {
+                    legend: { position: 'bottom' },
+                  },
+                }}
               />
               <ul className="mt-3" style={{ fontSize: 15 }}>
                 {Object.entries(userRoleCount).map(([role, count]) => (
-                  <li key={role}><b>{role}:</b> {count} người dùng</li>
+                  <li key={role}>
+                    <b>{role}:</b> {count} người dùng
+                  </li>
                 ))}
               </ul>
+              <div className="mt-3">
+                {Object.entries(userRoleCount).map(([role, count]) => (
+                  <div key={role} className="mb-3">
+                    <h6 className="text-primary">
+                      {role} ({count} người dùng):
+                    </h6>
+                    <ul style={{ paddingLeft: '1.5rem', fontSize: 14 }}>
+                      {users
+                        .filter(user => user.roleName === role || user.RoleName === role)
+                        .map(user => (
+                          <li key={user.id || user.userId}>
+                            {user.username || user.email || 'Không rõ tên'}
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+
+          {/* Kho máu theo nhóm máu */}
           <div className="col-md-6">
-            <div className="card p-3">
-              <h5 className="mb-3">Kho máu theo nhóm máu</h5>
+            <div className="card shadow-sm p-3 border-0 rounded-4">
+              <div className="d-flex align-items-center mb-3">
+                <i className="fa-solid fa-tint text-danger me-2" style={{ fontSize: '1.5rem' }}></i>
+                <h5 className="mb-0 text-danger">Kho máu theo nhóm máu</h5>
+              </div>
               <Bar
                 data={{
                   labels: ALL_BLOOD_TYPES,
@@ -162,7 +201,7 @@ function Report() {
                 }}
                 options={{
                   responsive: true,
-                  plugins: { legend: { display: false } }
+                  plugins: { legend: { display: false } },
                 }}
               />
               <ul className="mt-3" style={{ fontSize: 15 }}>
@@ -172,10 +211,15 @@ function Report() {
               </ul>
             </div>
           </div>
+
+          {/* Lịch sử ghi nhận hiến máu */}
           <div className="col-md-12">
-            <div className="card p-3">
-              <div className="d-flex flex-wrap align-items-end justify-content-between mb-2">
-                <h5 className="mb-0">Lịch sử ghi nhận hiến máu theo ngày</h5>
+            <div className="card shadow-sm p-3 border-0 rounded-4">
+              <div className="d-flex align-items-center justify-content-between mb-3">
+                <div className="d-flex align-items-center">
+                  <i className="fa-solid fa-calendar-alt text-success me-2" style={{ fontSize: '1.5rem' }}></i>
+                  <h5 className="mb-0 text-success">Lịch sử ghi nhận hiến máu theo ngày</h5>
+                </div>
                 <div className="d-flex gap-2 align-items-center">
                   <label className="mb-0">Từ</label>
                   <input
@@ -237,16 +281,16 @@ function Report() {
                   }
                 }}
               />
-              <ul className="mt-3" style={{ fontSize: 15 }}>
-                {dayLabels.map(day => (
-                  <li key={day}><b>{day}:</b> {historyByDay[day] || 0} lượt hiến máu</li>
-                ))}
-              </ul>
             </div>
           </div>
+
+          {/* Số đơn hiến máu theo trạng thái */}
           <div className="col-md-6">
-            <div className="card p-3">
-              <h5 className="mb-3">Số đơn hiến máu theo trạng thái</h5>
+            <div className="card shadow-sm p-3 border-0 rounded-4">
+              <div className="d-flex align-items-center mb-3">
+                <i className="fa-solid fa-file-alt text-warning me-2" style={{ fontSize: '1.5rem' }}></i>
+                <h5 className="mb-0 text-warning">Số đơn hiến máu theo trạng thái</h5>
+              </div>
               <Pie
                 data={{
                   labels: Object.keys(requestStatusCount),
@@ -254,6 +298,11 @@ function Report() {
                     data: Object.values(requestStatusCount),
                     backgroundColor: ['#ffc107', '#007bff', '#dc3545', '#28a745', '#6c757d'],
                   }]
+                }}
+                options={{
+                  plugins: {
+                    legend: { position: 'bottom' },
+                  },
                 }}
               />
               <ul className="mt-3" style={{ fontSize: 15 }}>

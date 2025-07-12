@@ -17,6 +17,8 @@ function DonationRequestManager({ openModal }) {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -42,11 +44,10 @@ function DonationRequestManager({ openModal }) {
   const handleShowDetail = async (requestId) => {
     try {
       const res = await api.get(`/DonationRequest/${requestId}`);
-      // Bỏ phần componentId/componentName khi truyền vào modal
       const { componentId, componentName, ...rest } = res.data;
       openModal('detail', {
         ...rest,
-        staffNotes: res.data.staffNotes || '', // truyền staffNotes cho modal
+        staffNotes: res.data.staffNotes || '',
         onUpdateStatus: async (newStatus, newStaffNotes, onDone) => {
           try {
             const updateBody = {
@@ -54,7 +55,7 @@ function DonationRequestManager({ openModal }) {
               preferredDate: res.data.preferredDate,
               preferredTimeSlot: res.data.preferredTimeSlot,
               status: newStatus,
-              staffNotes: newStaffNotes, // cập nhật staffNotes mới
+              staffNotes: newStaffNotes,
               donorUserId: res.data.donorUserId,
             };
             const updateRes = await api.put(`/DonationRequest/${requestId}`, updateBody);
@@ -63,8 +64,10 @@ function DonationRequestManager({ openModal }) {
                 r.requestId === requestId ? { ...r, ...updateRes.data } : r
               )
             );
+            setSuccessMessage('Cập nhật trạng thái thành công!');
             if (onDone) onDone(null, updateRes.data);
           } catch (err) {
+            setErrorMessage('Cập nhật trạng thái thất bại!');
             if (onDone) onDone(err);
           }
         }
@@ -144,19 +147,19 @@ function DonationRequestManager({ openModal }) {
                       className="btn btn-sm btn-primary me-1"
                       onClick={() => handleShowDetail(r.requestId)}
                     >
-                      Xử lý yêu cầu
+                      Xem chi tiết
                     </button>
                     <button
                       className="btn btn-sm btn-info me-1"
                       onClick={() => handleShowHistory(r.requestId)}
                     >
-                      Lịch sử hiến máu
+                      Lịch sử
                     </button>
                     <button
                       className="btn btn-sm btn-secondary"
                       onClick={() => handleShowProfile(r.donorUserId)}
                     >
-                      Thông tin người hiến
+                      Hồ sơ
                     </button>
                   </td>
                 </tr>
