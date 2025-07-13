@@ -24,7 +24,7 @@ const TABS = [
   { key: 'discard', label: 'Ghi nhận loại bỏ máu', icon: 'fa-solid fa-trash-can' },
   { key: 'search', label: 'Tìm kiếm người hiến phù hợp', icon: 'fa-solid fa-magnifying-glass-location' },
   { key: 'notification', label: 'Quản lý thông báo', icon: 'fa-solid fa-bell' },
-  { key: 'profile', label: 'Cập nhật hồ sơ cá nhân', icon: 'fa-solid fa-user-pen' }
+ 
 ];
 
 function StaffDashboard() {

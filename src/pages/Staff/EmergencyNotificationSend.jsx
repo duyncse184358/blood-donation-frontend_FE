@@ -15,31 +15,23 @@ const BLOOD_TYPES = [
 function EmergencyNotificationSend() {
   const { id } = useParams();
   const location = useLocation();
-  
-  // Helper function to clean up text display
+
   const cleanText = (text) => {
     if (!text) return '';
     try {
-      // Try to decode URI component and clean up special characters
       let cleaned = decodeURIComponent(text);
-      // Remove question marks and other unwanted characters
       cleaned = cleaned.replace(/\?\?/g, '').replace(/\?/g, '');
-      // Clean up common encoding issues
       cleaned = cleaned.replace(/á»?/g, 'ư').replace(/á»±/g, 'ứ').replace(/á»?/g, 'ều');
       return cleaned.trim();
     } catch (e) {
-      // If decoding fails, just clean the original text
       return text.replace(/\?\?/g, '').replace(/\?/g, '').trim();
     }
   };
-  
+
   const [notification, setNotification] = useState(null);
-  const [search, setSearch] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Donor search state
   const [bloodTypeId, setBloodTypeId] = useState('');
   const [radius, setRadius] = useState(5);
   const [donors, setDonors] = useState([]);
@@ -48,12 +40,9 @@ function EmergencyNotificationSend() {
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState('');
   const [showResultModal, setShowResultModal] = useState(false);
-  const [deliveryMethod, setDeliveryMethod] = useState('App Notification'); // hoặc 'Email'
-
-  // Đã gửi thông báo cho ai
+  const [deliveryMethod, setDeliveryMethod] = useState('App Notification');
   const [sentUserIds, setSentUserIds] = useState([]);
 
-  // Lấy id từ state nếu chuyển trang bằng navigate và truyền state
   const notificationId = id || location.state?.notificationId;
 
   useEffect(() => {
@@ -68,7 +57,6 @@ function EmergencyNotificationSend() {
       .finally(() => setLoading(false));
   }, [notificationId]);
 
-  // Lấy danh sách userId đã gửi thông báo cho emergency này
   useEffect(() => {
     if (!notification?.emergencyId) return;
     api.get(`/EmergencyNotification/by-emergency/${notification.emergencyId}`)
@@ -79,23 +67,6 @@ function EmergencyNotificationSend() {
       });
   }, [notification?.emergencyId]);
 
-  // Hàm tìm kiếm thông báo khẩn cấp theo từ khóa
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!search.trim()) return;
-    setLoading(true);
-    setError('');
-    try {
-      const res = await api.get(`/EmergencyNotification/search?keyword=${encodeURIComponent(search)}`);
-      setSearchResults(res.data || []);
-    } catch {
-      setError('Không tìm thấy kết quả phù hợp.');
-      setSearchResults([]);
-    }
-    setLoading(false);
-  };
-
-  // Donor search
   const handleDonorSearch = async (e) => {
     e.preventDefault();
     setDonorMessage('');
@@ -119,7 +90,6 @@ function EmergencyNotificationSend() {
     setLoading(false);
   };
 
-  // Chọn donor: Khi chọn user thì tự động tạo 1 thông báo mới cho user đó dựa trên notification hiện tại
   const handleSelectDonor = (userId) => {
     setSelectedDonors(prev =>
       prev.includes(userId)
@@ -128,7 +98,6 @@ function EmergencyNotificationSend() {
     );
   };
 
-  // Gửi thông báo cho danh sách đã chọn (nếu muốn gửi lại cho nhiều người)
   const handleSendNotification = async () => {
     if (selectedDonors.length === 0) {
       setSendResult('error:Vui lòng chọn ít nhất một người nhận.');
@@ -139,11 +108,11 @@ function EmergencyNotificationSend() {
     try {
       let successCount = 0;
       let skipCount = 0;
-      
+
       for (const userId of selectedDonors) {
         if (sentUserIds.includes(userId)) {
           skipCount++;
-          continue; // Đảm bảo không gửi lại
+          continue;
         }
         await api.post('/EmergencyNotification', {
           emergencyId: notification?.emergencyId,
@@ -156,12 +125,11 @@ function EmergencyNotificationSend() {
         });
         successCount++;
       }
-      
+
       if (successCount > 0) {
         setSendResult(`success:Đã gửi thông báo thành công cho ${successCount} người!${skipCount > 0 ? ` (Bỏ qua ${skipCount} người đã được gửi trước đó)` : ''}`);
-        // Cập nhật danh sách đã gửi
         setSentUserIds(prev => [...prev, ...selectedDonors.filter(id => !prev.includes(id))]);
-        setShowResultModal(true); // Hiển thị modal thông báo
+        setShowResultModal(true);
       } else {
         setSendResult('warning:Không có thông báo nào được gửi. Tất cả người được chọn đã nhận thông báo trước đó.');
         setShowResultModal(true);
@@ -175,59 +143,15 @@ function EmergencyNotificationSend() {
     setSending(false);
   };
 
-  // Gửi email thông báo (KHÔNG CẦN DÙNG NỮA, đã chuyển sang BE xử lý)
-  // const handleSendEmailNotification = async () => {
-  //   if (!notificationId) return;
-  //   setLoading(true);
-  //   setError('');
-  //   try {
-  //     // Lặp qua danh sách người nhận đã chọn
-  //     for (const userId of selectedDonors) {
-  //       // Lấy thông tin người nhận
-  //       const userRes = await api.get(`/User/${userId}`);
-  //       const user = userRes.data;
-
-  //       // Gửi email thông báo
-  //       const emailRes = await api.post('/Email/SendEmergencyNotification', {
-  //         toEmail: user.email,
-  //         subject: 'Yêu cầu hiến máu khẩn cấp',
-  //         htmlMessage: `
-  //           <p>Bạn nhận được yêu cầu hiến máu khẩn cấp.</p>
-  //           <p>
-  //               <a href='https://yourdomain.com/emergency-response/accept/${notificationId}'>Tôi đồng ý hiến máu</a> |
-  //               <a href='https://yourdomain.com/emergency-response/decline/${notificationId}'>Tôi không thể tham gia</a>
-  //           </p>
-  //         `
-  //       });
-  //     }
-  //     setSendResult('Đã gửi thông báo qua email thành công!');
-  //   } catch {
-  //     setSendResult('Gửi thông báo qua email thất bại.');
-  //   }
-  //   setLoading(false);
-  // };
-
   return (
     <div className="page-wrapper">
       <Header />
       <Navbar />
       <main className="container my-5">
         <h2 className="mb-4 text-danger">Chi tiết thông báo khẩn cấp</h2>
-        {/* Search form */}
-        <form className="mb-4 d-flex" onSubmit={handleSearch}>
-          <input
-            type="text"
-            className="form-control me-2"
-            placeholder="Tìm kiếm thông báo khẩn cấp..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          <button className="btn btn-primary" type="submit">Tìm kiếm</button>
-        </form>
         {error && <div className="alert alert-danger">{error}</div>}
         {loading && <div>Đang tải...</div>}
 
-        {/* Hiển thị nội dung thông báo */}
         {notification && (
           <div className="card mb-4">
             <div className="card-header">
@@ -245,25 +169,6 @@ function EmergencyNotificationSend() {
           </div>
         )}
 
-        {/* Hiển thị kết quả tìm kiếm */}
-        {searchResults.length > 0 && (
-          <div>
-            <h5>Kết quả tìm kiếm:</h5>
-            <ul className="list-group">
-              {searchResults.map((n, idx) => (
-                <li key={n.notificationId ? n.notificationId : `search-${idx}`} className="list-group-item">
-                  <strong>{cleanText(n.title || n.message)}</strong>
-                  <div>{cleanText(n.content || n.message)}</div>
-                  <div>
-                    <small>Ngày gửi: {n.sentDate ? new Date(n.sentDate).toLocaleString('vi-VN') : 'N/A'}</small>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Tìm kiếm người hiến máu phù hợp */}
         <div className="mt-5">
           <h4>Tìm kiếm người hiến máu phù hợp</h4>
           <form className="row g-3 mb-3" onSubmit={handleDonorSearch}>
@@ -316,74 +221,46 @@ function EmergencyNotificationSend() {
                   </tr>
                 </thead>
                 <tbody>
-                  {donors
-                    .filter(d => {
-                      // 1. Kiểm tra tuổi từ 18 đến 60
-                      if (!d.dateOfBirth) return false;
-                      const dob = new Date(d.dateOfBirth);
-                      const now = new Date();
-                      let age = now.getFullYear() - dob.getFullYear();
-                      const m = now.getMonth() - dob.getMonth();
-                      if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) {
-                        age--;
-                      }
-                      if (age < 18 || age > 60) return false;
-
-                      // 2. Kiểm tra lần hiến máu gần nhất cách đây ít nhất 90 ngày
-                      if (d.lastDonationDate) {
-                        const last = new Date(d.lastDonationDate);
-                        const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
-                        if (diffDays < 90) return false;
-                      }
-
-                      // 3. Kiểm tra lịch sử có bị reject không
-                      if (Array.isArray(d.donationHistory) && d.donationHistory.some(h => h.status && h.status.toLowerCase() === 'reject')) {
-                        return false;
-                      }
-
-                      return true;
-                    })
-                    .map(d => {
-                      const isSent = sentUserIds.includes(d.userId);
-                      return (
-                        <tr key={d.profileId}>
-                          <td>
-                            {isSent ? (
-                              <span className="text-success" title="Đã gửi">&#10003;</span>
-                            ) : (
-                              <input
-                                type="checkbox"
-                                checked={selectedDonors.includes(d.userId)}
-                                onChange={() => handleSelectDonor(d.userId)}
-                                disabled={isSent}
-                              />
-                            )}
-                          </td>
-                          <td>{d.fullName}</td>
-                          <td>{d.dateOfBirth}</td>
-                          <td>
-                            {d.gender === 1 || d.gender === 'Nam'
-                              ? 'Nam'
-                              : d.gender === 2 || d.gender === 'Nữ'
-                              ? 'Nữ'
-                              : d.gender === 3 || d.gender === 'Khác'
-                              ? 'Khác'
-                              : ''}
-                          </td>
-                          <td>{d.address}</td>
-                          <td>{BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}</td>
-                          <td>{d.phoneNumber}</td>
-                          <td>{d.lastDonationDate ? new Date(d.lastDonationDate).toLocaleString('vi-VN') : 'Chưa có'}</td>
-                        </tr>
-                      );
-                    })}
+                  {donors.map(d => {
+                    const isSent = sentUserIds.includes(d.userId);
+                    return (
+                      <tr key={d.profileId}>
+                        <td>
+                          {isSent ? (
+                            <span className="text-success" title="Đã gửi">&#10003;</span>
+                          ) : (
+                            <input
+                              type="checkbox"
+                              checked={selectedDonors.includes(d.userId)}
+                              onChange={() => handleSelectDonor(d.userId)}
+                              disabled={isSent}
+                            />
+                          )}
+                        </td>
+                        <td>{d.fullName}</td>
+                        <td>{d.dateOfBirth}</td>
+                        <td>
+                          {d.gender === 1 || d.gender === 'Nam'
+                            ? 'Nam'
+                            : d.gender === 2 || d.gender === 'Nữ'
+                            ? 'Nữ'
+                            : d.gender === 3 || d.gender === 'Khác'
+                            ? 'Khác'
+                            : ''}
+                        </td>
+                        <td>{d.address}</td>
+                        <td>{BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}</td>
+                        <td>{d.phoneNumber}</td>
+                        <td>{d.lastDonationDate ? new Date(d.lastDonationDate).toLocaleString('vi-VN') : 'Chưa có'}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </div>
 
-        {/* Gửi thông báo cho người hiến máu */}
         {selectedDonors.length > 0 && (
           <div className="mt-4">
             <h4>Gửi thông báo cho người hiến máu đã chọn</h4>
@@ -406,8 +283,6 @@ function EmergencyNotificationSend() {
                 </>
               )}
             </button>
-            
-            {/* Hiển thị kết quả gửi thông báo */}
             {sendResult && (
               <div className="mt-3">
                 {sendResult.startsWith('success:') && (
@@ -425,71 +300,11 @@ function EmergencyNotificationSend() {
                     <i className="bi bi-exclamation-circle"></i> {sendResult.replace('warning:', '')}
                   </div>
                 )}
-                {!sendResult.includes(':') && (
-                  <div className="alert alert-info">
-                    <i className="bi bi-info-circle"></i> {sendResult}
-                  </div>
-                )}
               </div>
             )}
           </div>
         )}
       </main>
-      
-      {/* Modal thông báo kết quả */}
-      {showResultModal && (
-        <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  {sendResult.startsWith('success:') && (
-                    <>
-                      <i className="bi bi-check-circle text-success me-2"></i>
-                      Gửi thông báo thành công
-                    </>
-                  )}
-                  {sendResult.startsWith('error:') && (
-                    <>
-                      <i className="bi bi-x-circle text-danger me-2"></i>
-                      Gửi thông báo thất bại
-                    </>
-                  )}
-                  {sendResult.startsWith('warning:') && (
-                    <>
-                      <i className="bi bi-exclamation-triangle text-warning me-2"></i>
-                      Cảnh báo
-                    </>
-                  )}
-                </h5>
-                <button type="button" className="btn-close" onClick={() => setShowResultModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                <p className="mb-0">
-                  {sendResult.startsWith('success:') && sendResult.replace('success:', '')}
-                  {sendResult.startsWith('error:') && sendResult.replace('error:', '')}
-                  {sendResult.startsWith('warning:') && sendResult.replace('warning:', '')}
-                  {!sendResult.includes(':') && sendResult}
-                </p>
-              </div>
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className={`btn ${
-                    sendResult.startsWith('success:') ? 'btn-success' :
-                    sendResult.startsWith('error:') ? 'btn-danger' :
-                    'btn-warning'
-                  }`}
-                  onClick={() => setShowResultModal(false)}
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
       <Footer />
     </div>
   );

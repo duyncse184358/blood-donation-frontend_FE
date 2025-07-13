@@ -40,7 +40,7 @@ import AdminDashboard from './pages/Admin/AdminDashboard';
 import DashboardPage from './pages/Admin/DashboardPage';
 import Report from './pages/Admin/Report';
 import ManageUserAccount from './pages/Admin/ManageUserAccount.jsx';
-import AdminSettings from './pages/Admin/AdminSettings'; // Thêm dòng này
+
 
 // AuthContext và PrivateRoute
 import { AuthProvider } from './context/AuthContext';
@@ -97,7 +97,7 @@ function App() {
                                 <Route path="dashboard" element={<DashboardPage />} />
                                 <Route path="manage-users" element={<DashboardPage />} />
                                 <Route path="Report" element={<Report />} />
-                                <Route path="settings" element={<AdminSettings />} /> {/* Thêm dòng này */}
+                              
                             </Route>
                         </Route>
                         
