@@ -331,46 +331,59 @@ function HomePage() {
                 <section className="blog-section py-5 bg-light">
                     <div className="container">
                         <h2 className="text-center mb-5">Góc Chia Sẻ Từ Cộng Đồng</h2>
+                        
+                        {/* Thêm thông báo */}
+                        <p className="text-center text-muted mb-4">
+                            Hãy cùng khám phá những câu chuyện truyền cảm hứng từ cộng đồng hiến máu!
+                        </p>
+
                         <div className="row g-4">
-                            <div className="col-md-6 col-lg-4">
-                                <div className="card h-100 shadow-sm">
-                                    <img src="https://placehold.co/400x250/cccccc/333333?text=Blog+Image+1" onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+1"; }} className="card-img-top" alt="Bài viết Blog 1" />
-                                    <div className="card-body">
-                                        <h5 className="card-title">Hành Trình Của Một Người Hiến Máu Thường Xuyên</h5>
-                                        <p className="card-text text-muted small">Ngày đăng: 10/06/2025</p>
-                                        <p className="card-text">
-                                            Câu chuyện cảm động về anh Nguyễn Văn A, người đã hiến máu 30 lần và truyền cảm hứng cho cộng đồng.
-                                        </p>
-                                        <Link to="/blog/post-1" className="btn btn-outline-primary btn-sm">Đọc thêm</Link>
+                            {/* Hiển thị bài viết từ Blog */}
+                            {[
+                                {
+                                    title: "Hành Trình Của Một Người Hiến Máu Thường Xuyên",
+                                    date: "10/06/2025",
+                                    desc: "Câu chuyện cảm động về anh Nguyễn Văn A, người đã hiến máu 30 lần và truyền cảm hứng cho cộng đồng.",
+                                    link: "/blog/post-1",
+                                    image: "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+1"
+                                },
+                                {
+                                    title: "Hiến Máu Lần Đầu: Những Điều Bạn Cần Biết",
+                                    date: "01/06/2025",
+                                    desc: "Bài viết tổng hợp các câu hỏi thường gặp và giải đáp thắc mắc cho người mới hiến máu.",
+                                    link: "/blog/post-2",
+                                    image: "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+2"
+                                },
+                                {
+                                    title: "Tầm Quan Trọng Của Máu Hiếm Trong Y Học",
+                                    date: "25/05/2025",
+                                    desc: "Tìm hiểu về các nhóm máu hiếm và vai trò sống còn của những người hiến máu đặc biệt.",
+                                    link: "/blog/post-3",
+                                    image: "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+3"
+                                }
+                            ].map((blog, idx) => (
+                                <div className="col-md-6 col-lg-4" key={idx}>
+                                    <div className="card h-100 shadow-sm">
+                                        <img
+                                            src={blog.image}
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = "https://placehold.co/400x250/cccccc/333333?text=Blog+Image";
+                                            }}
+                                            className="card-img-top"
+                                            alt={blog.title}
+                                        />
+                                        <div className="card-body">
+                                            <h5 className="card-title">{blog.title}</h5>
+                                            <p className="card-text text-muted small">Ngày đăng: {blog.date}</p>
+                                            <p className="card-text">{blog.desc}</p>
+                                            <Link to={blog.link} className="btn btn-outline-primary btn-sm">
+                                                Đọc thêm
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="col-md-6 col-lg-4">
-                                <div className="card h-100 shadow-sm">
-                                    <img src="https://placehold.co/400x250/cccccc/333333?text=Blog+Image+2" onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+2"; }} className="card-img-top" alt="Bài viết Blog 2" />
-                                    <div className="card-body">
-                                        <h5 className="card-title">Hiến Máu Lần Đầu: Những Điều Bạn Cần Biết</h5>
-                                        <p className="card-text text-muted small">Ngày đăng: 01/06/2025</p>
-                                        <p className="card-text">
-                                            Bài viết tổng hợp các câu hỏi thường gặp và giải đáp thắc mắc cho người mới hiến máu.
-                                        </p>
-                                        <Link to="/blog/post-2" className="btn btn-outline-primary btn-sm">Đọc thêm</Link>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="col-md-6 col-lg-4">
-                                <div className="card h-100 shadow-sm">
-                                    <img src="https://placehold.co/400x250/cccccc/333333?text=Blog+Image+3" onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+3"; }} className="card-img-top" alt="Bài viết Blog 3" />
-                                    <div className="card-body">
-                                        <h5 className="card-title">Tầm Quan Trọng Của Máu Hiếm Trong Y Học</h5>
-                                        <p className="card-text text-muted small">Ngày đăng: 25/05/2025</p>
-                                        <p className="card-text">
-                                            Tìm hiểu về các nhóm máu hiếm và vai trò sống còn của những người hiến máu đặc biệt.
-                                        </p>
-                                        <Link to="/blog/post-3" className="btn btn-outline-primary btn-sm">Đọc thêm</Link>
-                                    </div>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                         <div className="text-center mt-5">
                             <Link to="/blog" className="btn btn-outline-danger btn-lg">Xem tất cả bài viết</Link>

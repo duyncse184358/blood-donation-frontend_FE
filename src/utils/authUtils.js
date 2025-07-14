@@ -92,14 +92,20 @@ export const sendOtpForResetPassword = async (email) => {
  * @returns {Promise<string>} Message from API
  */
 export const resetPassword = async (email, otpCode, newPassword, confirmNewPassword) => {
+    if (!email || !otpCode || !newPassword || !confirmNewPassword) {
+        throw new Error('Tất cả các trường đều bắt buộc.');
+    }
+    if (newPassword !== confirmNewPassword) {
+        throw new Error('Mật khẩu mới và xác nhận mật khẩu không khớp.');
+    }
     try {
         const response = await api.post('/Auth/reset-password', {
-            email, 
-            otpCode, 
-            newPassword, 
-            confirmNewPassword 
+            email,
+            otpCode,
+            newPassword,
+            confirmNewPassword,
         });
-        return response.data.message; // API trả về "Password reset successful."
+        return response.data.message || 'Đặt lại mật khẩu thành công.';
     } catch (error) {
         const errorMessage = error.response?.data?.message || 'Đặt lại mật khẩu thất bại. Mã OTP không hợp lệ/hết hạn hoặc lỗi hệ thống.';
         console.error('Error resetting password:', errorMessage);
