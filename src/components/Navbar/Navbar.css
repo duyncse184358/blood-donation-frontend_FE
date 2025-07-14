@@ -1,10 +1,22 @@
 /* src/components/Navbar/Navbar.css */
 
+/* CSS Variables - Professional Blood Donation Color Palette */
+:root {
+    --primary: #D7263D;        /* Đỏ tươi - màu chủ đạo */
+    --secondary: #FF6F61;      /* Đỏ cam - nút CTA */
+    --light-pink: #F5B7B1;     /* Hồng nhạt - màu phụ */
+    --accent: #FFD166;         /* Vàng nhạt - điểm nhấn */
+    --white: #FFFFFF;          /* Trắng - nền chính */
+    --gray-light: #F2F2F2;     /* Xám nhạt - nền section */
+    --gray-dark: #333333;      /* Xám đậm - text chính */
+    --gray-medium: #666666;    /* Xám vừa - text phụ */
+}
+
 /* Base Navbar Styling */
 .navbar-custom {
-    background: linear-gradient(to right, #dc3545, #c82333); /* Deep red gradient */
+    background: linear-gradient(135deg, var(--primary), var(--secondary)); /* Gradient chuyên nghiệp */
     padding: 15px 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(215, 38, 61, 0.15);
     font-family: 'Inter', sans-serif;
     position: sticky; /* Makes navbar sticky at the top */
     top: 0;
@@ -34,7 +46,7 @@
 }
 
 .brand-text {
-    color: #fff;
+    color: var(--white);
     font-size: 1.5rem;
     font-weight: 700;
     text-decoration: none;
@@ -42,7 +54,7 @@
 }
 
 .brand-text:hover {
-    color: #f0f0f0;
+    color: var(--accent);
 }
 
 /* Main Navigation Links */
@@ -63,7 +75,7 @@
 .nav-links .nav-item-link {
     font-size: 1.1rem; /* Increased font size as requested */
     font-weight: 500; /* Made slightly bolder */
-    color: #f8f9fa; /* Off-white color */
+    color: var(--white); /* Trắng */
     text-decoration: none;
     transition: color 0.3s ease, transform 0.3s ease;
     position: relative;
@@ -71,7 +83,7 @@
 }
 
 .nav-links .nav-item-link:hover {
-    color: #ffffff; /* Pure white on hover */
+    color: var(--accent); /* Vàng nhạt on hover */
     transform: translateY(-2px); /* Slight lift effect */
 }
 
@@ -82,7 +94,7 @@
     left: 0;
     width: 0; /* Initially hidden */
     height: 2px;
-    background-color: #f8d347; /* Yellow/Gold underline */
+    background-color: var(--accent); /* Vàng nhạt underline */
     transition: width 0.3s ease; /* Animate width */
 }
 
@@ -116,8 +128,8 @@
     position: absolute;
     top: 0px;
     right: 0px;
-    background-color: #F8D347; /* Yellow/Gold badge */
-    color: #dc3545; /* Red text on badge */
+    background-color: var(--accent); /* Vàng nhạt badge */
+    color: var(--primary); /* Đỏ tươi text on badge */
     border-radius: 50%;
     padding: 2px 6px;
     font-size: 0.75rem;
@@ -125,7 +137,7 @@
     line-height: 1;
     min-width: 20px;
     text-align: center;
-    border: 1px solid #dc3545; /* Border to make it pop */
+    border: 1px solid var(--primary); /* Border to make it pop */
 }
 
 
@@ -150,7 +162,7 @@
 .user-icon {
     margin-right: 8px;
     border-radius: 50%; /* Ensure icon is round */
-    background-color: #fff; /* White background for the user icon circle */
+    background-color: var(--white); /* White background for the user icon circle */
     padding: 3px; /* Creates a small white border around the red icon */
     box-shadow: 0 0 5px rgba(0,0,0,0.1);
 }
@@ -158,7 +170,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    color: #fff;
+    color: var(--white);
     line-height: 1.2;
 }
 .user-name {
@@ -171,9 +183,9 @@
 }
 
 .profile-dropdown-menu {
-    background: #fff;
+    background: var(--white);
     border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 25px rgba(215, 38, 61, 0.15);
     padding: 8px 0;
     min-width: 180px;
     position: absolute;
@@ -183,6 +195,7 @@
     opacity: 1;
     visibility: visible;
     transition: all 0.2s;
+    border: 1px solid var(--light-pink);
 }
 .user-profile-wrapper.open .profile-dropdown-menu { /* This class is applied by JS */
     opacity: 1;
@@ -196,7 +209,7 @@
     padding: 10px 20px;
     background: none;
     border: none;
-    color: #333;
+    color: var(--gray-dark);
     font-size: 15px;
     cursor: pointer;
     transition: background 0.18s, color 0.18s;
@@ -204,25 +217,25 @@
     text-align: left;
 }
 .dropdown-item:hover {
-    background: #fbe9e7;
-    color: #d32f2f;
+    background: var(--light-pink);
+    color: var(--primary);
 }
 .dropdown-item:last-child {
-    color: #d32f2f;
+    color: var(--primary);
     font-weight: 600;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid var(--gray-light);
     margin-top: 4px;
 }
 .dropdown-item:last-child:hover {
-    background: #ffebee;
-    color: #b71c1c;
+    background: var(--light-pink);
+    color: var(--primary);
 }
 
 
 /* Login Button (for unauthenticated users) */
 .btn-login {
-    background-color: #F8D347; /* Yellow/Gold for login button */
-    color: #dc3545; /* Red text */
+    background-color: var(--accent); /* Vàng nhạt for login button */
+    color: var(--primary); /* Đỏ tươi text */
     border: none;
     border-radius: 50px;
     padding: 8px 20px;
@@ -231,7 +244,7 @@
     transition: background-color 0.2s ease, transform 0.2s ease;
 }
 .btn-login:hover {
-    background-color: #e6c230; /* Darker yellow on hover */
+    background-color: var(--white); /* Trắng on hover */
     transform: translateY(-2px);
 }
 
@@ -308,7 +321,7 @@
         background-color: rgba(0,0,0,0.1); /* Slightly darker background for nested menu */
     }
     .dropdown-item {
-        color: #f8f9fa; /* White text for dropdown items in mobile menu */
+        color: var(--white); /* White text for dropdown items in mobile menu */
         background-color: transparent;
         padding: 10px 25px; /* Indent nested items */
     }
@@ -316,7 +329,7 @@
         background-color: rgba(255, 255, 255, 0.15);
     }
     .dropdown-item .lucide-icon {
-        color: #f8d347; /* Yellow icons for dropdown items */
+        color: var(--accent); /* Vàng nhạt icons for dropdown items */
     }
 
     .btn-login {
@@ -341,8 +354,8 @@
         position: absolute;
         top: 100%; /* Position below navbar */
         left: 0;
-        background: linear-gradient(to bottom, #dc3545, #c82333); /* Same background as navbar */
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        background: linear-gradient(135deg, var(--primary), var(--secondary)); /* Same background as navbar */
+        box-shadow: 0 8px 20px rgba(215, 38, 61, 0.2);
         padding: 15px 0;
         border-top: 1px solid rgba(255,255,255,0.1);
     }

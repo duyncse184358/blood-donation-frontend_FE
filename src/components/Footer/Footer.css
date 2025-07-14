@@ -1,12 +1,24 @@
 /* src/components/Footer/Footer.css */
 
+/* CSS Variables - Professional Blood Donation Color Palette */
+:root {
+    --primary: #D7263D;        /* Đỏ tươi - màu chủ đạo */
+    --secondary: #FF6F61;      /* Đỏ cam - nút CTA */
+    --light-pink: #F5B7B1;     /* Hồng nhạt - màu phụ */
+    --accent: #FFD166;         /* Vàng nhạt - điểm nhấn */
+    --white: #FFFFFF;          /* Trắng - nền chính */
+    --gray-light: #F2F2F2;     /* Xám nhạt - nền section */
+    --gray-dark: #333333;      /* Xám đậm - text chính */
+    --gray-medium: #666666;    /* Xám vừa - text phụ */
+}
+
 .footer-container {
-    background: linear-gradient(to right, #dc3545, #c82333); /* Deep red gradient */
-    color: #f8f9fa; /* Off-white text for contrast */
+    background: linear-gradient(135deg, var(--primary), var(--secondary)); /* Gradient chuyên nghiệp */
+    color: var(--white); /* Màu trắng cho text */
     padding-top: 50px;
     font-family: 'Inter', sans-serif;
-    border-top: 5px solid #bd2130; /* A darker red border top */
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15); /* Shadow for a lifted effect */
+    border-top: 5px solid var(--accent); /* Viền trên màu vàng nhạt */
+    box-shadow: 0 -8px 25px rgba(215, 38, 61, 0.15); /* Shadow for a lifted effect */
 }
 
 .footer-content {
@@ -33,7 +45,7 @@
 }
 
 .footer-heart-icon {
-    color: #ffcccc; /* Lighter red for the heart icon */
+    color: var(--light-pink); /* Hồng nhạt for the heart icon */
     margin-bottom: 10px;
     animation: pulse 1.5s infinite ease-in-out; /* Gentle pulse */
 }
@@ -47,19 +59,19 @@
 .footer-brand-name {
     font-size: 1.6rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--white);
     margin-bottom: 5px;
 }
 
 .footer-copyright {
     font-size: 0.9rem;
-    color: rgba(248, 249, 250, 0.7); /* Slightly transparent */
+    color: rgba(255, 255, 255, 0.8); /* Màu trắng trong suốt */
 }
 
 .footer-heading {
     font-size: 1.3rem;
     font-weight: 600;
-    color: #fff;
+    color: var(--white);
     margin-bottom: 20px;
     position: relative;
     padding-bottom: 8px; /* Space for underline effect */
@@ -71,7 +83,7 @@
     display: block;
     width: 50px; /* Short underline */
     height: 3px;
-    background-color: #ffcccc; /* Lighter red for underline */
+    background-color: var(--accent); /* Vàng nhạt for underline */
     position: absolute;
     bottom: 0;
     left: 0;
@@ -90,11 +102,11 @@
     align-items: flex-start; /* Align icon with text top */
     margin-bottom: 10px;
     font-size: 0.95rem;
-    color: #f8f9fa;
+    color: var(--white);
 }
 
 .contact-icon {
-    color: #ffcccc; /* Lighter red for contact icons */
+    color: var(--accent); /* Vàng nhạt for contact icons */
     margin-right: 10px;
     flex-shrink: 0; /* Prevent icon from shrinking */
     margin-top: 3px; /* Adjust vertical alignment */
@@ -116,25 +128,25 @@
 }
 
 .footer-link {
-    color: #f8f9fa;
+    color: var(--white);
     text-decoration: none;
     font-size: 0.95rem;
     transition: color 0.2s ease, text-decoration 0.2s ease;
 }
 
 .footer-link:hover {
-    color: #fff;
+    color: var(--accent);
     text-decoration: underline;
 }
 
 /* Bottom Bar for copyright */
 .footer-bottom-bar {
-    background-color: #a71d2a; /* Darker shade of red */
-    color: rgba(248, 249, 250, 0.8);
+    background-color: rgba(0, 0, 0, 0.2); /* Overlay tối trên gradient */
+    color: rgba(255, 255, 255, 0.9);
     text-align: center;
     padding: 15px 20px;
     font-size: 0.85rem;
-    border-top: 1px solid #bd2130; /* Separator line */
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Separator line */
 }
 
 

@@ -1,10 +1,22 @@
 /* src/styles/Header.css */
 
+/* CSS Variables - Professional Blood Donation Color Palette */
+:root {
+    --primary: #D7263D;        /* Đỏ tươi - màu chủ đạo */
+    --secondary: #FF6F61;      /* Đỏ cam - nút CTA */
+    --light-pink: #F5B7B1;     /* Hồng nhạt - màu phụ */
+    --accent: #FFD166;         /* Vàng nhạt - điểm nhấn */
+    --white: #FFFFFF;          /* Trắng - nền chính */
+    --gray-light: #F2F2F2;     /* Xám nhạt - nền section */
+    --gray-dark: #333333;      /* Xám đậm - text chính */
+    --gray-medium: #666666;    /* Xám vừa - text phụ */
+}
+
 .header-custom {
-    background-color: #ffffff; /* Nền trắng */
+    background-color: var(--white); /* Nền trắng */
     padding: 15px 20px;
-    border-bottom: 1px solid #e0e0e0; /* Viền dưới nhẹ */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); /* Bóng nhẹ cho header */
+    border-bottom: 1px solid var(--light-pink); /* Viền dưới nhẹ */
+    box-shadow: 0 2px 8px rgba(215, 38, 61, 0.08); /* Bóng nhẹ cho header */
     display: flex;
     justify-content: center; /* Căn giữa toàn bộ nội dung header */
     align-items: center; /* Căn giữa theo chiều dọc */
@@ -27,7 +39,7 @@
     display: flex; /* Biến Link thành flex container */
     align-items: center; /* Căn giữa logo và tiêu đề theo chiều dọc */
     text-decoration: none; /* Xóa gạch chân mặc định */
-    color: #333; /* Màu chữ mặc định */
+    color: var(--gray-dark); /* Màu chữ mặc định */
     transition: opacity 0.3s ease;
 }
 
@@ -36,7 +48,7 @@
 }
 
 .header-logo-img {
-    width: 40px; /* Kích thước logo: 32px */
+    width: 40px; /* Kích thước logo: 40px */
     height: 40px;
     object-fit: contain; /* Đảm bảo ảnh không bị méo */
     margin-right: 12px; /* Khoảng cách giữa logo và chữ */
@@ -46,8 +58,7 @@
 .header-title {
     font-size: 28px; /* Kích thước chữ to hơn cho tên hệ thống */
     font-weight: 800; /* In đậm hơn */
-    color: #cc0000; /* Màu đỏ đậm cho tên */
+    color: var(--primary); /* Màu đỏ tươi cho tên */
     margin: 0; /* Loại bỏ margin mặc định của span */
-    /* Có thể dùng gradient nếu muốn, nhưng cần CSS phức tạp hơn không dùng Tailwind */
-    /* text-shadow: 1px 1px 2px rgba(0,0,0,0.1); */ /* Thêm bóng chữ nhẹ */
+    text-shadow: 1px 1px 2px rgba(215, 38, 61, 0.1); /* Thêm bóng chữ nhẹ */
 }

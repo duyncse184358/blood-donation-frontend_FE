@@ -1,5 +1,17 @@
 /* src/styles/HomePage.css */
 
+/* CSS Variables - Professional Blood Donation Color Palette */
+:root {
+    --primary: #D7263D;        /* Đỏ tươi - màu chủ đạo */
+    --secondary: #FF6F61;      /* Đỏ cam - nút CTA */
+    --light-pink: #F5B7B1;     /* Hồng nhạt - màu phụ */
+    --accent: #FFD166;         /* Vàng nhạt - điểm nhấn */
+    --white: #FFFFFF;          /* Trắng - nền chính */
+    --gray-light: #F2F2F2;     /* Xám nhạt - nền section */
+    --gray-dark: #333333;      /* Xám đậm - text chính */
+    --gray-medium: #666666;    /* Xám vừa - text phụ */
+}
+
 /* Global Reset & Base Styles */
 body {
     margin: 0;
@@ -7,7 +19,8 @@ body {
     box-sizing: border-box;
     font-family: 'Inter', sans-serif; /* Ensure 'Inter' font is imported/available in your project */
     line-height: 1.6;
-    color: #333;
+    color: var(--gray-dark);
+    background-color: var(--white);
 }
 
 /* Page Layout */
@@ -15,12 +28,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    /* Updated: Light red background for the homepage */
-    background-color: #fddcdc; /* A soft, light red */
-    /* You can try other shades if this isn't exactly what you envision: */
-    /* background-color: #fff0f0; (very light pinkish-red) */
-    /* background-color: #ffe5e5; (slightly more saturated light red) */
-    /* background-color: #f7dada; (a muted, rosy red) */
+    background-color: var(--white);
 }
 
 main.home-content {
@@ -34,7 +42,7 @@ section {
 section h2 {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #dc3545; /* Primary accent red for section titles */
+    color: var(--primary); /* Đỏ tươi cho tiêu đề section */
     text-align: center;
     margin-bottom: 3.5rem; /* More space below section titles */
     position: relative;
@@ -45,7 +53,7 @@ section h2::after {
     display: block;
     width: 80px;
     height: 4px;
-    background-color: #dc3545;
+    background-color: var(--primary);
     margin: 15px auto 0;
     border-radius: 2px;
 }
@@ -72,12 +80,12 @@ section h2::after {
 .card-title {
     font-size: 1.4rem;
     font-weight: 600;
-    color: #007bff; /* Primary blue for general card titles */
+    color: var(--primary); /* Đỏ tươi cho tiêu đề card */
     margin-bottom: 0.75rem;
 }
 .card-text {
     font-size: 0.95rem;
-    color: #666;
+    color: var(--gray-medium);
     margin-bottom: 1rem;
     line-height: 1.6;
 }
@@ -95,7 +103,7 @@ section h2::after {
 .hero-section {
     background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('/public/assets/hero-bg.jpg');
     background-size: cover;
-    background-position: center;
+    background-position: bottom;
     padding: 8rem 0;
     min-height: 600px;
     color: white;
@@ -123,33 +131,34 @@ section h2::after {
     font-size: 1.2rem;
 }
 .hero-buttons .btn-danger {
-    background-color: transparent;
-    border: 2px solid white;
-    color: white;
+    background-color: var(--secondary);
+    border: 2px solid var(--secondary);
+    color: var(--white);
 }
 .hero-buttons .btn-danger:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: white;
-    color: white;
+    background-color: var(--light-pink);
+    border-color: var(--light-pink);
+    color: var(--primary);
 }
 .hero-buttons .btn-outline-light {
-    border: 2px solid white;
-    color: white;
+    border: 2px solid var(--white);
+    color: var(--white);
     background-color: transparent;
 }
 .hero-buttons .btn-outline-light:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
+    background-color: var(--light-pink);
+    border-color: var(--light-pink);
+    color: var(--primary);
 }
 
 
 /* --- About Section --- */
 .about-section {
-    background-color: #fff;
+    background-color: var(--gray-light);
     padding-bottom: 80px; /* Increased padding bottom for spacing below feature cards */
 }
 .about-section h2 {
-    color: #343a40;
+    color: var(--primary);
     margin-bottom: 1.5rem; /* Reduced margin-bottom to bring closer to decoration */
 }
 
@@ -171,7 +180,7 @@ section h2::after {
 .about-main-icon {
     width: 60px;
     height: 60px;
-    color: #dc3545;
+    color: var(--primary);
     transition: transform 0.3s ease;
 }
 .about-main-icon:hover {
@@ -187,11 +196,11 @@ section h2::after {
     margin-bottom: 1.5rem; /* Space between two paragraphs */
 }
 .about-text-intro .text-highlight-bold {
-    color: #dc3545;
+    color: var(--primary);
     font-weight: 700;
 }
 .about-text-intro .text-highlight-primary {
-    color: #007bff;
+    color: var(--secondary);
     font-weight: 600;
 }
 .about-text-details {
@@ -201,7 +210,7 @@ section h2::after {
     margin-bottom: 2.5rem; /* Space below the second paragraph */
 }
 .about-text-details .text-highlight-secondary {
-    color: #28a745;
+    color: var(--accent);
     font-weight: 600;
 }
 
@@ -214,8 +223,8 @@ section h2::after {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #fcebeb;
-    border: 2px solid #dc3545;
+    background-color: var(--light-pink);
+    border: 2px solid var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -225,24 +234,24 @@ section h2::after {
 .feature-icon {
     width: 30px;
     height: 30px;
-    color: #dc3545;
+    color: var(--primary);
 }
 .feature-title {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #343a40;
+    color: var(--gray-dark);
     margin-bottom: 0.8rem;
 }
 .feature-description {
     font-size: 0.95rem;
-    color: #6c757d;
+    color: var(--gray-medium);
     line-height: 1.6;
 }
 
 
 /* --- Knowledge Section (Process Flow, Blood Types, Benefits) --- */
 .knowledge-section {
-    background-color: #f0f2f5;
+    background-color: var(--white);
 }
 
 
@@ -267,7 +276,7 @@ section h2::after {
     border: none;
     border-radius: 12px;
     padding: 20px;
-    background-color: #ffffff;
+    background-color: var(--white);
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     width: 100%;
     display: flex;
@@ -275,6 +284,7 @@ section h2::after {
     align-items: center;
     text-align: center;
     height: 100%;
+    border: 1px solid var(--light-pink);
 }
 .process-step:hover {
     transform: translateY(-8px);
@@ -302,7 +312,7 @@ section h2::after {
 .step-number {
     font-size: 2.5rem;
     font-weight: 900;
-    color: #dc3545;
+    color: var(--primary);
     line-height: 1;
 }
 .step-arrow-wrapper {
@@ -315,7 +325,7 @@ section h2::after {
 .step-arrow {
     width: 50px;
     height: 50px;
-    color: #dc3545;
+    color: var(--primary);
     stroke: currentColor;
     stroke-width: 2;
     fill: none;
@@ -328,8 +338,8 @@ section h2::after {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background-color: #ffeaea;
-    border: 3px solid #dc3545;
+    background-color: var(--light-pink);
+    border: 3px solid var(--primary);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -338,27 +348,27 @@ section h2::after {
     transition: all 0.3s ease;
 }
 .process-step:hover .step-icon-wrapper {
-    background-color: #dc3545;
+    background-color: var(--primary);
     transform: scale(1.1);
 }
 .step-icon {
     width: 40px;
     height: 40px;
-    color: #dc3545;
+    color: var(--primary);
     transition: color 0.3s ease;
 }
 .process-step:hover .step-icon {
-    color: white;
+    color: var(--white);
 }
 .step-title {
     font-size: 1.6rem;
     font-weight: 700;
-    color: #333;
+    color: var(--gray-dark);
     margin-bottom: 0.8rem;
 }
 .step-description {
     font-size: 1rem;
-    color: #666;
+    color: var(--gray-medium);
     margin-bottom: 1.5rem;
     line-height: 1.5;
     min-height: 40px;
@@ -374,14 +384,14 @@ section h2::after {
     align-items: flex-start;
     margin-bottom: 0.5rem;
     font-size: 0.95rem;
-    color: #555;
+    color: var(--gray-medium);
     font-weight: 500;
 }
 .bullet-point {
     display: inline-block;
     width: 8px;
     height: 8px;
-    background-color: #dc3545;
+    background-color: var(--primary);
     border-radius: 50%;
     margin-top: 6px;
     margin-right: 10px;
@@ -407,7 +417,7 @@ section h2::after {
 .knowledge-section .row.g-4.mt-5 > div[class*="col-"] > .card .card-title {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #007bff;
+    color: var(--primary);
     margin-bottom: 2rem;
     line-height: 1.2;
     text-align: center;
@@ -426,7 +436,7 @@ section h2::after {
     width: 100%;
 }
 .blood-type-card {
-    background-color: #ffffff;
+    background-color: var(--white);
     border-radius: 12px;
     padding: 20px 15px; /* Increased padding */
     display: flex;
@@ -434,7 +444,7 @@ section h2::after {
     align-items: center;
     justify-content: center;
     min-height: 160px; /* Increased min-height */
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--light-pink);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     text-align: center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
@@ -442,17 +452,18 @@ section h2::after {
 .blood-type-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+    border-color: var(--primary);
 }
 .blood-type-text {
     font-size: 2.5rem; /* Increased font size */
     font-weight: 800;
-    color: #dc3545;
+    color: var(--primary);
     line-height: 1;
     margin-bottom: 8px;
 }
 .blood-type-detail {
     font-size: 0.9rem; /* Increased font size */
-    color: #555;
+    color: var(--gray-medium);
     margin-top: 5px;
     line-height: 1.4;
 }
@@ -468,7 +479,7 @@ section h2::after {
     justify-content: center; /* Căn giữa lưới */
 }
 .benefit-card {
-    background-color: #ffffff;
+    background-color: var(--white);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -479,10 +490,12 @@ section h2::after {
     min-height: 200px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     flex-grow: 1;
+    border: 1px solid var(--light-pink);
 }
 .benefit-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-color: var(--primary);
 }
 .benefit-icon-wrapper {
     width: 60px;
@@ -498,34 +511,34 @@ section h2::after {
     width: 32px;
     height: 32px;
 }
-.benefit-icon-heart { background-color: #ffeaea; border: 2px solid #dc3545; }
-.benefit-icon-heart .benefit-icon { color: #dc3545; }
+.benefit-icon-heart { background-color: var(--light-pink); border: 2px solid var(--primary); }
+.benefit-icon-heart .benefit-icon { color: var(--primary); }
 
-.benefit-icon-pulse { background-color: #e6f7ff; border: 2px solid #007bff; }
-.benefit-icon-pulse .benefit-icon { color: #007bff; }
+.benefit-icon-pulse { background-color: #FFE5E5; border: 2px solid var(--secondary); }
+.benefit-icon-pulse .benefit-icon { color: var(--secondary); }
 
-.benefit-icon-check { background-color: #e6ffe6; border: 2px solid #28a745; }
-.benefit-icon-check .benefit-icon { color: #28a745; }
+.benefit-icon-check { background-color: #FFF9E5; border: 2px solid var(--accent); }
+.benefit-icon-check .benefit-icon { color: var(--accent); }
 
-.benefit-icon-shield { background-color: #f7e6ff; border: 2px solid #6f42c1; }
-.benefit-icon-shield .benefit-icon { color: #6f42c1; }
+.benefit-icon-shield { background-color: #F0F0F0; border: 2px solid var(--gray-dark); }
+.benefit-icon-shield .benefit-icon { color: var(--gray-dark); }
 
-.benefit-icon-users { background-color: #fff2e6; border: 2px solid #fd7e14; }
-.benefit-icon-users .benefit-icon { color: #fd7e14; }
+.benefit-icon-users { background-color: #FFE5E5; border: 2px solid var(--secondary); }
+.benefit-icon-users .benefit-icon { color: var(--secondary); }
 
-.benefit-icon-smile { background-color: #fffde0; border: 2px solid #ffbe0b; }
-.benefit-icon-smile .benefit-icon { color: #ffbe0b; }
+.benefit-icon-smile { background-color: #FFF9E5; border: 2px solid var(--accent); }
+.benefit-icon-smile .benefit-icon { color: var(--accent); }
 
 .benefit-title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #333;
+    color: var(--gray-dark);
     margin-bottom: 10px;
     line-height: 1.3;
 }
 .benefit-description {
     font-size: 0.95rem;
-    color: #777;
+    color: var(--gray-medium);
     line-height: 1.6;
     margin-bottom: 0;
     min-height: 70px;
@@ -538,7 +551,17 @@ section h2::after {
 
 /* --- Blog Section --- */
 .blog-section {
-    background-color: #f8f9fa;
+    background-color: var(--gray-light);
+}
+
+.blog-section .card {
+    background-color: var(--white);
+    border: 1px solid var(--light-pink);
+}
+
+.blog-section .card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 8px 20px rgba(215, 38, 61, 0.1);
 }
 
 .blog-section .card-img-top {
@@ -549,59 +572,95 @@ section h2::after {
 .blog-section .card-text.text-muted {
     font-size: 0.85rem;
     margin-bottom: 15px;
+    color: var(--gray-medium);
 }
 .blog-section .card-text {
     /* Uses common card-text style */
     min-height: 70px;
 }
 .blog-section .btn-outline-primary {
-    border-color: #007bff;
-    color: #007bff;
+    border-color: var(--primary);
+    color: var(--primary);
     border-radius: 50px;
     padding: 8px 20px;
     font-weight: 600;
+    background-color: transparent;
 }
 .blog-section .btn-outline-primary:hover {
-    background-color: #007bff;
-    color: #fff;
+    background-color: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
 }
 .blog-section .btn-outline-danger {
+    background-color: var(--secondary);
+    border-color: var(--secondary);
+    color: var(--white);
     padding: 15px 40px;
     font-size: 1.2rem;
+}
+.blog-section .btn-outline-danger:hover {
+    background-color: var(--light-pink);
+    border-color: var(--light-pink);
+    color: var(--primary);
 }
 
 
 /* --- Call to Action Section --- */
 .call-to-action-section {
-    background: linear-gradient(to right, #dc3545, #c82333);
-    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--white);
     padding: 5rem 0;
     text-align: center;
+    position: relative;
+    overflow: hidden;
 }
+
+.call-to-action-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    pointer-events: none;
+}
+
 .call-to-action-section h2 {
     font-size: 3rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: white;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    color: var(--white);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
 }
 .call-to-action-section p.lead {
     font-size: 1.4rem;
     margin-bottom: 2.5rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.95);
+    position: relative;
+    z-index: 1;
 }
 .call-to-action-section .btn-light {
+    background-color: var(--white);
+    border: 2px solid var(--white);
+    color: var(--primary);
     padding: 1rem 3.5rem;
     font-size: 1.3rem;
     border-radius: 50px;
     font-weight: bold;
-    color: #dc3545;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
 }
 .call-to-action-section .btn-light:hover {
-    background-color: #eee;
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--primary);
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
 }
 
 

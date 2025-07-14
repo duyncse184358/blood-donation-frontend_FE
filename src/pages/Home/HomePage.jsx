@@ -341,25 +341,25 @@ function HomePage() {
                             {/* Hiển thị bài viết từ Blog */}
                             {[
                                 {
-                                    title: "Hành Trình Của Một Người Hiến Máu Thường Xuyên",
+                                    title: "Người đàn ông hiến máu hơn 100 lần vì 'thử một lần cho biết'",
                                     date: "10/06/2025",
-                                    desc: "Câu chuyện cảm động về anh Nguyễn Văn A, người đã hiến máu 30 lần và truyền cảm hứng cho cộng đồng.",
-                                    link: "/blog/post-1",
-                                    image: "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+1"
+                                    desc: "Anh Nguyễn Văn Hiếu (Hà Nội) bắt đầu hiến máu chỉ để 'thử một lần cho biết' khi còn là sinh viên. Không ngờ, sau lần đầu ấy, anh gắn bó với hoạt động này suốt 12 năm và đã hiến máu 129 lần.",
+                                    link: "https://vienhuyethoc.vn/chuyen-cua-nhung-ky-luc-gia-hien-mau-tinh-nguyen/",
+                                    image: "/assets/nguyen-van-hieu-129-lan-hien-mau.jpg"
                                 },
                                 {
-                                    title: "Hiến Máu Lần Đầu: Những Điều Bạn Cần Biết",
+                                    title: "Câu chuyện cả gia đình cùng hiến máu",
                                     date: "01/06/2025",
-                                    desc: "Bài viết tổng hợp các câu hỏi thường gặp và giải đáp thắc mắc cho người mới hiến máu.",
-                                    link: "/blog/post-2",
-                                    image: "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+2"
+                                    desc: "Gia đình anh Nguyễn Văn Linh (Hoằng Hóa, Thanh Hóa) là 'hạt nhân' tích cực của phong trào hiến máu tại địa phương. Vợ chồng anh chị đều duy trì thói quen hiến máu hàng năm, truyền cảm hứng cho hai con tham gia hiến máu.",
+                                    link: "https://baothanhhoa.vn/cau-chuyen-nho-trong-hanh-trinh-do-bai-6-ca-nha-cung-hien-mau-253994.htm",
+                                    image: "/assets/gia-dinh-nguyen-van-linh-hien-mau.webp"
                                 },
                                 {
-                                    title: "Tầm Quan Trọng Của Máu Hiếm Trong Y Học",
+                                    title: "Hành trình hơn 10 năm hiến máu cứu người của một phụ nữ",
                                     date: "25/05/2025",
-                                    desc: "Tìm hiểu về các nhóm máu hiếm và vai trò sống còn của những người hiến máu đặc biệt.",
-                                    link: "/blog/post-3",
-                                    image: "https://placehold.co/400x250/cccccc/333333?text=Blog+Image+3"
+                                    desc: "Chị Huỳnh Thị Mỹ An (Hà Nội) bắt đầu hiến máu sau khi chứng kiến bố mình cần truyền máu khi phẫu thuật. Suốt hơn 10 năm qua, chị đều đặn hiến máu, cảm thấy hạnh phúc khi biết giọt máu của mình đã góp phần cứu sống ai đó.",
+                                    link: "https://dantri.com.vn/suc-khoe/cau-chuyen-ve-nguoi-phu-nu-hon-10-nam-hien-mau-cuu-nguoi-20210611212833358.htm",
+                                    image: "/assets/anhBlog03.webp"
                                 }
                             ].map((blog, idx) => (
                                 <div className="col-md-6 col-lg-4" key={idx}>
@@ -377,9 +377,9 @@ function HomePage() {
                                             <h5 className="card-title">{blog.title}</h5>
                                             <p className="card-text text-muted small">Ngày đăng: {blog.date}</p>
                                             <p className="card-text">{blog.desc}</p>
-                                            <Link to={blog.link} className="btn btn-outline-primary btn-sm">
+                                            <a href={blog.link} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary btn-sm">
                                                 Đọc thêm
-                                            </Link>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
