@@ -9,7 +9,6 @@ import api from '../../services/Api';
 
 function Reminders() {
   const { user, isAuthenticated } = useAuth();
-  const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastDonationDate, setLastDonationDate] = useState(null);
@@ -17,7 +16,7 @@ function Reminders() {
 
   useEffect(() => {
     if (isAuthenticated && user?.userId) {
-      const fetchRemindersAndProfile = async () => {
+      const fetchUserProfile = async () => {
         setLoading(true);
         setError('');
         try {
@@ -34,25 +33,17 @@ function Reminders() {
             nextDate.setMonth(nextDate.getMonth() + 3);
             setNextEligibleDate(nextDate);
           }
-
-          // Lấy các nhắc nhở từ API backend (theo user)
-          const remindersResponse = await api.get(`/DonationReminder/ForUser/${user.userId}`);
-          if (Array.isArray(remindersResponse.data)) {
-            setReminders(remindersResponse.data);
-          } else {
-            setReminders([]);
-          }
         } catch (err) {
-          setError(err.response?.data?.message || err.message || 'Đã xảy ra lỗi khi tải nhắc nhở.');
+          setError(err.response?.data?.message || err.message || 'Đã xảy ra lỗi khi tải thông tin.');
         } finally {
           setLoading(false);
         }
       };
 
-      fetchRemindersAndProfile();
+      fetchUserProfile();
     } else if (!isAuthenticated) {
       setLoading(false);
-      setError('Vui lòng đăng nhập để xem nhắc nhở.');
+      setError('Vui lòng đăng nhập để xem thông tin.');
     }
   }, [isAuthenticated, user?.userId]);
 
@@ -65,9 +56,9 @@ function Reminders() {
       <Header />
       <Navbar />
       <main className="container my-5">
-        <h1 className="text-center mb-4 text-info">Nhắc nhở và Thông tin Hiến máu</h1>
+        <h1 className="text-center mb-4 text-info">Thông tin Hiến máu</h1>
         <p className="text-center lead">
-          Cập nhật các thông báo quan trọng và tình trạng đủ điều kiện hiến máu của bạn.
+          Cập nhật tình trạng đủ điều kiện hiến máu của bạn.
         </p>
 
         {error && <div className="alert alert-danger text-center">{error}</div>}
@@ -98,42 +89,6 @@ function Reminders() {
                 <div className="alert alert-info">
                   Chúng tôi chưa có thông tin về lần hiến máu gần nhất của bạn. Vui lòng cập nhật hồ sơ hoặc thực hiện lần hiến máu đầu tiên.
                 </div>
-              )}
-            </div>
-
-            <div className="card shadow-sm p-4">
-              <h5 className="card-title text-info mb-3">Các nhắc nhở khác</h5>
-              {!reminders || reminders.length === 0 ? (
-                <div className="alert alert-secondary text-center">
-                  Hiện không có nhắc nhở nào.
-                </div>
-              ) : (
-                <ul className="list-group list-group-flush">
-                  {reminders.map(reminder => (
-                    <li
-                      key={reminder.id || reminder.reminderId || Math.random()}
-                      className="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center"
-                    >
-                      <div>
-                        <span className="fw-semibold">
-                          {reminder.message || reminder.ReminderType || 'Nhắc nhở'}
-                        </span>
-                        {reminder.ReminderType && (
-                          <span className="ms-2 badge bg-info text-dark">{reminder.ReminderType}</span>
-                        )}
-                        {reminder.Via && (
-                          <span className="ms-2 badge bg-secondary">{reminder.Via}</span>
-                        )}
-                      </div>
-                      <span className="badge bg-light text-dark mt-2 mt-md-0">
-                        {reminder.SentAt
-                          ? new Date(reminder.SentAt).toLocaleString('vi-VN')
-                          : (reminder.date ? new Date(reminder.date).toLocaleString('vi-VN') : '')
-                        }
-                      </span>
-                    </li>
-                  ))}
-                </ul>
               )}
             </div>
           </div>

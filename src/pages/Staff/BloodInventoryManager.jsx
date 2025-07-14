@@ -88,9 +88,39 @@ function BloodInventoryManager({ onEditUnit }) {
     setPage(1);
   }, [filterBloodType, filterComponent, filterStatus]);
 
+  const getEmptyBloodTypes = () => {
+    const bloodTypesWithUnits = units.map(u => u.bloodTypeName);
+    return BLOOD_TYPES.filter(b => b.value && !bloodTypesWithUnits.includes(b.value)).map(b => b.label);
+  };
+
   return (
     <div>
       <h4 className="mb-3">Quản lý kho máu</h4>
+
+      {/* Hiển thị nhóm máu đang hết */}
+      <div className="card border-danger mb-3">
+        <div className="card-header bg-danger text-white text-center">
+          <h5 className="mb-0">Nhóm máu đang hết</h5>
+        </div>
+        <div className="card-body">
+          {getEmptyBloodTypes().length > 0 ? (
+            <ul className="list-group">
+              {getEmptyBloodTypes().map((bloodType, idx) => (
+                <li key={idx} className="list-group-item d-flex justify-content-between align-items-center list-group-item-danger">
+                  <span className="fw-bold">{bloodType}</span>
+                  <i className="bi bi-droplet-half text-danger"></i>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-center">
+              <i className="bi bi-check-circle-fill text-success me-2"></i>
+              <span className="badge bg-success p-3">Tất cả các nhóm máu đều có sẵn</span>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Bộ lọc */}
       <div className="row mb-3">
         <div className="col-md-3">

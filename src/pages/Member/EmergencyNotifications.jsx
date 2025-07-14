@@ -140,7 +140,7 @@ function EmergencyNotifications() {
                 >
                   <div className="card-body">
                     <h5 className="card-title text-danger">
-                      Yêu cầu khẩn cấp: {n.emergencyId}
+                      Yêu cầu khẩn cấp
                     </h5>
                     <p className="card-text mb-1">
                       <b>Thời gian gửi:</b> {new Date(n.sentDate).toLocaleString('vi-VN')}

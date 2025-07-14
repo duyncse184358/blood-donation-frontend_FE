@@ -2,20 +2,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import Navbar from '../../components/Navbar/Navbar'; // Đảm bảo đường dẫn chính xác đến Navbar của bạn
+import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Đảm bảo Bootstrap CSS được import
-import { User, Heart, Activity, Bell, MailCheck, Clock, AlertCircle } from 'lucide-react'; // Đảm bảo đã cài đặt lucide-react: npm install lucide-react
-import ProfileUpdate from './CreateProfile'; // Import ProfileUpdate component
-
-// Đảm bảo đường dẫn và tên file này chính xác
-import './Memberdashboard.css'; 
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { User, Heart, Activity, Bell, MailCheck, Clock, AlertCircle } from 'lucide-react';
+import ProfileUpdate from './CreateProfile';
+import './Memberdashboard.css';
 
 function MemberDashboard() {
-  // Hooks luôn đặt ở đầu function component
-  const { user, isAuthenticated, isMember, loading: authLoading } = useAuth(); 
+  const { user, isAuthenticated, isMember, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [notifLoading, setNotifLoading] = useState(true);
@@ -23,10 +20,18 @@ function MemberDashboard() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [emergencyNotifs, setEmergencyNotifs] = useState([]);
   const [unreadEmergencyCount, setUnreadEmergencyCount] = useState(0);
+  const [lastDonationDate, setLastDonationDate] = useState(null);
+  const [nextEligibleDate, setNextEligibleDate] = useState(null);
 
-  // Fetch notifications for the user
+  const calculateDaysUntilNextDonation = (nextEligibleDate) => {
+    const today = new Date();
+    const diffInTime = nextEligibleDate.getTime() - today.getTime();
+    const diffInDays = Math.ceil(diffInTime / (1000 * 60 * 60 * 24));
+    return diffInDays > 0 ? diffInDays : 0;
+  };
+
   const fetchNotifications = useCallback(async () => {
-    if (!isAuthenticated || !user?.userId) { 
+    if (!isAuthenticated || !user?.userId) {
       setNotifLoading(false);
       setNotifError('Vui lòng đăng nhập để xem thông báo.');
       return;
@@ -58,7 +63,6 @@ function MemberDashboard() {
           else if (Object.keys(res.data).length > 0) list = [res.data];
         }
         setEmergencyNotifs(list);
-        // Lọc theo cả hai trường, ưu tiên giống bên EmergencyNotifications.jsx
         const count = list.filter(
           n => (n.responseStatus === 'No Response') ||
                (n.response_status && n.response_status.toLowerCase().replace(/[\s_]/g, '') === 'noresponse')
@@ -71,7 +75,30 @@ function MemberDashboard() {
       });
   }, [isAuthenticated, user?.userId]);
 
-  // Sau khi đã khai báo hết hook, mới return giao diện
+  useEffect(() => {
+    if (isAuthenticated && user?.userId) {
+      const fetchUserProfile = async () => {
+        try {
+          const res = await api.get(`/UserProfile/by-user/${user.userId}`);
+          const profileData = res.data;
+
+          if (profileData.lastBloodDonationDate) {
+            const lastDate = new Date(profileData.lastBloodDonationDate);
+            setLastDonationDate(lastDate);
+
+            const nextDate = new Date(lastDate);
+            nextDate.setMonth(nextDate.getMonth() + 3);
+            setNextEligibleDate(nextDate);
+          }
+        } catch (err) {
+          console.error('Không thể tải thông tin hồ sơ người dùng:', err);
+        }
+      };
+
+      fetchUserProfile();
+    }
+  }, [isAuthenticated, user?.userId]);
+
   if (authLoading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100 text-danger fs-4">
@@ -80,7 +107,7 @@ function MemberDashboard() {
     );
   }
 
-  if (!isAuthenticated || !isMember) { 
+  if (!isAuthenticated || !isMember) {
     return (
       <div className="d-flex flex-column justify-content-center align-items-center vh-100 text-danger text-center">
         <h2 className="mb-3">Bạn không có quyền truy cập trang này.</h2>
@@ -90,9 +117,6 @@ function MemberDashboard() {
     );
   }
 
-  // Lấy danh sách thông báo khẩn cấp từ API riêng (CHỈ GỌI 1 LẦN useEffect NÀY)
-
-  // Classify notifications rõ ràng
   const generalNotifs = notifications.filter(
     n => n.type?.toLowerCase() !== 'emergency' && (n.type?.toLowerCase() === 'chung' || n.recipientUserId === 'ALL')
   );
@@ -180,7 +204,15 @@ function MemberDashboard() {
                 <div className="content">
                   <div className="title">Thông báo</div>
                   <div className="description">
-                    {unreadGeneralNotifsCount + unreadPersonalNotifsCount} thông báo chưa đọc.
+                    {unreadGeneralNotifsCount > 0 && (
+                      <p>{unreadGeneralNotifsCount} thông báo chung chưa đọc.</p>
+                    )}
+                    {unreadPersonalNotifsCount > 0 && (
+                      <p>{unreadPersonalNotifsCount} thông báo cá nhân chưa đọc.</p>
+                    )}
+                    {unreadGeneralNotifsCount === 0 && unreadPersonalNotifsCount === 0 && (
+                      <p>Không có thông báo chưa đọc.</p>
+                    )}
                   </div>
                 </div>
                 <span className="detail-button">Xem chi tiết</span>
@@ -287,10 +319,42 @@ function MemberDashboard() {
             </div>
           </div>
         )}
-      </main>
-      <Footer />
-    </div>
-  );
+
+        {/* Thông tin hiến máu */}
+        <div className="alert alert-info mt-4">
+          <h5 className="mb-2">Thông tin hiến máu</h5>
+          {lastDonationDate ? (
+            <>
+              <p>
+                Lần hiến máu gần nhất: <b>{lastDonationDate.toLocaleDateString('vi-VN')}</b>
+              </p>
+              {nextEligibleDate && (
+                <p>
+                  Ngày đủ điều kiện hiến máu tiếp theo: <b>{nextEligibleDate.toLocaleDateString('vi-VN')}</b>
+                </p>
+              )}
+              {nextEligibleDate && new Date() < nextEligibleDate ? (
+                <div className="alert alert-warning mt-3">
+                  Bạn chưa đủ điều kiện hiến máu lại. Vui lòng chờ thêm <b>{calculateDaysUntilNextDonation(nextEligibleDate)} ngày</b>.
+                </div>
+              ) : (
+                <div className="alert alert-success mt-3">
+                  Bạn hiện đủ điều kiện để hiến máu! Cảm ơn sự đóng góp của bạn.
+                  <br />
+                  <a href="/member/register-donation" className="alert-link">Đăng ký hiến máu ngay!</a>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="alert alert-info">
+              Chúng tôi chưa có thông tin về lần hiến máu gần nhất của bạn. Vui lòng cập nhật hồ sơ hoặc thực hiện lần hiến máu đầu tiên.
+            </div>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 }
 
 export default MemberDashboard;
