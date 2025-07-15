@@ -595,32 +595,7 @@ function UpdateProfile() {
                 placeholder="Địa chỉ sẽ tự động ghép"
               />
             </div>
-            <div className="col-md-6">
-              <label htmlFor="latitude" className="form-label">Vĩ độ (Latitude)</label>
-              <input
-                type="number"
-                step="0.000001"
-                className="form-control"
-                id="latitude"
-                name="latitude"
-                value={formData.latitude || ''}
-                readOnly
-                disabled
-              />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="longitude" className="form-label">Kinh độ (Longitude)</label>
-              <input
-                type="number"
-                step="0.000001"
-                className="form-control"
-                id="longitude"
-                name="longitude"
-                value={formData.longitude || ''}
-                readOnly
-                disabled
-              />
-            </div>
+            
             <div className="col-md-6">
               <label htmlFor="bloodTypeId" className="form-label">Nhóm máu</label>
               <select
