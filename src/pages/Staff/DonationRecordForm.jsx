@@ -205,20 +205,7 @@ function DonationRecordForm() {
             ))}
           </select>
         </div>
-        <div className="col-md-4">
-          <label className="form-label">Thành phần máu (ComponentId)</label>
-          <select
-            className="form-select"
-            name="componentId"
-            value={form.componentId}
-            onChange={handleChange}
-          >
-            <option value="1">Toàn Phần</option>
-            <option value="2">Hồng Cầu</option>
-            <option value="3">Tiểu cầu</option>
-            <option value="4">Huyết tương</option>
-          </select>
-        </div>
+        {/* Thành phần máu mặc định là 1, không hiển thị */}
         <div className="col-md-4">
           <label className="form-label">Số ml máu</label>
           <input
@@ -265,18 +252,7 @@ function DonationRecordForm() {
             placeholder="Nhập kết quả xét nghiệm"
           />
         </div>
-        <div className="col-md-6">
-          <label className="form-label">Mã nhân viên ghi nhận (StaffUserId)</label>
-          <input
-            type="text"
-            className="form-control"
-            name="staffUserId"
-            value={form.staffUserId}
-            onChange={handleChange}
-            placeholder="Nhập mã nhân viên"
-            disabled // Không cho phép chỉnh sửa vì lấy từ token
-          />
-        </div>
+        {/* Mã nhân viên ghi nhận (StaffUserId) lấy từ token, không hiển thị */}
         <div className="col-md-12">
           <label className="form-label">Ghi chú thêm</label>
           <textarea
@@ -306,7 +282,7 @@ function DonationRecordForm() {
         {error && <div className="col-md-12 alert alert-danger">{error}</div>}
       </form>
 
-      {/* Hiển thị các trường tạo tài khoản */}
+      
       {showCreateFields && (
         <div className="mt-4 p-3 border rounded">
           <h5>Tạo tài khoản mới</h5>

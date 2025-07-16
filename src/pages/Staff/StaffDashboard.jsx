@@ -41,6 +41,11 @@ function StaffDashboard() {
   const [discardForm, setDiscardForm] = useState({});
   const [discardMsg, setDiscardMsg] = useState('');
   const [discardErr, setDiscardErr] = useState('');
+  const [inventoryReloadFlag, setInventoryReloadFlag] = useState(0);
+
+const reloadInventory = () => {
+  setInventoryReloadFlag(f => f + 1);
+};
 
   useEffect(() => {
     const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -115,6 +120,7 @@ function StaffDashboard() {
 
       setEditUnit(null);
       setIsEditModalOpen(false);
+      if (reloadInventory) reloadInventory();
       // Có thể reload lại data nếu muốn
     } catch {
       setEditMessage('Cập nhật thất bại!');
@@ -181,7 +187,7 @@ function StaffDashboard() {
       case 'donation': return <DonationRecordForm />;
       case 'inventory':
         if (modalType === 'inventory') return null;
-        return <BloodInventoryManager onEditUnit={handleEditUnit} />;
+        return <BloodInventoryManager onEditUnit={handleEditUnit} reloadFlag={inventoryReloadFlag} reloadInventory={reloadInventory} />;
       case 'discard': return <BloodDiscardForm onSelectUnit={handleSelectDiscardUnit} />;
       case 'search': return <DonorSearch />;
       case 'notification': return <NotificationForm />;

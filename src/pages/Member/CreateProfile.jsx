@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom'; // Thêm dòng này ở đầu f
 const provinces = [
   { code: '79', name: 'TP. Hồ Chí Minh' },
 ];
+
+// Danh sách quận/huyện TP. Hồ Chí Minh thực tế (2025)
 const districtsData = {
   '79': [
     { code: '760', name: 'Quận 1' },
@@ -18,7 +20,7 @@ const districtsData = {
     { code: '766', name: 'Quận Tân Bình' },
     { code: '767', name: 'Quận Tân Phú' },
     { code: '768', name: 'Quận Phú Nhuận' },
-    { code: '769', name: 'Thành phố Thủ Đức' },
+    { code: '769', name: 'Thành phố Thủ Đức' }, // TP Thủ Đức gồm Quận 2, 9, Thủ Đức cũ
     { code: '770', name: 'Quận 3' },
     { code: '771', name: 'Quận 10' },
     { code: '772', name: 'Quận 11' },
@@ -32,36 +34,9 @@ const districtsData = {
     { code: '784', name: 'Huyện Hóc Môn' },
     { code: '785', name: 'Huyện Bình Chánh' },
     { code: '786', name: 'Huyện Nhà Bè' },
-    { code: '787', name: 'Huyện Cần Giờ' },
+    { code: '787', name: 'Huyện Cần Giờ' }
   ]
 };
-// Danh sách quận/huyện TP. Hồ Chí Minh (đã đầy đủ)
-// const districtsData = {
-//   '79': [
-//     { code: '760', name: 'Quận 1' },
-//     { code: '761', name: 'Quận 12' },
-//     { code: '764', name: 'Quận Gò Vấp' },
-//     { code: '765', name: 'Quận Bình Thạnh' },
-//     { code: '766', name: 'Quận Tân Bình' },
-//     { code: '767', name: 'Quận Tân Phú' },
-//     { code: '768', name: 'Quận Phú Nhuận' },
-//     { code: '769', name: 'Thành phố Thủ Đức' },
-//     { code: '770', name: 'Quận 3' },
-//     { code: '771', name: 'Quận 10' },
-//     { code: '772', name: 'Quận 11' },
-//     { code: '773', name: 'Quận 4' },
-//     { code: '774', name: 'Quận 5' },
-//     { code: '775', name: 'Quận 6' },
-//     { code: '776', name: 'Quận 8' },
-//     { code: '777', name: 'Quận Bình Tân' },
-//     { code: '778', name: 'Quận 7' },
-//     { code: '783', name: 'Huyện Củ Chi' },
-//     { code: '784', name: 'Huyện Hóc Môn' },
-//     { code: '785', name: 'Huyện Bình Chánh' },
-//     { code: '786', name: 'Huyện Nhà Bè' },
-//     { code: '787', name: 'Huyện Cần Giờ' },
-//   ]
-// };
 
 // Một số phường/xã tiêu biểu cho từng quận (bạn có thể bổ sung thêm)
 const wardsData = {
@@ -609,7 +584,7 @@ function CreateProfile({ onClose }) {
       bloodTypeId: formData.bloodTypeId ? parseInt(formData.bloodTypeId) : null,
       rhFactor: formData.rhFactor || null,
       medicalHistory: formData.medicalHistory || null,
-      lastBloodDonationDate: formData.lastBloodDonationDate || null,
+      // lastBloodDonationDate bị bỏ qua - chỉ được cập nhật tự động từ hệ thống
       cccd: formData.cccd.trim() || null,
       phoneNumber: formData.phoneNumber.trim() || null,
     };
@@ -645,6 +620,7 @@ function CreateProfile({ onClose }) {
     }
   };
 
+  // Cập nhật medicalChecks và otherMedical từ formData.medicalHistory
   useEffect(() => {
     if (formData.medicalHistory) {
       const arr = formData.medicalHistory.split(',').map(s => s.trim());
@@ -659,6 +635,19 @@ function CreateProfile({ onClose }) {
       setOtherMedical('');
     }
   }, [formData.medicalHistory]);
+
+  // Cập nhật formData.medicalHistory khi medicalChecks hoặc otherMedical thay đổi
+  useEffect(() => {
+    let medicalHistoryArray = [...medicalChecks];
+    if (otherMedical.trim()) {
+      medicalHistoryArray.push(otherMedical.trim());
+    }
+    const newMedicalHistory = medicalHistoryArray.join(', ');
+    
+    if (newMedicalHistory !== formData.medicalHistory) {
+      setFormData(prev => ({ ...prev, medicalHistory: newMedicalHistory }));
+    }
+  }, [medicalChecks, otherMedical]);
 
   if (loading) { 
     return <LoadingSpinner />;
@@ -682,17 +671,18 @@ function CreateProfile({ onClose }) {
         Quản lý thông tin cá nhân, y tế và lịch sử hiến máu của bạn.
       </p>
 
-      {/* Nút về trang chủ */}
-      <div className="mb-3 text-end">
-        <button
-          className="btn btn-outline-secondary"
-          onClick={() => navigate('/')}
-
-          type="button"
-        >
-          &larr; Về trang chủ
-        </button>
-      </div>
+      {/* Nút về trang chủ chỉ hiển thị khi đã có userprofile */}
+      {!isCreateMode && (
+        <div className="mb-3 text-end">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => navigate('/')}
+            type="button"
+          >
+            &larr; Về trang chủ
+          </button>
+        </div>
+      )}
 
       {error && <div className="alert alert-danger">{error}</div>}
       {message && <div className="alert alert-success">{message}</div>}
@@ -871,33 +861,47 @@ function CreateProfile({ onClose }) {
             </div>
             <div className="col-12">
               <label className="form-label">Lịch sử bệnh án/y tế (nếu có)</label>
-              <select
-                className="form-select"
-                multiple
-                value={medicalChecks}
-                onChange={e => {
-                  const selected = Array.from(e.target.selectedOptions, opt => opt.value);
-                  setMedicalChecks(selected);
-                  // Nếu bỏ chọn "Khác" thì xóa otherMedical
-                  if (!selected.includes("Khác")) setOtherMedical('');
-                }}
-                disabled={submitting}
-                style={{ minHeight: 120 }}
-              >
-                {MEDICAL_OPTIONS.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-              {medicalChecks.includes("Khác") && (
-                <input
-                  type="text"
-                  className="form-control mt-2"
-                  placeholder="Nhập bệnh khác..."
-                  value={otherMedical}
-                  onChange={e => setOtherMedical(e.target.value)}
-                  disabled={submitting}
-                />
-              )}
+              <div className="border rounded p-3" style={{ backgroundColor: '#f8f9fa' }}>
+                <div className="row">
+                  {MEDICAL_OPTIONS.map(opt => (
+                    <div key={opt} className="col-md-6 col-12 mb-2">
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`medical-${opt}`}
+                          checked={medicalChecks.includes(opt)}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setMedicalChecks(prev => [...prev, opt]);
+                            } else {
+                              setMedicalChecks(prev => prev.filter(item => item !== opt));
+                              // Nếu bỏ chọn "Khác" thì xóa otherMedical
+                              if (opt === "Khác") setOtherMedical('');
+                            }
+                          }}
+                          disabled={submitting}
+                        />
+                        <label className="form-check-label" htmlFor={`medical-${opt}`}>
+                          {opt}
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {medicalChecks.includes("Khác") && (
+                  <div className="mt-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Nhập thông tin bệnh khác..."
+                      value={otherMedical}
+                      onChange={e => setOtherMedical(e.target.value)}
+                      disabled={submitting}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="col-md-6">
               <label htmlFor="lastBloodDonationDate" className="form-label">Ngày hiến máu gần nhất</label>
@@ -907,9 +911,11 @@ function CreateProfile({ onClose }) {
                 id="lastBloodDonationDate"
                 name="lastBloodDonationDate"
                 value={formData.lastBloodDonationDate || ''}
-                onChange={handleChange}
-                disabled={submitting}
+                readOnly
+                disabled
+                style={{ backgroundColor: '#f8f9fa', cursor: 'not-allowed' }}
               />
+              <small className="text-muted">Thông tin này được cập nhật tự động từ lịch sử hiến máu</small>
             </div>
           </div>
           <div className="d-grid gap-2 mt-4">

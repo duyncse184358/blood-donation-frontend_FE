@@ -24,7 +24,7 @@ function DonationRequestManager({ openModal }) {
     setLoading(true);
     api.get('/DonationRequest')
       .then(res => {
-        // Sắp xếp giảm dần theo requestDate (mới nhất lên đầu)
+        console.log('Danh sách request:', res.data); // Thêm dòng này
         const sorted = [...res.data].sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
         setRequests(sorted);
       })
@@ -52,6 +52,7 @@ function DonationRequestManager({ openModal }) {
           try {
             const updateBody = {
               bloodTypeId: res.data.bloodTypeId,
+              componentId: res.data.componentId ?? 1, // Mặc định là 1 nếu không có
               preferredDate: res.data.preferredDate,
               preferredTimeSlot: res.data.preferredTimeSlot,
               status: newStatus,
@@ -67,8 +68,13 @@ function DonationRequestManager({ openModal }) {
             setSuccessMessage('Cập nhật trạng thái thành công!');
             if (onDone) onDone(null, updateRes.data);
           } catch (err) {
-            setErrorMessage('Cập nhật trạng thái thất bại!');
-            if (onDone) onDone(err);
+            if (err.response && err.response.data && err.response.data.message) {
+              setErrorMessage(err.response.data.message);
+              if (onDone) onDone(err.response.data.message);
+            } else {
+              setErrorMessage('Cập nhật trạng thái thất bại!');
+              if (onDone) onDone('Cập nhật trạng thái thất bại!');
+            }
           }
         }
       });

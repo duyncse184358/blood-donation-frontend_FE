@@ -85,11 +85,10 @@ function Register() {
 
     try {
       await register(formData);
-      setMessage('Đăng ký thành công!');
-      // Đăng nhập ngay sau khi đăng ký
-      await login(formData.email, formData.password);
-      // Sau khi login, AuthContext sẽ cập nhật user và role
-      navigate('/member/dashboard');
+      setMessage('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
     } catch (err) {
       setError(err.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin và OTP.');
     } finally {

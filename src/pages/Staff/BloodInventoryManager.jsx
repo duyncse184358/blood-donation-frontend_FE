@@ -35,7 +35,7 @@ const STATUSES = [
   { value: 'Pending', label: 'Đang chờ xử lý' },
 ];
 
-function BloodInventoryManager({ onEditUnit }) {
+function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -48,7 +48,7 @@ function BloodInventoryManager({ onEditUnit }) {
   useEffect(() => {
     fetchUnits();
     // eslint-disable-next-line
-  }, []);
+  }, [reloadFlag]);
 
   const fetchUnits = () => {
     setLoading(true);
@@ -76,8 +76,8 @@ function BloodInventoryManager({ onEditUnit }) {
     if (!window.confirm('Bạn chắc chắn muốn xóa đơn vị máu này?')) return;
     try {
       await api.delete(`/BloodUnit/${unitId}`);
-      setUnits(units => units.filter(u => u.unitId !== unitId));
       setMessage('Đã xóa đơn vị máu!');
+      if (reloadInventory) reloadInventory();
     } catch {
       setMessage('Xóa thất bại!');
     }
