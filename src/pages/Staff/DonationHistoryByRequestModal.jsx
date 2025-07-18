@@ -3,10 +3,10 @@ import api from '../../services/Api';
 import { AuthContext } from '../../context/AuthContext';
 
 const BLOOD_TYPES = [
-  { id: 1, name: 'A' },
-  { id: 2, name: 'B' },
-  { id: 3, name: 'AB' },
-  { id: 4, name: 'O' }
+  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
+  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
+  { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
+  { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
 ];
 
 const COMPONENTS = [
@@ -119,9 +119,7 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
             ...profile,
             lastBloodDonationDate: payload.DonationDate
           };
-          await api.put(`/UserProfile/by-user/${payload.DonorUserId}`, {
-            dto: updatedProfile
-          });
+          await api.put(`/UserProfile/by-user/${payload.DonorUserId}`, updatedProfile);
         } catch (e) {
           console.error('Không thể cập nhật ngày hiến máu gần nhất cho user profile');
         }

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/Api';
 
+const PAGE_SIZE = 5;
+
 function BloodDiscardForm({ onSelectUnit }) {
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,6 +11,7 @@ function BloodDiscardForm({ onSelectUnit }) {
   const [discardForm, setDiscardForm] = useState({});
   const [discardMsg, setDiscardMsg] = useState('');
   const [discardErr, setDiscardErr] = useState('');
+  const [page, setPage] = useState(1);
 
   // Lấy tất cả đơn vị máu
   const fetchUnits = () => {
@@ -25,6 +28,13 @@ function BloodDiscardForm({ onSelectUnit }) {
 
   // Lọc các đơn vị máu quá hạn (expirationDate < hôm nay)
   const expiredUnits = units.filter(u => new Date(u.expirationDate) < new Date());
+  const totalPages = Math.ceil(expiredUnits.length / PAGE_SIZE);
+  const pagedUnits = expiredUnits.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    // Reset về trang 1 nếu dữ liệu thay đổi
+    setPage(1);
+  }, [units.length]);
 
   const handleDiscardClose = () => {
     setDiscardUnit(null);
@@ -73,7 +83,7 @@ function BloodDiscardForm({ onSelectUnit }) {
               </tr>
             </thead>
             <tbody>
-              {expiredUnits.map(unit => (
+              {pagedUnits.map(unit => (
                 <tr key={unit.unitId}>
                   <td>{unit.unitId}</td>
                   <td>{unit.bloodTypeName}</td>
@@ -98,13 +108,30 @@ function BloodDiscardForm({ onSelectUnit }) {
                   </td>
                 </tr>
               ))}
-              {expiredUnits.length === 0 && (
+              {pagedUnits.length === 0 && (
                 <tr>
                   <td colSpan={9} className="text-center text-muted">Không có đơn vị máu quá hạn</td>
                 </tr>
               )}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <nav>
+              <ul className="pagination justify-content-center">
+                <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => setPage(page - 1)}>Trước</button>
+                </li>
+                {[...Array(totalPages)].map((_, i) => (
+                  <li key={i} className={`page-item ${page === i + 1 ? 'active' : ''}`}>
+                    <button className="page-link" onClick={() => setPage(i + 1)}>{i + 1}</button>
+                  </li>
+                ))}
+                <li className={`page-item ${page === totalPages ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => setPage(page + 1)}>Tiếp</button>
+                </li>
+              </ul>
+            </nav>
+          )}
         </div>
       )}
 

@@ -28,6 +28,8 @@ const STATUS_OPTIONS = [
   { value: 'Rejected', label: 'Từ chối' }
 ];
 
+const PAGE_SIZE = 5; // Số lượng mỗi trang
+
 function BloodRequestManagement() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,12 @@ function BloodRequestManagement() {
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [noResponseAlert, setNoResponseAlert] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageByStatus, setPageByStatus] = useState({
+    Pending: 1,
+    Responded: 1,
+    Approved: 1,
+    Rejected: 1,
+  });
   const pageSize = 10;
   const noResponseTimer = useRef(null);
   const navigate = useNavigate();
@@ -323,6 +331,14 @@ function BloodRequestManagement() {
     return acc;
   }, {});
 
+  // Hàm đổi trang cho từng status
+  const handleChangePage = (status, newPage) => {
+    setPageByStatus(prev => ({
+      ...prev,
+      [status]: newPage,
+    }));
+  };
+
   return (
     <>
       <Header />
@@ -334,82 +350,108 @@ function BloodRequestManagement() {
           <div>Đang tải...</div>
         ) : (
           <>
-            {STATUS_OPTIONS.map(statusOpt => (
-              <div key={statusOpt.value} className="mb-5">
-                <h5>
-                  {statusOpt.label} ({groupedRequests[statusOpt.value]?.length || 0})
-                </h5>
-                <table className="table table-bordered mt-2">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Nhóm máu</th>
-                      <th>Số lượng (ml)</th>
-                      <th>Ưu tiên</th>
-                      <th>Hạn cần</th>
-                      <th>Mô tả</th>
-                      <th>Trạng thái</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groupedRequests[statusOpt.value] && groupedRequests[statusOpt.value].length > 0 ? (
-                      groupedRequests[statusOpt.value].map((r, i) => (
-                        <tr key={r.id}>
-                          <td>{i + 1}</td>
-                          <td>{BLOOD_TYPES.find(b => b.id === r.bloodTypeId)?.name}</td>
-                          <td>{r.quantityNeededMl}</td>
-                          <td>{PRIORITIES.find(p => p.value === r.priority)?.label}</td>
-                          <td>{r.dueDate?.slice(0, 10)}</td>
-                          <td>{r.description}</td>
-                          <td>
-                            <span className={
-                              r.actualStatus === 'Pending' ? "badge bg-warning text-dark" :
-                              r.actualStatus === 'Responded' ? "badge bg-info text-dark" :
-                              r.actualStatus === 'Approved' ? "badge bg-success" :
-                              r.actualStatus === 'Rejected' ? "badge bg-danger" :
-                              "badge bg-secondary"
-                            }>
-                              {STATUS_OPTIONS.find(s => s.value === r.actualStatus)?.label || r.actualStatus}
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              className="btn btn-sm btn-primary me-2"
-                              onClick={() => handleViewNotification(r.id)}
-                            >
-                              Xem thông báo
-                            </button>
-                            <button
-                              className="btn btn-sm btn-info me-2"
-                              onClick={() => navigate(`/staff/emergency-responses/${r.id}`)}
-                            >
-                              Danh sách phản hồi
-                            </button>
-                            <button
-                              className="btn btn-sm btn-warning me-2"
-                              onClick={() => handleEditRequest(r)}
-                            >
-                              Sửa
-                            </button>
-                            <button
-                              className="btn btn-sm btn-danger"
-                              onClick={() => handleDeleteRequest(r.id)}
-                            >
-                              Xóa
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
+            {STATUS_OPTIONS.map(statusOpt => {
+              const allRequests = groupedRequests[statusOpt.value] || [];
+              const totalPages = Math.ceil(allRequests.length / PAGE_SIZE);
+              const currentPage = pageByStatus[statusOpt.value] || 1;
+              const pagedRequests = allRequests.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+              return (
+                <div key={statusOpt.value} className="mb-5">
+                  <h5>
+                    {statusOpt.label} ({allRequests.length})
+                  </h5>
+                  <table className="table table-bordered mt-2">
+                    <thead>
                       <tr>
-                        <td colSpan="8" className="text-center text-muted">Không có dữ liệu</td>
+                        <th>#</th>
+                        <th>Nhóm máu</th>
+                        <th>Số lượng (ml)</th>
+                        <th>Ưu tiên</th>
+                        <th>Hạn cần</th>
+                        <th>Mô tả</th>
+                        <th>Trạng thái</th>
+                        <th></th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ))}
+                    </thead>
+                    <tbody>
+                      {pagedRequests.length > 0 ? (
+                        pagedRequests.map((r, i) => (
+                          <tr key={r.id}>
+                            <td>{(currentPage - 1) * PAGE_SIZE + i + 1}</td>
+                            <td>{BLOOD_TYPES.find(b => b.id === r.bloodTypeId)?.name}</td>
+                            <td>{r.quantityNeededMl}</td>
+                            <td>{PRIORITIES.find(p => p.value === r.priority)?.label}</td>
+                            <td>{r.dueDate?.slice(0, 10)}</td>
+                            <td>{r.description}</td>
+                            <td>
+                              <span className={
+                                r.actualStatus === 'Pending' ? "badge bg-warning text-dark" :
+                                r.actualStatus === 'Responded' ? "badge bg-info text-dark" :
+                                r.actualStatus === 'Approved' ? "badge bg-success" :
+                                r.actualStatus === 'Rejected' ? "badge bg-danger" :
+                                "badge bg-secondary"
+                              }>
+                                {STATUS_OPTIONS.find(s => s.value === r.actualStatus)?.label || r.actualStatus}
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                className="btn btn-sm btn-primary me-2"
+                                onClick={() => handleViewNotification(r.id)}
+                              >
+                                Xem thông báo
+                              </button>
+                              <button
+                                className="btn btn-sm btn-info me-2"
+                                onClick={() => navigate(`/staff/emergency-responses/${r.id}`)}
+                              >
+                                Danh sách phản hồi
+                              </button>
+                              <button
+                                className="btn btn-sm btn-warning me-2"
+                                onClick={() => handleEditRequest(r)}
+                              >
+                                Sửa
+                              </button>
+                              <button
+                                className="btn btn-sm btn-danger"
+                                onClick={() => handleDeleteRequest(r.id)}
+                              >
+                                Xóa
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="8" className="text-center text-muted">Không có dữ liệu</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  {totalPages > 1 && (
+                    <nav>
+                      <ul className="pagination justify-content-center">
+                        <li className={`page-item${currentPage === 1 ? ' disabled' : ''}`}>
+                          <button className="page-link" onClick={() => handleChangePage(statusOpt.value, currentPage - 1)} disabled={currentPage === 1}>Trước</button>
+                        </li>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <li key={i} className={`page-item${currentPage === i + 1 ? ' active' : ''}`}>
+                            <button className="page-link" onClick={() => handleChangePage(statusOpt.value, i + 1)}>
+                              {i + 1}
+                            </button>
+                          </li>
+                        ))}
+                        <li className={`page-item${currentPage === totalPages ? ' disabled' : ''}`}>
+                          <button className="page-link" onClick={() => handleChangePage(statusOpt.value, currentPage + 1)} disabled={currentPage === totalPages}>Tiếp</button>
+                        </li>
+                      </ul>
+                    </nav>
+                  )}
+                </div>
+              );
+            })}
           </>
         )}
 

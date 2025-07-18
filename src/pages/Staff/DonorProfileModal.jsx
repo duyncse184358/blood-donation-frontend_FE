@@ -8,11 +8,14 @@ const BLOOD_TYPES = [
   { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
 ];
 
+const PAGE_SIZE = 5;
+
 function DonorProfileModal({ userId, onClose }) {
   const [profile, setProfile] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (!userId) return;
@@ -25,12 +28,16 @@ function DonorProfileModal({ userId, onClose }) {
       .then(([profileRes, historyRes]) => {
         setProfile(profileRes.data);
         setHistory(Array.isArray(historyRes.data) ? historyRes.data : []);
+        setPage(1); // reset về trang 1 khi đổi user
       })
       .catch(() => {
         setErr('Không thể lấy thông tin hồ sơ hoặc lịch sử hiến máu.');
       })
       .finally(() => setLoading(false));
   }, [userId]);
+
+  const totalPages = Math.ceil(history.length / PAGE_SIZE);
+  const pagedHistory = history.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="modal show d-block" tabIndex="-1">
@@ -98,7 +105,7 @@ function DonorProfileModal({ userId, onClose }) {
                         <td colSpan={5} className="text-center text-muted">Chưa có lịch sử hiến máu</td>
                       </tr>
                     ) : (
-                      history.map(h => (
+                      pagedHistory.map(h => (
                         <tr key={h.donationId}>
                           <td>{h.donationDate ? new Date(h.donationDate).toLocaleDateString('vi-VN') : ''}</td>
                           <td>{h.componentName}</td>
@@ -110,6 +117,23 @@ function DonorProfileModal({ userId, onClose }) {
                     )}
                   </tbody>
                 </table>
+                {totalPages > 1 && (
+                  <nav>
+                    <ul className="pagination justify-content-center">
+                      <li className={`page-item${page === 1 ? ' disabled' : ''}`}>
+                        <button className="page-link" onClick={() => setPage(page - 1)} disabled={page === 1}>Trước</button>
+                      </li>
+                      {Array.from({ length: totalPages }, (_, i) => (
+                        <li key={i + 1} className={`page-item${page === i + 1 ? ' active' : ''}`}>
+                          <button className="page-link" onClick={() => setPage(i + 1)}>{i + 1}</button>
+                        </li>
+                      ))}
+                      <li className={`page-item${page === totalPages ? ' disabled' : ''}`}>
+                        <button className="page-link" onClick={() => setPage(page + 1)} disabled={page === totalPages}>Sau</button>
+                      </li>
+                    </ul>
+                  </nav>
+                )}
               </>
             )}
           </div>
