@@ -61,8 +61,9 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
       .finally(() => setLoading(false));
   };
 
-  // Lọc dữ liệu theo filter
+  // Lọc dữ liệu theo filter và loại bỏ các đơn vị máu có status === 'Deleted'
   const filteredUnits = units.filter(u =>
+    u.status !== 'Deleted' &&
     (filterBloodType === '' || u.bloodTypeName === filterBloodType) &&
     (filterComponent === '' || u.componentName === filterComponent) &&
     (filterStatus === '' || u.status === filterStatus)
@@ -75,9 +76,22 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
   const handleDelete = async (unitId) => {
     if (!window.confirm('Bạn chắc chắn muốn xóa đơn vị máu này?')) return;
     try {
-      await api.delete(`/BloodUnit/${unitId}`);
-      setMessage('Đã xóa đơn vị máu!');
+      // Lấy thông tin đơn vị máu hiện tại
+      const unit = units.find(u => u.unitId === unitId);
+      if (!unit) {
+        setMessage('Không tìm thấy đơn vị máu!');
+        return;
+      }
+      // Gửi toàn bộ thông tin, chỉ đổi status
+      await api.put(`/BloodUnit/${unitId}`, {
+        ...unit,
+        status: 'Deleted'
+      });
+      setMessage('Đã chuyển trạng thái đơn vị máu thành Deleted!');
       if (reloadInventory) reloadInventory();
+      setUnits(prev =>
+        prev.map(u => u.unitId === unitId ? { ...u, status: 'Deleted' } : u)
+      );
     } catch {
       setMessage('Xóa thất bại!');
     }

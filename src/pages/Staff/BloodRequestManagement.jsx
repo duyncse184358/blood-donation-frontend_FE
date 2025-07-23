@@ -254,8 +254,10 @@ function BloodRequestManagement() {
     }
     if (!window.confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) return;
     try {
-      await api.delete(`/EmergencyRequest/${id}`);
-      setRequests(prev => prev.filter(r => r.id !== id));
+      await api.put(`/EmergencyRequest/${id}/status`, JSON.stringify('Deleted'), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      setRequests(prev => prev.filter(r => r.id !== id && r.status !== 'Deleted' && r.actualStatus !== 'Deleted'));
       setMessage('Đã xóa yêu cầu thành công.');
     } catch {
       setMessage('Xóa yêu cầu thất bại.');

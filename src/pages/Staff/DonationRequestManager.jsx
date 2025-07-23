@@ -11,12 +11,21 @@ const STATUS_OPTIONS = [
   { value: 'Completed', label: 'Đã hiến' },
   { value: 'Cancelled', label: 'Đã hủy' }
 ];
+const SHIFTS = [
+  { value: '', label: 'Tất cả ca' },
+  { value: '08:00 - 09:30', label: '08:00 - 09:30' },
+  { value: '09:30 - 11:00', label: '09:30 - 11:00' },
+  { value: '13:30 - 15:00', label: '13:30 - 15:00' },
+  { value: '15:00 - 16:30', label: '15:00 - 16:30' }
+];
 
 function DonationRequestManager({ openModal }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [shiftFilter, setShiftFilter] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -24,7 +33,6 @@ function DonationRequestManager({ openModal }) {
     setLoading(true);
     api.get('/DonationRequest')
       .then(res => {
-        console.log('Danh sách request:', res.data); // Thêm dòng này
         const sorted = [...res.data].sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
         setRequests(sorted);
       })
@@ -32,13 +40,29 @@ function DonationRequestManager({ openModal }) {
       .finally(() => setLoading(false));
   }, []);
 
-  // Lọc theo trạng thái
-  const filteredRequests = statusFilter
-    ? requests.filter(r => r.status === statusFilter)
-    : requests;
+  // Lọc theo trạng thái, ngày, ca
+  const filteredRequests = requests.filter(r =>
+    (statusFilter === '' || r.status === statusFilter) &&
+    (dateFilter === '' || (r.preferredDate && r.preferredDate.slice(0, 10) === dateFilter)) &&
+    (shiftFilter === '' || r.preferredTimeSlot === shiftFilter)
+  );
 
   const pagedRequests = filteredRequests.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const totalPages = Math.ceil(filteredRequests.length / PAGE_SIZE);
+
+  // Khi chọn lọc, về trang 1
+  const handleStatusFilterChange = (e) => {
+    setStatusFilter(e.target.value);
+    setPage(1);
+  };
+  const handleDateFilterChange = (e) => {
+    setDateFilter(e.target.value);
+    setPage(1);
+  };
+  const handleShiftFilterChange = (e) => {
+    setShiftFilter(e.target.value);
+    setPage(1);
+  };
 
   // Khi bấm "Xem chi tiết", chỉ cho phép cập nhật trạng thái (BỎ phần thành phần)
   const handleShowDetail = async (requestId) => {
@@ -133,17 +157,11 @@ function DonationRequestManager({ openModal }) {
     openModal('profile', { userId: donorUserId });
   };
 
-  // Khi chọn lọc trạng thái, về trang 1
-  const handleStatusFilterChange = (e) => {
-    setStatusFilter(e.target.value);
-    setPage(1);
-  };
-
   return (
     <div>
       <h4 className="mb-3">Quản lý yêu cầu hiến máu</h4>
       <div className="row mb-3">
-        <div className="col-md-4">
+        <div className="col-md-4 mb-2">
           <select
             className="form-select"
             value={statusFilter}
@@ -151,6 +169,26 @@ function DonationRequestManager({ openModal }) {
           >
             {STATUS_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="col-md-4 mb-2">
+          <input
+            type="date"
+            className="form-control"
+            value={dateFilter}
+            onChange={handleDateFilterChange}
+            placeholder="Lọc theo ngày"
+          />
+        </div>
+        <div className="col-md-4 mb-2">
+          <select
+            className="form-select"
+            value={shiftFilter}
+            onChange={handleShiftFilterChange}
+          >
+            {SHIFTS.map(s => (
+              <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>
         </div>
@@ -169,6 +207,8 @@ function DonationRequestManager({ openModal }) {
                 <th>Người hiến</th>
                 <th>Trạng thái</th>
                 <th>Ngày yêu cầu</th>
+                <th>Ngày muốn hiến</th>
+                <th>Ca</th> {/* Thêm cột Ca */}
                 <th>Chức năng</th>
               </tr>
             </thead>
@@ -191,6 +231,12 @@ function DonationRequestManager({ openModal }) {
                     })()}
                   </td>
                   <td>{r.requestDate ? new Date(r.requestDate).toLocaleString('vi-VN') : ''}</td>
+                  <td>
+                    {r.preferredDate
+                      ? new Date(r.preferredDate).toLocaleDateString('vi-VN')
+                      : ''}
+                  </td>
+                  <td>{r.preferredTimeSlot || ''}</td> {/* Hiển thị ca */}
                   <td>
                     <button
                       className="btn btn-sm btn-primary me-1"
@@ -215,7 +261,7 @@ function DonationRequestManager({ openModal }) {
               ))}
               {pagedRequests.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center text-muted">Không có dữ liệu</td>
+                  <td colSpan={6} className="text-center text-muted">Không có dữ liệu</td>
                 </tr>
               )}
             </tbody>

@@ -167,7 +167,7 @@ function DonationRecordForm() {
     <>
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">
-          <label className="form-label">Mã người hiến (DonorUserId)</label>
+          <label className="form-label">Mã người hiến </label>
           <input
             type="text"
             className="form-control"
@@ -189,7 +189,7 @@ function DonationRecordForm() {
           />
         </div>
         <div className="col-md-4">
-          <label className="form-label">Nhóm máu (BloodTypeId)</label>
+          <label className="form-label">Nhóm máu</label>
           <select
             className="form-select"
             name="bloodTypeId"

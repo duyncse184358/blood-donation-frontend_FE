@@ -26,8 +26,10 @@ function BloodDiscardForm({ onSelectUnit }) {
     fetchUnits();
   }, []);
 
-  // Lọc các đơn vị máu quá hạn (expirationDate < hôm nay)
-  const expiredUnits = units.filter(u => new Date(u.expirationDate) < new Date());
+  // Lọc các đơn vị máu quá hạn (expirationDate < hôm nay) và loại bỏ các đơn vị đã bị xóa (status === 'Deleted')
+  const expiredUnits = units.filter(
+    u => new Date(u.expirationDate) < new Date() && u.status !== 'Deleted'
+  );
   const totalPages = Math.ceil(expiredUnits.length / PAGE_SIZE);
   const pagedUnits = expiredUnits.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
