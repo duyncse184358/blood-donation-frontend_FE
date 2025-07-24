@@ -9,12 +9,6 @@ const BLOOD_TYPES = [
   { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
   { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
 ];
-const COMPONENTS = [
-  { id: 1, name: 'Hồng cầu' },
-  { id: 2, name: 'Huyết tương' },
-  { id: 3, name: 'Tiểu cầu' },
-  { id: 4, name: 'Máu toàn phần' }
-];
 const PRIORITIES = [
   { value: 'High', label: 'Khẩn cấp' },
   { value: 'Medium', label: 'Cao' },
@@ -22,10 +16,10 @@ const PRIORITIES = [
 ];
 
 function EmergencyRequestForm() {
-  const { user } = useContext(AuthContext); // Lấy userId nếu cần
+  const { user } = useContext(AuthContext);
   const [form, setForm] = useState({
     bloodTypeId: '',
-    componentId: '',
+    componentId: 1, // Luôn gửi 1, không cần cho user chọn
     quantityNeededMl: '',
     priority: 'High',
     dueDate: '',
@@ -60,7 +54,7 @@ function EmergencyRequestForm() {
       setMsg('Tạo yêu cầu máu khẩn cấp thành công!');
       setForm({
         bloodTypeId: '',
-        componentId: '',
+        componentId: 1,
         quantityNeededMl: '',
         priority: 'High',
         dueDate: '',
@@ -89,17 +83,6 @@ function EmergencyRequestForm() {
             ))}
           </select>
         </div>
-{/*       
-        <div className="col-md-6">
-          <label className="form-label">Thành phần máu</label>
-          <select className="form-select" name="componentId" value={form.componentId} onChange={handleChange} required>
-            <option value="">Chọn thành phần</option>
-            {COMPONENTS.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div> */}
-
         <div className="col-md-4">
           <label className="form-label">Số lượng cần (ml)</label>
           <input type="number" className="form-control" name="quantityNeededMl" value={form.quantityNeededMl} onChange={handleChange} min={1} required />

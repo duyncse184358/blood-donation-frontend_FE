@@ -5,17 +5,22 @@ import { AuthContext } from '../../context/AuthContext';
 import DonorProfileModal from './DonorProfileModal'; // Thêm dòng này nếu chưa import
 
 const BLOOD_TYPES = [
-  { id: 1, name: 'A' },
-  { id: 2, name: 'B' },
-  { id: 3, name: 'AB' },
-  { id: 4, name: 'O' }
+ { value: '', label: '--Tất cả--' },
+  { value: 'A+', label: 'A+' },
+  { value: 'A-', label: 'A-' },
+  { value: 'B+', label: 'B+' },
+  { value: 'B-', label: 'B-' },
+  { value: 'AB+', label: 'AB+' },
+  { value: 'AB-', label: 'AB-' },
+  { value: 'O+', label: 'O+' },
+  { value: 'O-', label: 'O-' },
 ];
 
 const COMPONENTS = [
   { id: 1, name: 'Máu toàn phần' },
   { id: 2, name: 'Huyết tương' },
   { id: 3, name: 'Tiểu cầu' },
-  { id: 4, name: 'Hồng cầu lắng' }
+  { id: 4, name: 'Hồng cầu ' }
 ];
 
 function ReponseEmergencyRequesr() {
