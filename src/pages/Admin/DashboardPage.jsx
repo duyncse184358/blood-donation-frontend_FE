@@ -26,6 +26,7 @@ function DashboardPage() {
     isActive: true,
   });
   const [createErrors, setCreateErrors] = useState({});
+  const [errorEmail, setErrorEmail] = useState('');
 
   // Lấy danh sách người dùng
   const fetchUsers = async () => {
@@ -134,7 +135,7 @@ function DashboardPage() {
   const validateCreateForm = () => {
     const errors = {};
     if (!createForm.username.trim()) errors.username = 'Tên đăng nhập không được để trống';
-    if (!createForm.password || createForm.password.length < 6) errors.password = 'Mật khẩu tối thiểu 6 ký tự';
+    if (!createForm.password || createForm.password.length < 8) errors.password = 'Mật khẩu tối thiểu 8 ký tự';
     if (!createForm.email.trim()) errors.email = 'Email không được để trống';
     else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(createForm.email)) errors.email = 'Email không hợp lệ';
     return errors;
@@ -144,6 +145,7 @@ function DashboardPage() {
   const handleConfirmCreate = async () => {
     const errors = validateCreateForm();
     setCreateErrors(errors);
+    setErrorEmail('');
     if (Object.keys(errors).length > 0) return;
 
     setError('');
@@ -160,7 +162,53 @@ function DashboardPage() {
       handleCloseCreateModal();
       fetchUsers();
     } catch (err) {
-      setError('Tạo tài khoản thất bại.');
+      // Nếu BE trả về lỗi trùng username (SqlException hoặc message liên quan)
+      if (
+        typeof err?.response?.data === 'string' &&
+        err.response.data.includes('duplicate key')
+      ) {
+        setCreateErrors(prev => ({
+          ...prev,
+          username: 'Tên đăng nhập đã tồn tại.'
+        }));
+        setError('Email đã tồn tại hoặc User name đã tồn tại');
+        return;
+      }
+      if (
+        err?.response?.data?.message &&
+        err.response.data.message.includes('duplicate key')
+      ) {
+        setCreateErrors(prev => ({
+          ...prev,
+          username: 'Tên đăng nhập đã tồn tại.'
+        }));
+        setError('Email đã tồn tại hoặc User name đã tồn tại');
+        return;
+      }
+      // Nếu BE trả về chuỗi "Email đã tồn tại"
+      if (
+        typeof err?.response?.data === 'string' &&
+        err.response.data.includes('Email')
+      ) {
+        setErrorEmail(err.response.data);
+        setError('Email đã tồn tại hoặc User name đã tồn tại');
+        return;
+      }
+      // Nếu BE trả về object có message "Email đã tồn tại"
+      if (
+        err?.response?.data?.message &&
+        err.response.data.message.includes('Email')
+      ) {
+        setErrorEmail(err.response.data.message);
+        setError('Email đã tồn tại hoặc User name đã tồn tại');
+        return;
+      }
+      // Nếu BE trả về object có message khác
+      if (err?.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Tạo tài khoản thất bại.');
+      }
     }
   };
 
@@ -348,6 +396,7 @@ function DashboardPage() {
                 onChange={handleCreateChange}
               />
               {createErrors.email && <div style={{ color: 'red', fontSize: 13 }}>{createErrors.email}</div>}
+              {errorEmail && <div style={{ color: 'red', fontSize: 13 }}>{errorEmail}</div>}
             </div>
             <div className="mb-3">
               <label>Vai trò</label>

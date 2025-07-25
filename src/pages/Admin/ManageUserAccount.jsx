@@ -170,6 +170,52 @@ function ManageUserAccount() {
       handleCloseCreateModal();
       fetchAccounts();
     } catch (err) {
+      // Nếu BE trả về lỗi trùng username (SqlException hoặc message liên quan)
+      if (
+        typeof err?.response?.data === 'string' &&
+        err.response.data.includes('duplicate key')
+      ) {
+        setCreateErrors(prev => ({
+          ...prev,
+          username: 'Tên đăng nhập đã tồn tại.'
+        }));
+        setError('');
+        return;
+      }
+      if (
+        err?.response?.data?.message &&
+        err.response.data.message.includes('duplicate key')
+      ) {
+        setCreateErrors(prev => ({
+          ...prev,
+          username: 'Tên đăng nhập đã tồn tại.'
+        }));
+        setError('');
+        return;
+      }
+      // Nếu BE trả về lỗi email đã tồn tại
+      if (
+        typeof err?.response?.data === 'string' &&
+        err.response.data.includes('Email')
+      ) {
+        setCreateErrors(prev => ({
+          ...prev,
+          email: err.response.data
+        }));
+        setError('');
+        return;
+      }
+      if (
+        err?.response?.data?.message &&
+        err.response.data.message.includes('Email')
+      ) {
+        setCreateErrors(prev => ({
+          ...prev,
+          email: err.response.data.message
+        }));
+        setError('');
+        return;
+      }
       setError('Tạo tài khoản thất bại.');
     }
   };
@@ -319,6 +365,10 @@ function ManageUserAccount() {
                 onChange={handleCreateChange}
               />
               {createErrors.username && <div style={{ color: 'red', fontSize: 13 }}>{createErrors.username}</div>}
+              {/* Hiển thị lỗi tổng nếu có liên quan đến username */}
+              {error && error.includes('User name') && (
+                <div style={{ color: 'red', fontSize: 13 }}>{error}</div>
+              )}
             </div>
             <div className="mb-3">
               <label>Email</label>

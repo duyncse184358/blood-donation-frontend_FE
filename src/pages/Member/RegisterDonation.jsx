@@ -132,7 +132,7 @@ function RegisterDonation() {
     fetchUserData();
   }, [fetchUserData]);
 
-  // Hàm performValidation (BỎ logic kiểm tra hasRejectedRequest)
+  // Hàm performValidation (BỔ SUNG kiểm tra nhóm máu)
   const performValidation = useCallback(() => {
     const errs = {};
     let currentGeneralError = '';
@@ -197,11 +197,25 @@ function RegisterDonation() {
 
     // Validation các trường form
     if (!formData.bloodTypeId) errs.bloodTypeId = 'Vui lòng chọn nhóm máu.';
+
+    // BỔ SUNG: Kiểm tra nhóm máu đăng ký phải trùng với nhóm máu trong profile
+    if (
+      formData.bloodTypeId &&
+      profile &&
+      (profile.bloodTypeId || profile.bloodTypeID || profile.blood_type_id)
+    ) {
+      // Lấy bloodTypeId từ profile (tùy theo BE trả về)
+      const profileBloodTypeId =
+        profile.bloodTypeId || profile.bloodTypeID || profile.blood_type_id;
+      if (parseInt(formData.bloodTypeId) !== parseInt(profileBloodTypeId)) {
+        errs.bloodTypeId = 'Nhóm máu đăng ký không khớp với nhóm máu trong hồ sơ cá nhân!';
+      }
+    }
+
     if (!formData.preferredDate) errs.preferredDate = 'Vui lòng chọn ngày hiến máu.';
     else if (formData.preferredDate < today)
       errs.preferredDate = 'Không được chọn ngày trong quá khứ.';
     if (!formData.preferredTimeSlot) errs.preferredTimeSlot = 'Vui lòng chọn khung giờ.';
-    
     if (formData.preferredTimeSlot && disabledSlots.includes(formData.preferredTimeSlot)) {
       errs.preferredTimeSlot = 'Khung giờ này đã đủ số lượng đăng ký, vui lòng chọn khung giờ khác.';
     }
