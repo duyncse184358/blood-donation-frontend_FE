@@ -96,13 +96,15 @@ function DonorProfileModal({ userId, onClose }) {
                       <th>Thành phần</th>
                       <th>Số lượng (ml)</th>
                       <th>Kết quả xét nghiệm</th>
+                      <th>Trạng thái</th>
+                      
                       <th>Ghi chú</th>
                     </tr>
                   </thead>
                   <tbody>
                     {history.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="text-center text-muted">Chưa có lịch sử hiến máu</td>
+                        <td colSpan={7} className="text-center text-muted">Chưa có lịch sử hiến máu</td>
                       </tr>
                     ) : (
                       pagedHistory.map(h => (
@@ -111,6 +113,12 @@ function DonorProfileModal({ userId, onClose }) {
                           <td>{h.componentName}</td>
                           <td>{h.quantityMl}</td>
                           <td>{h.testingResults}</td>
+                          <td>
+                            {h.status === 'Complete' ? 'Hoàn thành' :
+                             h.status === 'Pending' ? 'Đang xử lý' :
+                             h.status === 'Cancelled' ? 'Đã hủy' :
+                             h.status || ''}
+                          </td>
                           <td>{h.descriptions || '-'}</td>
                         </tr>
                       ))

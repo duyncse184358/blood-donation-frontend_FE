@@ -386,7 +386,7 @@ function ReponseEmergencyRequesr() {
                   </div>
                   {/* Đổi "Kết quả xét nghiệm" thành "Kết quả đủ điều kiện" */}
                   <div className="mb-2">
-                    <label className="form-label">Kết quả đủ điều kiện</label>
+                    <label className="form-label">Kết quả xét nghiệm</label>
                     <select
                       className="form-select"
                       name="testingResults"

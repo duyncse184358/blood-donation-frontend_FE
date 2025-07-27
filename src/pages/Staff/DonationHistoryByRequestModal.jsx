@@ -208,7 +208,7 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                   <div className="mb-2"><b>Lý do không đủ điều kiện:</b>
                     <input type="text" className="form-control" name="reasonIneligible" value={form.reasonIneligible || ''} onChange={handleChange} />
                   </div>
-                  <div className="mb-2"><b>Kết quả đủ điều kiện:</b>
+                  <div className="mb-2"><b>Kết quả xét nghiệm:</b>
                     <select
                       className="form-select"
                       name="testingResults"

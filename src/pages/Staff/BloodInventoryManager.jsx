@@ -135,6 +135,19 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
         </div>
       </div>
 
+      {/* Thông báo các đơn vị máu đang tách */}
+      {units.some(u => u.status === 'Separating') && (
+        <div className="alert alert-info d-flex align-items-center" style={{ fontSize: '1.1em' }}>
+          <i className="bi bi-gear-fill me-2" style={{ fontSize: '1.5em' }}></i>
+          <div>
+            <b>Cảnh báo:</b> Có {units.filter(u => u.status === 'Separating').length} đơn vị máu đang trong quá trình <span className="text-primary fw-bold">tách thành phần</span>.<br />
+            <span>
+              Sau khi chuyển sang trạng thái Đang tách, bạn có thể thực hiện thao tác tách thành phần máu tại giao diện kho máu.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Bộ lọc */}
       <div className="row mb-3">
         <div className="col-md-3">

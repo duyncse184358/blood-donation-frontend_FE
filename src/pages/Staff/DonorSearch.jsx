@@ -90,11 +90,11 @@ function DonorSearch() {
                   <td>{d.fullName}</td>
                   <td>{d.dateOfBirth}</td>
                   <td>
-                    {d.gender === 1 || d.gender === 'Nam'
+                    {d.gender === 1 || d.gender === 'Nam' || d.gender === 'Male'
                       ? 'Nam'
-                      : d.gender === 2 || d.gender === 'Nữ'
+                      : d.gender === 2 || d.gender === 'Nữ' || d.gender === 'Female'
                       ? 'Nữ'
-                      : d.gender === 3 || d.gender === 'Khác'
+                      : d.gender === 3 || d.gender === 'Khác' || d.gender === 'Other'
                       ? 'Khác'
                       : ''}
                   </td>
