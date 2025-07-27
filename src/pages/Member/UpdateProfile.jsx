@@ -9,6 +9,16 @@ import Navbar from '../../components/Navbar/Navbar';
 // Import dữ liệu địa chỉ từ file riêng
 import { districtsData, wardsData } from '../../components/Data/hcm-address-data';
 
+// Import icons
+import { 
+  User, Phone, CreditCard, Calendar, Users, MapPin, 
+  Droplet, Heart, FileText, CheckCircle, AlertCircle,
+  Home, Building, Clock, Activity
+} from 'lucide-react';
+
+// Import CSS
+import './UpdateProfile.css';
+
 const provinces = [{ code: '79', name: 'TP. Hồ Chí Minh' }];
 
 const bloodTypes = [
@@ -236,180 +246,306 @@ function UpdateProfile() {
   }, [formData?.medicalHistory]);
 
   if (loading) return (
-    <>
+    <div className="update-profile-wrapper">
       <Header />
       <Navbar />
-      <div className="container mt-4">Đang tải...</div>
-    </>
-  );
-  if (error) return (
-    <>
-      <Header />
-      <Navbar />
-      <div className="container mt-4">
-        <div className="alert alert-danger">{error}</div>
+      <div className="update-profile-container">
+        <div className="loading-wrapper">
+          <div className="loading-spinner"></div>
+          <p>Đang tải thông tin hồ sơ...</p>
+        </div>
       </div>
-    </>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="update-profile-wrapper">
+      <Header />
+      <Navbar />
+      <div className="update-profile-container">
+        <div className="profile-form-section">
+          <div className="alert alert-danger">
+            <AlertCircle className="alert-icon" />
+            {error}
+          </div>
+        </div>
+      </div>
+    </div>
   );
   if (!formData) return null;
 
   return (
-    <>
+    <div className="update-profile-wrapper">
       <Header />
       <Navbar />
-      <div className="container mt-4">
-        <h2>Cập nhật hồ sơ cá nhân</h2>
-        {message && <div className="alert alert-success">{message}</div>}
-        <form onSubmit={handleSubmit} autoComplete="off">
-          <div className="row g-3">
-            <div className="col-md-6">
-              <label htmlFor="fullName" className="form-label">Họ và tên <span style={{ color: 'red' }}>*</span></label>
-              <input
-                type="text"
-                className={`form-control ${fieldErrors?.fullName ? 'is-invalid' : ''}`}
-                id="fullName"
-                name="fullName"
-                value={formData.fullName || ''}
-                onChange={handleChange}
-                disabled={submitting}
-                autoFocus
-              />
-              {fieldErrors?.fullName && <div className="invalid-feedback">{fieldErrors.fullName}</div>}
+      <div className="update-profile-container fade-in">
+        {/* Header Section */}
+        <div className="profile-header">
+          <div className="profile-header-content">
+            <h1 className="profile-title">
+              <Heart className="heart-icon" size={28} />
+              Cập nhật hồ sơ cá nhân
+              <Heart className="heart-icon" size={28} />
+            </h1>
+            <p className="profile-subtitle">
+              Hoàn thiện thông tin để tham gia hiến máu cứu người
+            </p>
+          </div>
+        </div>
+
+        {/* Form Section */}
+        <div className="profile-form-section">
+          {message && (
+            <div className="alert alert-success slide-up">
+              <CheckCircle className="alert-icon" />
+              {message}
             </div>
-            <div className="col-md-6">
-              <label htmlFor="phoneNumber" className="form-label">Số điện thoại</label>
-              <input
-                type="tel"
-                className={`form-control ${fieldErrors?.phoneNumber ? 'is-invalid' : ''}`}
-                id="phoneNumber"
-                name="phoneNumber"
-                value={formData.phoneNumber || ''}
-                onChange={handleChange}
-                disabled={submitting}
-                placeholder="Ví dụ: 0912345678"
-              />
-              {fieldErrors?.phoneNumber && <div className="invalid-feedback">{fieldErrors.phoneNumber}</div>}
+          )}
+          
+          <form onSubmit={handleSubmit} autoComplete="off">
+            {/* Personal Information Section */}
+            <div className="section-header">
+              <User className="section-header-icon" />
+              <h4>Thông tin cá nhân</h4>
             </div>
-            <div className="col-md-6">
-              <label htmlFor="cccd" className="form-label">CCCD/CMND</label>
-              <input
-                type="text"
-                className={`form-control ${fieldErrors?.cccd ? 'is-invalid' : ''}`}
-                id="cccd"
-                name="cccd"
-                value={formData.cccd || ''}
-                onChange={handleChange}
-                disabled={submitting}
-                placeholder="12 số CCCD"
-              />
-              {fieldErrors?.cccd && <div className="invalid-feedback">{fieldErrors.cccd}</div>}
+            
+            <div className="row g-3">
+              <div className="col-md-6 form-group-wrapper">
+                <label htmlFor="fullName" className="form-label">
+                  <User className="form-label-icon" />
+                  Họ và tên <span className="required-star">*</span>
+                </label>
+                <input
+                  type="text"
+                  className={`form-control ${fieldErrors?.fullName ? 'is-invalid' : ''}`}
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName || ''}
+                  onChange={handleChange}
+                  disabled={submitting}
+                  autoFocus
+                />
+                {fieldErrors?.fullName && <div className="invalid-feedback">{fieldErrors.fullName}</div>}
+              </div>
+              
+              <div className="col-md-6 form-group-wrapper">
+                <label htmlFor="phoneNumber" className="form-label">
+                  <Phone className="form-label-icon" />
+                  Số điện thoại
+                </label>
+                <input
+                  type="tel"
+                  className={`form-control ${fieldErrors?.phoneNumber ? 'is-invalid' : ''}`}
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  value={formData.phoneNumber || ''}
+                  onChange={handleChange}
+                  disabled={submitting}
+                  placeholder="Ví dụ: 0912345678"
+                />
+                {fieldErrors?.phoneNumber && <div className="invalid-feedback">{fieldErrors.phoneNumber}</div>}
+              </div>
+              
+              <div className="col-md-6 form-group-wrapper">
+                <label htmlFor="cccd" className="form-label">
+                  <CreditCard className="form-label-icon" />
+                  CCCD/CMND
+                </label>
+                <input
+                  type="text"
+                  className={`form-control ${fieldErrors?.cccd ? 'is-invalid' : ''}`}
+                  id="cccd"
+                  name="cccd"
+                  value={formData.cccd || ''}
+                  onChange={handleChange}
+                  disabled={submitting}
+                  placeholder="12 số CCCD"
+                />
+                {fieldErrors?.cccd && <div className="invalid-feedback">{fieldErrors.cccd}</div>}
+              </div>
+              
+              <div className="col-md-6 form-group-wrapper">
+                <label htmlFor="dateOfBirth" className="form-label">
+                  <Calendar className="form-label-icon" />
+                  Ngày sinh
+                </label>
+                <input
+                  type="date"
+                  className={`form-control ${fieldErrors?.dateOfBirth ? 'is-invalid' : ''}`}
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth ? formData.dateOfBirth.split('T')[0] : ''}
+                  onChange={handleChange}
+                  disabled={submitting}
+                />
+                {fieldErrors?.dateOfBirth && <div className="invalid-feedback">{fieldErrors.dateOfBirth}</div>}
+              </div>
+              
+              <div className="col-md-6 form-group-wrapper">
+                <label htmlFor="gender" className="form-label">
+                  <Users className="form-label-icon" />
+                  Giới tính <span className="required-star">*</span>
+                </label>
+                <select
+                  className={`form-select ${fieldErrors?.gender ? 'is-invalid' : ''}`}
+                  id="gender"
+                  name="gender"
+                  value={formData.gender || ''}
+                  onChange={handleChange}
+                  disabled={submitting}
+                >
+                  <option value="">Chọn giới tính</option>
+                  {genders.map(g => (
+                    <option key={g.value} value={g.value}>{g.label}</option>
+                  ))}
+                </select>
+                {fieldErrors?.gender && <div className="invalid-feedback">{fieldErrors.gender}</div>}
+              </div>
             </div>
-            <div className="col-md-6">
-              <label htmlFor="dateOfBirth" className="form-label">Ngày sinh</label>
-              <input
-                type="date"
-                className={`form-control ${fieldErrors?.dateOfBirth ? 'is-invalid' : ''}`}
-                id="dateOfBirth"
-                name="dateOfBirth"
-                value={formData.dateOfBirth ? formData.dateOfBirth.split('T')[0] : ''}
-                onChange={handleChange}
-                disabled={submitting}
-              />
-              {fieldErrors?.dateOfBirth && <div className="invalid-feedback">{fieldErrors.dateOfBirth}</div>}
+
+            {/* Address Section */}
+            <div className="section-header">
+              <MapPin className="section-header-icon" />
+              <h4>Thông tin địa chỉ</h4>
             </div>
-            <div className="col-md-6">
-              <label htmlFor="gender" className="form-label">Giới tính <span style={{ color: 'red' }}>*</span></label>
-              <select
-                className={`form-select ${fieldErrors?.gender ? 'is-invalid' : ''}`}
-                id="gender"
-                name="gender"
-                value={formData.gender || ''}
-                onChange={handleChange}
-                disabled={submitting}
-              >
-                <option value="">Chọn giới tính</option>
-                {genders.map(g => (
-                  <option key={g.value} value={g.value}>{g.label}</option>
-                ))}
-              </select>
-              {fieldErrors?.gender && <div className="invalid-feedback">{fieldErrors.gender}</div>}
+            
+            <div className="address-section">
+              <div className="row g-3">
+                <div className="col-md-6 form-group-wrapper">
+                  <label className="form-label">
+                    <Building className="form-label-icon" />
+                    Tỉnh/Thành phố <span className="required-star">*</span>
+                  </label>
+                  <select className="form-select" value={provinceCode} onChange={e => setProvinceCode(e.target.value)} disabled={submitting}>
+                    <option value="">Chọn tỉnh/thành</option>
+                    {provinces.map(p => (
+                      <option key={p.code} value={p.code}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="col-md-6 form-group-wrapper">
+                  <label className="form-label">
+                    <Building className="form-label-icon" />
+                    Quận/Huyện <span className="required-star">*</span>
+                  </label>
+                  <select className="form-select" value={districtCode} onChange={e => setDistrictCode(e.target.value)} disabled={!provinceCode || submitting}>
+                    <option value="">Chọn quận/huyện</option>
+                    {(districtsData[provinceCode] || []).map(d => (
+                      <option key={d.code} value={d.code}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="col-md-6 form-group-wrapper">
+                  <label className="form-label">
+                    <Home className="form-label-icon" />
+                    Phường/Xã <span className="required-star">*</span>
+                  </label>
+                  <select className="form-select" value={wardName} onChange={e => setWardName(e.target.value)} disabled={!districtCode || submitting}>
+                    <option value="">Chọn phường/xã</option>
+                    {(wardsData[districtCode] || []).map(w => (
+                      <option key={w.code} value={w.name}>{w.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="col-12">
+                  <label className="form-label">
+                    <MapPin className="form-label-icon" />
+                    Địa chỉ đầy đủ
+                  </label>
+                  <div className="address-preview">
+                    {buildAddress() || "Địa chỉ sẽ tự động ghép khi bạn chọn đầy đủ thông tin"}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Tỉnh/Thành phố <span style={{ color: 'red' }}>*</span></label>
-              <select className="form-select" value={provinceCode} onChange={e => setProvinceCode(e.target.value)} disabled={submitting}>
-                <option value="">Chọn tỉnh/thành</option>
-                {provinces.map(p => (
-                  <option key={p.code} value={p.code}>{p.name}</option>
-                ))}
-              </select>
+
+            {/* Blood Information Section */}
+            <div className="section-header">
+              <Droplet className="section-header-icon" />
+              <h4>Thông tin máu</h4>
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Quận/Huyện <span style={{ color: 'red' }}>*</span></label>
-              <select className="form-select" value={districtCode} onChange={e => setDistrictCode(e.target.value)} disabled={!provinceCode || submitting}>
-                <option value="">Chọn quận/huyện</option>
-                {(districtsData[provinceCode] || []).map(d => (
-                  <option key={d.code} value={d.code}>{d.name}</option>
-                ))}
-              </select>
+            
+            <div className="row g-3">
+              <div className="col-md-6 form-group-wrapper">
+                <label htmlFor="bloodTypeId" className="form-label">
+                  <Droplet className="form-label-icon" />
+                  Nhóm máu
+                </label>
+                <div className="blood-type-wrapper">
+                  <select
+                    className={`form-select ${fieldErrors?.bloodTypeId ? 'is-invalid' : ''}`}
+                    id="bloodTypeId"
+                    name="bloodTypeId"
+                    value={formData.bloodTypeId || ''}
+                    onChange={handleChange}
+                    disabled={submitting}
+                  >
+                    <option value="">Chọn nhóm máu</option>
+                    {bloodTypes.map(type => (
+                      <option key={type.id} value={type.id}>{type.name}</option>
+                    ))}
+                  </select>
+                </div>
+                {fieldErrors?.bloodTypeId && <div className="invalid-feedback">{fieldErrors.bloodTypeId}</div>}
+              </div>
+              
+              <div className="col-md-6 form-group-wrapper">
+                <label htmlFor="rhFactor" className="form-label">
+                  <Activity className="form-label-icon" />
+                  Yếu tố Rh
+                </label>
+                <select
+                  className="form-select"
+                  id="rhFactor"
+                  name="rhFactor"
+                  value={formData.rhFactor || ''}
+                  onChange={handleChange}
+                  disabled={submitting}
+                >
+                  <option value="">Chọn yếu tố Rh</option>
+                  {rhFactors.map(factor => (
+                    <option key={factor} value={factor}>{factor}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="col-md-6 form-group-wrapper">
+                <label htmlFor="lastBloodDonationDate" className="form-label">
+                  <Clock className="form-label-icon" />
+                  Ngày hiến máu gần nhất
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="lastBloodDonationDate"
+                  name="lastBloodDonationDate"
+                  value={
+                    formData.lastBloodDonationDate
+                      ? new Date(formData.lastBloodDonationDate).toLocaleDateString('vi-VN')
+                      : 'Chưa có thông tin'
+                  }
+                  readOnly
+                />
+              </div>
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Phường/Xã <span style={{ color: 'red' }}>*</span></label>
-              <select className="form-select" value={wardName} onChange={e => setWardName(e.target.value)} disabled={!districtCode || submitting}>
-                <option value="">Chọn phường/xã</option>
-                {(wardsData[districtCode] || []).map(w => (
-                  <option key={w.code} value={w.name}>{w.name}</option>
-                ))}
-              </select>
+
+            {/* Medical History Section */}
+            <div className="section-header">
+              <FileText className="section-header-icon" />
+              <h4>Lịch sử bệnh án</h4>
             </div>
-            <div className="col-12">
-              <label className="form-label">Địa chỉ đầy đủ</label>
-              <input
-                type="text"
-                className="form-control"
-                value={buildAddress()}
-                readOnly
-                disabled
-                placeholder="Địa chỉ sẽ tự động ghép"
-              />
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="bloodTypeId" className="form-label">Nhóm máu</label>
-              <select
-                className={`form-select ${fieldErrors?.bloodTypeId ? 'is-invalid' : ''}`}
-                id="bloodTypeId"
-                name="bloodTypeId"
-                value={formData.bloodTypeId || ''}
-                onChange={handleChange}
-                disabled={submitting}
-              >
-                <option value="">Chọn nhóm máu</option>
-                {bloodTypes.map(type => (
-                  <option key={type.id} value={type.id}>{type.name}</option>
-                ))}
-              </select>
-              {fieldErrors?.bloodTypeId && <div className="invalid-feedback">{fieldErrors.bloodTypeId}</div>}
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="rhFactor" className="form-label">Yếu tố Rh</label>
-              <select
-                className="form-select"
-                id="rhFactor"
-                name="rhFactor"
-                value={formData.rhFactor || ''}
-                onChange={handleChange}
-                disabled={submitting}
-              >
-                <option value="">Chọn yếu tố Rh</option>
-                {rhFactors.map(factor => (
-                  <option key={factor} value={factor}>{factor}</option>
-                ))}
-              </select>
-            </div>
-            <div className="col-12">
-              <label className="form-label">Lịch sử bệnh án/y tế (nếu có)</label>
-              <div className="d-flex flex-wrap gap-3">
+            
+            <div className="form-group-wrapper">
+              <label className="form-label">
+                <FileText className="form-label-icon" />
+                Lịch sử bệnh án/y tế (nếu có)
+              </label>
+              <div className="medical-options-grid">
                 {MEDICAL_OPTIONS.map(opt => (
-                  <div key={opt} className="form-check">
+                  <div key={opt} className="medical-checkbox-item form-check">
                     <input
                       className="form-check-input"
                       type="checkbox"
@@ -435,43 +571,36 @@ function UpdateProfile() {
               {medicalChecks.includes("Khác") && (
                 <input
                   type="text"
-                  className="form-control mt-2"
+                  className="form-control mt-3"
                   placeholder="Nhập bệnh khác..."
                   value={otherMedical}
                   onChange={e => setOtherMedical(e.target.value)}
                   disabled={submitting}
                 />
               )}
-              <small className="text-muted">Nếu không có, hãy để trống.</small>
+              <small className="text-muted mt-2 d-block">Nếu không có, hãy để trống.</small>
             </div>
-            <div className="col-md-6">
-              <label htmlFor="lastBloodDonationDate" className="form-label">Ngày hiến máu gần nhất</label>
-              <input
-                type="text"
-                className="form-control"
-                id="lastBloodDonationDate"
-                name="lastBloodDonationDate"
-                value={
-                  formData.lastBloodDonationDate
-                    ? new Date(formData.lastBloodDonationDate).toLocaleDateString('vi-VN')
-                    : 'Chưa có thông tin'
-                }
-                readOnly
-                style={{
-                  backgroundColor: '#f8f9fa',
-                  cursor: 'not-allowed',
-                }}
-              />
-            </div>
-            <div className="d-grid gap-2 mt-4">
-              <button type="submit" className="btn btn-primary btn-lg" disabled={submitting}>
-                {submitting ? 'Đang cập nhật...' : 'Cập nhật Hồ sơ'}
+
+            {/* Submit Button */}
+            <div className="submit-button-wrapper">
+              <button type="submit" className="btn-submit-profile" disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <div className="loading-spinner" style={{width: '20px', height: '20px', display: 'inline-block', marginRight: '8px'}}></div>
+                    Đang cập nhật...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={20} style={{marginRight: '8px'}} />
+                    Cập nhật Hồ sơ
+                  </>
+                )}
               </button>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -78,13 +78,13 @@ function Navbar() {
                         <li><Link to="/blog" className="nav-item-link">Blog</Link></li>
                         <li><Link to="/documentation" className="nav-item-link">Tài liệu hiến máu</Link></li>
                         {isAdmin && (
-                            <li><Link to="/admin/dashboard" className="nav-item-link">Dashboard Admin</Link></li>
+                            <li><Link to="/admin/dashboard" className="nav-item-link">Trang Admin</Link></li>
                         )}
                         {isStaff && (
-                            <li><Link to="/staff/dashboard" className="nav-item-link">Dashboard Nhân viên</Link></li>
+                            <li><Link to="/staff/dashboard" className="nav-item-link">Trang Nhân viên</Link></li>
                         )}
                         {isMember && (
-                            <li><Link to="/member/dashboard" className="nav-item-link">Dashboard Thành viên</Link></li>
+                            <li><Link to="/member/dashboard" className="nav-item-link">Trang Thành viên</Link></li>
                         )}
                     </ul>
 

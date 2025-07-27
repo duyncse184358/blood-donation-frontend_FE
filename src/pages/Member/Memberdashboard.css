@@ -1,5 +1,17 @@
 /* src/pages/Member/MemberDashboard.css */
 
+/* CSS Variables - Professional Blood Donation Color Palette */
+:root {
+    --primary: #D7263D;        /* Đỏ tươi - màu chủ đạo */
+    --secondary: #FF6F61;      /* Đỏ cam - nút CTA */
+    --light-pink: #F5B7B1;     /* Hồng nhạt - màu phụ */
+    --accent: #FFD166;         /* Vàng nhạt - điểm nhấn */
+    --white: #FFFFFF;          /* Trắng - nền chính */
+    --gray-light: #F2F2F2;     /* Xám nhạt - nền section */
+    --gray-dark: #333333;      /* Xám đậm - text chính */
+    --gray-medium: #666666;    /* Xám vừa - text phụ */
+}
+
 /* General Styling */
 .member-dashboard-wrapper {
     display: flex;
@@ -9,7 +21,7 @@
 
 .member-dashboard-main {
     flex: 1;
-    background: linear-gradient(to bottom right, #f7f7f7, #e9ecef);
+    background: linear-gradient(to bottom right, var(--gray-light), #e8e8e8);
     padding: 60px 0;
     font-family: 'Inter', sans-serif;
 }
@@ -17,13 +29,13 @@
 .dashboard-header {
     font-size: 2.8rem;
     font-weight: 700;
-    color: #dc3545; /* Red accent */
+    color: var(--primary); /* Đỏ tươi - màu chủ đạo */
     text-align: center;
     margin-bottom: 40px;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
 }
 .dashboard-header .text-primary { /* Màu chữ primary cho tên user */
-    color: #007bff !important;
+    color: var(--secondary) !important; /* Đỏ cam cho tên user */
 }
 
 
@@ -104,11 +116,11 @@
 
 /* Specific Notification Card Styles */
 .emergency-notification-card {
-    background: linear-gradient(to right, #dc3545, #c82333); /* Red gradient */
+    background: linear-gradient(to right, var(--primary), #B91E33); /* Đỏ tươi gradient */
 }
 
 .general-notification-card {
-    background: linear-gradient(to right, #007bff, #0056b3); /* Blue gradient */
+    background: linear-gradient(to right, var(--secondary), #E85A4F); /* Đỏ cam gradient */
 }
 
 
@@ -186,15 +198,16 @@
     background-color: rgba(255, 255, 255, 0.4); /* More opaque on hover */
     transform: translateY(-2px);
     border-color: white; /* Solid white border on hover */
+    color: white; /* Giữ màu trắng khi hover */
 }
 
-/* Specific Feature Card Backgrounds - Matching screenshot colors */
-.feature-card.profile { background: linear-gradient(to right, #007bff, #0056b3); } /* Blue */
-.feature-card.donate { background: linear-gradient(to right, #dc3545, #c82333); } /* Red */
-.feature-card.history { background: linear-gradient(to right, #28a745, #218838); } /* Green */
-.feature-card.emergency-notif { background: linear-gradient(to right, #ffc107, #e0a800); } /* Yellow/Orange */
-.feature-card.respond { background: linear-gradient(to right, #6f42c1, #563d7c); } /* Purple (similar to screenshot) */
-.feature-card.reminder { background: linear-gradient(to right, #17a2b8, #138496); } /* Teal (similar to screenshot) */
+/* Specific Feature Card Backgrounds - Matching homepage color scheme */
+.feature-card.profile { background: linear-gradient(to right, var(--secondary), #E85A4F); } /* Đỏ cam */
+.feature-card.donate { background: linear-gradient(to right, var(--primary), #B91E33); } /* Đỏ tươi */
+.feature-card.history { background: linear-gradient(to right, var(--light-pink), #F0A19C); } /* Hồng nhạt */
+.feature-card.emergency-notif { background: linear-gradient(to right, var(--accent), #FFD166); } /* Vàng nhạt */
+.feature-card.respond { background: linear-gradient(to right, #8B7D8B, #6A5D6A); } /* Tím xám tương thích */
+.feature-card.reminder { background: linear-gradient(to right, #7FB3D3, #5F9EA0); } /* Xanh teal tương thích */
 
 
 /* Custom Update Profile Button */
@@ -202,7 +215,7 @@
     padding: 12px 30px;
     font-size: 1.2rem;
     border-radius: 50px;
-    background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(90deg, var(--secondary) 0%, #E85A4F 100%);
     border: none;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
@@ -212,7 +225,7 @@
 .custom-update-profile-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    background: linear-gradient(90deg, #0056b3 0%, #004085 100%);
+    background: linear-gradient(90deg, var(--primary) 0%, #B91E33 100%);
 }
 
 
@@ -244,14 +257,14 @@
     background: none;
     border: none;
     font-size: 2rem;
-    color: #dc3545; /* Màu đỏ cho nút đóng */
+    color: var(--primary); /* Màu đỏ tươi cho nút đóng */
     cursor: pointer;
     z-index: 10; /* Đảm bảo nút đóng nằm trên nội dung modal */
     padding: 0; /* Loại bỏ padding button mặc định */
     line-height: 1; /* Căn chỉnh ký tự X */
 }
 .btn-close-modal:hover {
-    color: #a71d2a;
+    color: #B91E33; /* Màu đỏ đậm hơn khi hover */
 }
 
 
