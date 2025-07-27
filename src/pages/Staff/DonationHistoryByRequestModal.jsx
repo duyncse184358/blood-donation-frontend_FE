@@ -208,7 +208,7 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                   <div className="mb-2"><b>Lý do không đủ điều kiện:</b>
                     <input type="text" className="form-control" name="reasonIneligible" value={form.reasonIneligible || ''} onChange={handleChange} />
                   </div>
-                  <div className="mb-2"><b>Kết quả xét nghiệm:</b>
+                  <div className="mb-2"><b>Kết quả đủ điều kiện:</b>
                     <select
                       className="form-select"
                       name="testingResults"
@@ -216,10 +216,8 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                       onChange={handleChange}
                     >
                       <option value="">Chọn kết quả</option>
-                      <option value="Âm tính">Âm tính</option>
-                      <option value="Dương tính">Dương tính</option>
-                      <option value="Đang chờ">Đang chờ</option>
-                      <option value="Không xác định">Không xác định</option>
+                      <option value="Đủ điều kiện">Đủ điều kiện</option>
+                      <option value="Không đủ điều kiện">Không đủ điều kiện</option>
                     </select>
                   </div>
                   <div className="mb-2"><b>Trạng thái:</b>

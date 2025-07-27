@@ -5,15 +5,10 @@ import { AuthContext } from '../../context/AuthContext';
 import DonorProfileModal from './DonorProfileModal'; // Thêm dòng này nếu chưa import
 
 const BLOOD_TYPES = [
- { value: '', label: '--Tất cả--' },
-  { value: 'A+', label: 'A+' },
-  { value: 'A-', label: 'A-' },
-  { value: 'B+', label: 'B+' },
-  { value: 'B-', label: 'B-' },
-  { value: 'AB+', label: 'AB+' },
-  { value: 'AB-', label: 'AB-' },
-  { value: 'O+', label: 'O+' },
-  { value: 'O-', label: 'O-' },
+  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
+  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
+  { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
+  { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
 ];
 
 const COMPONENTS = [
@@ -389,8 +384,9 @@ function ReponseEmergencyRequesr() {
                       onChange={handleModalChange}
                     />
                   </div>
+                  {/* Đổi "Kết quả xét nghiệm" thành "Kết quả đủ điều kiện" */}
                   <div className="mb-2">
-                    <label className="form-label">Kết quả xét nghiệm</label>
+                    <label className="form-label">Kết quả đủ điều kiện</label>
                     <select
                       className="form-select"
                       name="testingResults"
@@ -399,8 +395,8 @@ function ReponseEmergencyRequesr() {
                       required
                     >
                       <option value="">Chọn kết quả</option>
-                      <option value="Âm tính">Âm tính</option>
-                      <option value="Dương tính">Dương tính</option>
+                      <option value="Đủ điều kiện">Đủ điều kiện</option>
+                      <option value="Không đủ điều kiện">Không đủ điều kiện</option>
                       <option value="Đang chờ">Đang chờ</option>
                       <option value="Không xác định">Không xác định</option>
                     </select>
