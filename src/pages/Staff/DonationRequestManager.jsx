@@ -132,19 +132,8 @@ function DonationRequestManager({ openModal }) {
         return;
       }
 
-      // Kiểm tra ngày hiến máu gần nhất (Complete/Completed)
-      const completed = histories
-        .filter(h => h.status === 'Complete' || h.status === 'Completed')
-        .sort((a, b) => new Date(b.donationDate) - new Date(a.donationDate));
-      if (completed.length > 0) {
-        const lastDate = new Date(completed[0].donationDate);
-        const now = new Date();
-        const diffDays = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
-        if (diffDays < 90) {
-          setErrorMessage(`Người hiến máu này đã hiến máu cách đây ${diffDays} ngày. Cần tối thiểu 90 ngày giữa 2 lần hiến máu.`);
-          return;
-        }
-      }
+      // BỎ kiểm tra số ngày > 90 giữa 2 lần hiến máu
+
       // Nếu đủ điều kiện, mở modal ghi nhận thực tế
       openModal('history', { requestId });
     } catch (err) {

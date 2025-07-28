@@ -1,12 +1,19 @@
 // src/pages/Member/DonationHistory.jsx
 import React, { useEffect, useState } from 'react';
+import styled from 'styled-components';
 import Header from '../../components/Header/Header';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
 import { Droplet, Calendar, Ruler, TestTube, CheckCircle, Clock } from 'lucide-react';
-import styled from 'styled-components';
+import { keyframes } from 'styled-components';
+
+// Animation cho modal
+const fadeInModal = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
 
 // === ĐỊNH NGHĨA CÁC COMPONENT ĐƯỢC STYLE ===
 
@@ -86,28 +93,34 @@ const CardBody = styled.div`
 
 const CardTitleGroup = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 15px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  justify-content: center;
+  margin-bottom: 18px;
+  padding: 18px 0 10px 0;
+  border-bottom: 2px solid #f3d6db;
+  background: linear-gradient(90deg, #fff 60%, #ffe5ea 100%);
+  border-radius: 12px 12px 0 0;
 
   .icon {
-    font-size: 32px;
+    font-size: 38px;
     color: #dc3545;
-    margin-right: 15px;
+    margin-bottom: 6px;
+    margin-right: 0;
     flex-shrink: 0;
-
+    filter: drop-shadow(0 2px 6px rgba(220,53,69,0.12));
     @media (max-width: 768px) {
-      font-size: 28px;
+      font-size: 32px;
     }
   }
 
   h5 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #343a40;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #dc3545;
     margin-bottom: 0;
-
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(220,53,69,0.08);
     @media (max-width: 768px) {
       font-size: 1.3rem;
     }
@@ -117,34 +130,44 @@ const CardTitleGroup = styled.div`
 const DetailsList = styled.ul`
   padding-left: 0;
   list-style: none;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: #495057;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0;
 
   @media (max-width: 768px) {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
 `;
 
 const ListItem = styled.li`
-  padding: 6px 0;
-  border-bottom: 1px dashed #f0f0f0;
-
-  &:last-child {
-    border-bottom: none;
-  }
+  padding: 10px 0 2px 0;
+  border-bottom: none;
+  width: 100%;
+  text-align: center;
 
   strong {
-    color: #212529;
-    min-width: 120px;
+    color: #dc3545;
+    font-size: 1.08rem;
+    font-weight: 600;
+    background: #ffe5ea;
+    border-radius: 8px;
+    padding: 6px 16px;
+    box-shadow: 0 2px 8px rgba(220,53,69,0.07);
     display: inline-block;
-
+    margin-bottom: 4px;
     @media (max-width: 576px) {
-      min-width: 100px;
+      padding: 5px 10px;
+      font-size: 1rem;
     }
   }
   .list-icon {
     vertical-align: middle;
-    margin-right: 5px;
+    margin-right: 7px;
+    color: #dc3545;
+    font-size: 1.1em;
   }
 `;
 
@@ -176,6 +199,8 @@ function DonationHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated || !user?.userId) {
@@ -284,41 +309,41 @@ function DonationHistory() {
                         <strong><Calendar size={18} className="list-icon" />Ngày hiến:</strong>
                         {item.donationDate ? new Date(item.donationDate).toLocaleDateString('vi-VN') : '---'}
                       </ListItem>
-                      <ListItem>
-                        <strong>
-                          <Droplet size={18} className="list-icon" />
-                          Thành phần hiến:
-                        </strong>
-                        {item.componentName || '---'}
-                      </ListItem>
-                      <ListItem>
-                        <strong><Ruler size={18} className="list-icon" />Thể tích:</strong>
-                        {item.quantityMl ? `${item.quantityMl} ml` : '---'}
-                      </ListItem>
-                      <ListItem>
-                        <strong><TestTube size={18} className="list-icon" />Kết quả xét nghiệm:</strong>
-                        {item.testingResults || '---'}
-                      </ListItem>
-                      <ListItem>
-                        <strong><CheckCircle size={18} className="list-icon" />Trạng thái đủ điều kiện:</strong>
-                        {getEligibilityText(item.eligibilityStatus)}
-                      </ListItem>
-                      <ListItem>
-                        <strong><Clock size={18} className="list-icon" />Trạng thái:</strong>
-                        <StatusBadge className={`bg-${getStatusBadgeClass(item.status)}`}>
-                          {getStatusText(item.status)}
-                        </StatusBadge>
-                      </ListItem>
-                      <ListItem>
-                        <strong>Mã đơn hiến máu:</strong> {item.donationRequestId || '---'}
-                      </ListItem>
                     </DetailsList>
-                    {item.descriptions && <div className="text-muted small mt-2">Ghi chú: {item.descriptions}</div>}
+                    <button className="btn btn-outline-primary btn-sm mt-2" onClick={() => { setSelectedItem(item); setShowModal(true); }}>Xem chi tiết</button>
                   </CardBody>
                 </DonationCard>
               </div>
             ))}
           </div>
+        )}
+
+        {/* Modal xem chi tiết lịch sử hiến máu */}
+        {showModal && selectedItem && (
+          <StyledModalOverlay onClick={() => setShowModal(false)}>
+            <StyledModalDialog onClick={e => e.stopPropagation()}>
+              <StyledModalContent>
+                <StyledModalHeader>
+                  <h5>Chi tiết lịch sử hiến máu</h5>
+                  <button type="button" className="btn-close" onClick={() => setShowModal(false)} aria-label="Đóng"></button>
+                </StyledModalHeader>
+                <StyledModalBody>
+                  <ul className="list-group list-group-flush">
+                    <li className="list-group-item"><b>Ngày hiến máu:</b> {selectedItem.donationDate ? new Date(selectedItem.donationDate).toLocaleString('vi-VN') : '---'}</li>
+                    <li className="list-group-item"><b>Nhóm máu:</b> {selectedItem.bloodTypeName || '---'} {selectedItem.rhFactor || ''}</li>
+                    <li className="list-group-item"><b>Thể tích:</b> {selectedItem.quantityMl ? `${selectedItem.quantityMl} ml` : '---'}</li>
+                    <li className="list-group-item"><b>Kết quả xét nghiệm:</b> {selectedItem.testingResults || '---'}</li>
+                    <li className="list-group-item"><b>Trạng thái đủ điều kiện:</b> {getEligibilityText(selectedItem.eligibilityStatus)}</li>
+                    <li className="list-group-item"><b>Trạng thái:</b> {getStatusText(selectedItem.status)}</li>
+                    {selectedItem.descriptions && <li className="list-group-item"><b>Ghi chú:</b> {selectedItem.descriptions}</li>}
+                  </ul>
+                </StyledModalBody>
+                <StyledModalFooter>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Đóng</button>
+                </StyledModalFooter>
+              </StyledModalContent>
+            </StyledModalDialog>
+          </StyledModalOverlay>
         )}
       </DonationHistoryMain>
       <Footer />
@@ -327,3 +352,91 @@ function DonationHistory() {
 }
 
 export default DonationHistory;
+// Styled-components cho modal
+const StyledModalOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 24px;
+`;
+
+const StyledModalDialog = styled.div`
+  max-width: 540px;
+  width: 100%;
+  background: transparent;
+  border-radius: 18px;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const StyledModalContent = styled.div`
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(220,53,69,0.15), 0 1.5px 6px rgba(0,0,0,0.08);
+  width: 100%;
+  overflow: hidden;
+  animation: ${fadeInModal} 0.25s;
+`;
+
+const StyledModalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px 12px 28px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  h5 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #dc3545;
+    margin: 0;
+  }
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #888;
+    cursor: pointer;
+    padding: 0 0 0 8px;
+    transition: color 0.2s;
+  }
+  .btn-close:hover {
+    color: #dc3545;
+  }
+`;
+
+const StyledModalBody = styled.div`
+  padding: 18px 28px;
+  background: #fff;
+  ul.list-group {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(220,53,69,0.07);
+    background: #fafbfc;
+    font-size: 1rem;
+  }
+  ul.list-group li.list-group-item {
+    border: none;
+    padding: 10px 0;
+    color: #343a40;
+  }
+  ul.list-group li.list-group-item b {
+    color: #dc3545;
+    font-weight: 600;
+  }
+`;
+
+const StyledModalFooter = styled.div`
+  padding: 16px 28px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+  border-radius: 0 0 18px 18px;
+`;

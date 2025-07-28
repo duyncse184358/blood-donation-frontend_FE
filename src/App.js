@@ -14,13 +14,13 @@ import NotFoundPage from './pages/NotFoundPage';
 
 // Import trang quản lý chiến dịch (Admin)
 
-// Import các trang mới dành cho Member
 import MemberDashboardPage from './pages/Member/MemberDashboard'; 
 import RegisterDonationPage from './pages/Member/RegisterDonation'; 
 import DonationHistoryPage from './pages/Member/DonationHistory'; 
 import RemindersPage from './pages/Member/Reminders'; 
 import ProfileUpdatePage from './pages/Member/CreateProfile.jsx';
 import UpdateProfilePage from './pages/Member/UpdateProfile.jsx';
+import RequestDetailPage from './pages/Member/RequestDetail.jsx';
 
 // Import các trang thông báo mới
 import MemberNotificationsPage from './pages/Member/Notifications'; // Thông báo chung cho Member
@@ -76,6 +76,7 @@ function App() {
                             <Route path="/member/profile" element={<ProfileUpdatePage />} />
                             <Route path="/member/profile/update" element={<UpdateProfilePage />} />
                             <Route path="/member/emergency-notifications" element={<EmergencyNotificationsPage />} />
+                            <Route path="/member/request-detail" element={<RequestDetailPage />} />
                         </Route>
 
                         {/* Staff Routes */}

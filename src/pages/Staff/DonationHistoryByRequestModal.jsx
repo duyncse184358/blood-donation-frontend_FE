@@ -9,13 +9,6 @@ const BLOOD_TYPES = [
   { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
 ];
 
-const COMPONENTS = [
-  { id: 1, name: 'Máu toàn phần' },
-  { id: 2, name: 'Huyết tương' },
-  { id: 3, name: 'Tiểu cầu' },
-  { id: 4, name: 'Hồng cầu lắng' }
-];
-
 function DonationHistoryByRequestModal({ requestId, onClose }) {
   const { user } = useContext(AuthContext);
   const [history, setHistory] = useState(null);
@@ -84,7 +77,7 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
         DonorUserId: donorUserId,
         DonationDate: form.donationDate,
         BloodTypeId: form.bloodTypeId,
-        ComponentId: form.componentId,
+        ComponentId: 1, // Luôn là 1
         QuantityMl: form.quantityMl,
         EligibilityStatus:
           form.eligibilityStatus === true || form.eligibilityStatus === 'true'
@@ -152,7 +145,6 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                 <div>
                   <div><b>Ngày hiến máu:</b> {history.donationDate ? new Date(history.donationDate).toLocaleString('vi-VN') : ''}</div>
                   <div><b>Nhóm máu:</b> {history.bloodTypeName}</div>
-                  <div><b>Thành phần máu:</b> {history.componentName}</div>
                   <div><b>Số lượng (ml):</b> {history.quantityMl}</div>
                   <div><b>Tình trạng đủ điều kiện:</b>{' '}
                     {history.eligibilityStatus === 'true'
@@ -184,14 +176,6 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                       <option value="">Chọn nhóm máu</option>
                       {BLOOD_TYPES.map(bt => (
                         <option key={bt.id} value={bt.id}>{bt.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-2"><b>Thành phần máu:</b>
-                    <select className="form-select" name="componentId" value={form.componentId || ''} onChange={handleChange}>
-                      <option value="">Chọn thành phần máu</option>
-                      {COMPONENTS.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </select>
                   </div>

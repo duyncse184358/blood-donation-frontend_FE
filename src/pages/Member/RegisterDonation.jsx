@@ -195,22 +195,7 @@ function RegisterDonation() {
       }
     }
 
-    // Validation các trường form
-    if (!formData.bloodTypeId) errs.bloodTypeId = 'Vui lòng chọn nhóm máu.';
-
-    // BỔ SUNG: Kiểm tra nhóm máu đăng ký phải trùng với nhóm máu trong profile
-    if (
-      formData.bloodTypeId &&
-      profile &&
-      (profile.bloodTypeId || profile.bloodTypeID || profile.blood_type_id)
-    ) {
-      // Lấy bloodTypeId từ profile (tùy theo BE trả về)
-      const profileBloodTypeId =
-        profile.bloodTypeId || profile.bloodTypeID || profile.blood_type_id;
-      if (parseInt(formData.bloodTypeId) !== parseInt(profileBloodTypeId)) {
-        errs.bloodTypeId = 'Nhóm máu đăng ký không khớp với nhóm máu trong hồ sơ cá nhân!';
-      }
-    }
+    // BỎ VALIDATION phần nhóm máu (vì đã lấy từ profile, chỉ cần kiểm tra các trường khác)
 
     if (!formData.preferredDate) errs.preferredDate = 'Vui lòng chọn ngày hiến máu.';
     else if (formData.preferredDate < today)
@@ -263,13 +248,18 @@ function RegisterDonation() {
 
     setLoading(true); 
     try {
+      // Luôn lấy bloodTypeId từ profile
+      let profileBloodTypeId = '';
+      if (profile && (profile.bloodTypeId || profile.bloodTypeID || profile.blood_type_id)) {
+        profileBloodTypeId = profile.bloodTypeId || profile.bloodTypeID || profile.blood_type_id;
+      }
       const payload = {
-        donorUserId: user.userId, // SỬA ĐỔI: Dùng user.userId
-        bloodTypeId: parseInt(formData.bloodTypeId),
-        componentId: 1, 
+        donorUserId: user.userId,
+        bloodTypeId: parseInt(profileBloodTypeId),
+        componentId: 1,
         preferredDate: formData.preferredDate,
         preferredTimeSlot: formData.preferredTimeSlot,
-        status: "Pending", 
+        status: "Pending",
         staffNotes: formData.staffNotes
       };
 
@@ -337,22 +327,22 @@ function RegisterDonation() {
 
           <form onSubmit={handleSubmit} autoComplete="off">
             <div className="mb-3">
-              <label htmlFor="bloodTypeId" className="form-label">Nhóm máu <span style={{color:'red'}}>*</span></label>
-              <select
-                className={`form-select ${hasSubmitted && fieldErrors.bloodTypeId ? 'is-invalid' : ''}`} 
-                id="bloodTypeId"
-                name="bloodTypeId"
-                value={formData.bloodTypeId}
-                onChange={handleChange}
-                required
-                disabled={isFormDisabledDueToLoading || isProfileDataLoading}
-              >
-                <option value="">Chọn nhóm máu</option>
-                {bloodTypes.map(type => (
-                  <option key={type.id} value={type.id}>{type.name}</option>
-                ))}
-              </select>
-              {hasSubmitted && fieldErrors.bloodTypeId && <div className="invalid-feedback">{fieldErrors.bloodTypeId}</div>} 
+              <label className="form-label">Nhóm máu</label>
+              <input
+                type="text"
+                className="form-control"
+                value={(() => {
+                  if (profile && (profile.bloodTypeId || profile.bloodTypeID || profile.blood_type_id)) {
+                    const bloodTypeId = profile.bloodTypeId || profile.bloodTypeID || profile.blood_type_id;
+                    const found = bloodTypes.find(type => parseInt(type.id) === parseInt(bloodTypeId));
+                    return found ? found.name : bloodTypeId;
+                  }
+                  return '';
+                })()}
+                readOnly
+                disabled={isProfileDataLoading}
+              />
+              <small className="text-muted">Nhóm máu của bạn được lấy từ hồ sơ cá nhân.</small>
             </div>
 
             <div className="mb-3">

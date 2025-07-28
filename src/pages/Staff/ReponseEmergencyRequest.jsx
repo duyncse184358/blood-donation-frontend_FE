@@ -118,7 +118,7 @@ function ReponseEmergencyRequesr() {
       setModalForm({
         donationDate: res.data.donationDate ? res.data.donationDate.substring(0, 16) : '',
         bloodTypeId: res.data.bloodTypeId || (emergencyRequest?.bloodTypeId || ''),
-        componentId: res.data.componentId || '',
+        componentId: 1,
         quantityMl: res.data.quantityMl || '',
         eligibilityStatus: res.data.eligibilityStatus === true || res.data.eligibilityStatus === 'true' ? 'true'
           : res.data.eligibilityStatus === false || res.data.eligibilityStatus === 'false' ? 'false' : '',
@@ -132,18 +132,15 @@ function ReponseEmergencyRequesr() {
       let defaultBloodTypeId = emergencyRequest?.bloodTypeId || '';
       let defaultDate = '';
       if (emergencyRequest?.neededDate) {
-        // Nếu có hạn cần máu, lấy ngày đầu tiên trong khoảng đó
-        // neededDate có thể là chuỗi ISO hoặc yyyy-MM-dd, lấy đúng định dạng cho input type="datetime-local"
         const date = new Date(emergencyRequest.neededDate);
         if (!isNaN(date.getTime())) {
-          // Định dạng yyyy-MM-ddTHH:mm cho input datetime-local
           defaultDate = date.toISOString().slice(0, 16);
         }
       }
       setModalForm({
         donationDate: defaultDate,
         bloodTypeId: defaultBloodTypeId,
-        componentId: '',
+        componentId: 1,
         quantityMl: '',
         eligibilityStatus: '',
         reasonIneligible: '',
@@ -181,7 +178,7 @@ function ReponseEmergencyRequesr() {
         donorUserId: modalDonor.donorUserId,
         donationDate: modalForm.donationDate,
         bloodTypeId: modalForm.bloodTypeId,
-        componentId: modalForm.componentId,
+        componentId: 1,
         quantityMl: modalForm.quantityMl,
         eligibilityStatus: modalForm.eligibilityStatus,
         reasonIneligible: modalForm.reasonIneligible,
@@ -333,21 +330,7 @@ function ReponseEmergencyRequesr() {
                       ))}
                     </select>
                   </div>
-                  <div className="mb-2">
-                    <label className="form-label">Thành phần máu</label>
-                    <select
-                      className="form-select"
-                      name="componentId"
-                      value={modalForm.componentId}
-                      onChange={handleModalChange}
-                      required
-                    >
-                      <option value="">Chọn thành phần máu</option>
-                      {COMPONENTS.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* BỎ hiển thị trường thành phần máu, giá trị mặc định là 1 */}
                   <div className="mb-2">
                     <label className="form-label">Số lượng (ml)</label>
                     <input
@@ -397,8 +380,7 @@ function ReponseEmergencyRequesr() {
                       <option value="">Chọn kết quả</option>
                       <option value="Đủ điều kiện">Đủ điều kiện</option>
                       <option value="Không đủ điều kiện">Không đủ điều kiện</option>
-                      <option value="Đang chờ">Đang chờ</option>
-                      <option value="Không xác định">Không xác định</option>
+                      
                     </select>
                   </div>
                   <div className="mb-2">

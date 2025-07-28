@@ -225,14 +225,14 @@ function MemberDashboard() {
         <div className="container feature-card-grid mb-5">
           {/* Using row-cols-1 row-cols-md-2 row-cols-lg-3 for responsive grid */}
           <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            {/* Cập nhật hồ sơ cá nhân */}
+            {/* Thông tin đăng ký hiến máu */}
             <div className="col animate__animated animate__zoomIn">
-              <Link to="/member/profile" className="feature-card h-100 d-flex flex-column profile">
+              <Link to="/member/request-detail" className="feature-card h-100 d-flex flex-column profile">
                 <div className="feature-icon-circle">
-                  <User size={40} /> {/* Điều chỉnh kích thước icon */}
+                  <User size={40} />
                 </div>
-                <h5 className="feature-card-title">Cập nhật hồ sơ cá nhân</h5>
-                <p className="feature-card-text flex-grow-1">Quản lý thông tin: nhóm máu, địa chỉ, CCCD, điện thoại, tình trạng sức khỏe.</p>
+                <h5 className="feature-card-title">Thông tin đăng ký hiến máu</h5>
+                <p className="feature-card-text flex-grow-1">Xem chi tiết yêu cầu đăng ký hiến máu của bạn.</p>
                 <button className="feature-card-button mt-auto">Truy cập</button>
               </Link>
             </div>
