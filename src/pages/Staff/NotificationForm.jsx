@@ -2,20 +2,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/Api';
-// BỎ import NotificationSend vì sẽ không dùng modal
-// import NotificationSend from './NotificationSend'; 
-import Header from '../../components/Header/Header'; // Đảm bảo đường dẫn chính xác
-import Navbar from '../../components/Navbar/Navbar'; // Đảm bảo đường dẫn chính xác
-import Footer from '../../components/Footer/Footer'; // Đảm bảo đường dẫn chính xác
-import LoadingSpinner from '../../components/Shared/LoadingSpinner'; // Đảm bảo đường dẫn chính xác
-import useAuth from '../../hooks/useAuth'; // Import useAuth để kiểm tra quyền
-import 'bootstrap/dist/css/bootstrap.min.css'; // Đảm bảo Bootstrap CSS được import
-import '../../styles/Notification.css'; // Tạo file CSS mới để tùy chỉnh (nếu bạn đã đổi tên)
+import LoadingSpinner from '../../components/Shared/LoadingSpinner';
+import useAuth from '../../hooks/useAuth';
+import { 
+  translateNotificationType, 
+  translateMessage, 
+  translateDate, 
+  translateBoolean,
+  translateRole 
+} from '../../utils/translationUtils';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../../styles/Notification.css';
+
+// Các hàm dịch đã được chuyển sang translationUtils.js
 
 function NotificationForm() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
   // BỎ: const [showSendModal, setShowSendModal] = useState(false); // Xóa state này
   const navigate = useNavigate();
   const { user, isAdmin, isStaff } = useAuth(); // Lấy thông tin user và quyền
@@ -132,18 +138,38 @@ function NotificationForm() {
                     <td colSpan={5} className="text-center text-muted py-4">Không có thông báo nào.</td>
                   </tr>
                 ) : (
-                  notifications.map(n => (
-                    <tr key={n.notificationId} className={!n.isRead ? 'table-warning' : ''}>
-                      <td>{n.recipientUserId === 'ALL' ? 'Tất cả người dùng' : n.recipientUserId}</td>
-                      <td>{n.type || 'Chung'}</td>
-                      <td>{n.message}</td>
-                      <td>{n.sentDate ? new Date(n.sentDate).toLocaleString('vi-VN') : 'N/A'}</td>
-                      <td>{n.isRead ? '✔️' : '❌'}</td>
-                    </tr>
-                  ))
+                  notifications
+                    .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+                    .map(n => (
+                      <tr key={n.notificationId} className={!n.isRead ? 'table-warning' : ''}>
+                        <td>{translateRole(n.recipientUserId)}</td>
+                        <td>{translateNotificationType(n.type)}</td>
+                        <td>{translateMessage(n.message)}</td>
+                        <td>{translateDate(n.sentDate)}</td>
+                        <td>{translateBoolean(n.isRead) ? 'Đã đọc' : 'Chưa đọc'}</td>
+                      </tr>
+                    ))
                 )}
               </tbody>
             </table>
+            {/* Pagination */}
+            {notifications.length > PAGE_SIZE && (
+              <nav className="mt-3">
+                <ul className="pagination justify-content-center">
+                  <li className={`page-item${page === 1 ? ' disabled' : ''}`}>
+                    <button className="page-link" onClick={() => setPage(page - 1)} disabled={page === 1}>Trước</button>
+                  </li>
+                  {Array.from({ length: Math.ceil(notifications.length / PAGE_SIZE) }, (_, i) => (
+                    <li key={i + 1} className={`page-item${page === i + 1 ? ' active' : ''}`}>
+                      <button className="page-link" onClick={() => setPage(i + 1)}>{i + 1}</button>
+                    </li>
+                  ))}
+                  <li className={`page-item${page === Math.ceil(notifications.length / PAGE_SIZE) ? ' disabled' : ''}`}>
+                    <button className="page-link" onClick={() => setPage(page + 1)} disabled={page === Math.ceil(notifications.length / PAGE_SIZE)}>Sau</button>
+                  </li>
+                </ul>
+              </nav>
+            )}
           </div>
         )}
       </main>

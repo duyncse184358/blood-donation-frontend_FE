@@ -3,12 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/Api';
 import Header from '../../components/Header/Header';
 import Navbar from '../../components/Navbar/Navbar';
+import BloodTypeDisplay from '../../components/Shared/BloodTypeDisplay';
+import TranslatedStatus from '../../components/Shared/TranslatedStatus';
+import DateDisplay from '../../components/Shared/DateDisplay';
+import { 
+  translateBloodType,
+  translateStatus,
+  translateMessage,
+  translateDate
+} from '../../utils/translationUtils';
 
 const BLOOD_TYPES = [
-  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
-  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
-  { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
-  { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
+  { id: 1, name: 'A+', displayName: translateBloodType('A+') },
+  { id: 2, name: 'A-', displayName: translateBloodType('A-') },
+  { id: 3, name: 'B+', displayName: translateBloodType('B+') },
+  { id: 4, name: 'B-', displayName: translateBloodType('B-') },
+  { id: 5, name: 'AB+', displayName: translateBloodType('AB+') },
+  { id: 6, name: 'AB-', displayName: translateBloodType('AB-') },
+  { id: 7, name: 'O+', displayName: translateBloodType('O+') },
+  { id: 8, name: 'O-', displayName: translateBloodType('O-') }
 ];
 const COMPONENTS = [
   { id: 1, name: 'Hồng cầu' },
@@ -381,21 +394,22 @@ function BloodRequestManagement() {
                         pagedRequests.map((r, i) => (
                           <tr key={r.id}>
                             <td>{(currentPage - 1) * PAGE_SIZE + i + 1}</td>
-                            <td>{BLOOD_TYPES.find(b => b.id === r.bloodTypeId)?.name}</td>
-                            <td>{r.quantityNeededMl}</td>
-                            <td>{PRIORITIES.find(p => p.value === r.priority)?.label}</td>
-                            <td>{r.dueDate?.slice(0, 10)}</td>
-                            <td>{r.description}</td>
                             <td>
-                              <span className={
-                                r.actualStatus === 'Pending' ? "badge bg-warning text-dark" :
-                                r.actualStatus === 'Responded' ? "badge bg-info text-dark" :
-                                r.actualStatus === 'Approved' ? "badge bg-success" :
-                                r.actualStatus === 'Rejected' ? "badge bg-danger" :
-                                "badge bg-secondary"
-                              }>
-                                {STATUS_OPTIONS.find(s => s.value === r.actualStatus)?.label || r.actualStatus}
-                              </span>
+                              <BloodTypeDisplay 
+                                type={BLOOD_TYPES.find(b => b.id === r.bloodTypeId)?.name} 
+                                showLabel={false}
+                              />
+                            </td>
+                            <td>{r.quantityNeededMl} ml</td>
+                            <td>
+                              <PriorityDisplay priority={r.priority} />
+                            </td>
+                            <td>
+                              <DateDisplay date={r.dueDate} showTime={false} />
+                            </td>
+                            <td>{translateMessage(r.description)}</td>
+                            <td>
+                              <TranslatedStatus status={r.actualStatus} />
                             </td>
                             <td>
                               <button
@@ -613,21 +627,17 @@ function BloodRequestManagement() {
                             <tr key={resp.notificationId || idx}>
                               <td>{resp.notificationId}</td>
                               <td>{resp.fullName || resp.recipientUserId}</td>
-                              <td>{resp.deliveryMethod}</td>
+                              <td>{translateMessage(resp.deliveryMethod)}</td>
                               <td>
-                                {resp.isRead ? (
-                                  <span className="badge bg-success">Đã đọc</span>
-                                ) : (
-                                  <span className="badge bg-secondary">Chưa đọc</span>
-                                )}
+                                <TranslatedStatus status={resp.isRead ? 'read' : 'unread'} />
                               </td>
-                              <td>{resp.sentDate ? new Date(resp.sentDate).toLocaleString('vi-VN') : ''}</td>
                               <td>
-                                {resp.responseStatus === 'Interested' && <span className="badge bg-success">Đồng ý</span>}
-                                {resp.responseStatus === 'Declined' && <span className="badge bg-danger">Từ chối</span>}
-                                {resp.responseStatus === 'No Response' && <span className="badge bg-secondary">Chưa phản hồi</span>}
+                                <DateDisplay date={resp.sentDate} />
                               </td>
-                              <td>{resp.message}</td>
+                              <td>
+                                <ResponseStatusDisplay status={resp.responseStatus} />
+                              </td>
+                              <td>{translateMessage(resp.message)}</td>
                             </tr>
                           ))}
                       </tbody>
@@ -647,3 +657,142 @@ function BloodRequestManagement() {
 }
 
 export default BloodRequestManagement;
+
+// Modern CSS for BloodRequestManagement
+// You có thể chuyển sang file riêng nếu muốn
+const style = document.createElement('style');
+style.innerHTML = `
+  .container h4 {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #b30000;
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 6px #f8d7da;
+  }
+  .container h5 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #dc3545;
+    margin-bottom: 12px;
+    margin-top: 32px;
+    letter-spacing: 0.5px;
+  }
+  .table {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(220,53,69,0.07);
+    margin-bottom: 0;
+  }
+  .table thead {
+    background: linear-gradient(90deg, #fff 60%, #ffe5ea 100%);
+  }
+  .table th {
+    color: #b30000;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border-bottom: 2px solid #f3d6db;
+    background: #fff8f8;
+  }
+  .table td {
+    vertical-align: middle;
+    font-size: 1.05rem;
+    background: #fff;
+  }
+  .badge {
+    font-size: 1em;
+    border-radius: 0.7em;
+    padding: 0.45em 1.1em;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 4px rgba(220,53,69,0.08);
+  }
+  .btn {
+    font-size: 1em;
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.38em 1.1em;
+    transition: background 0.18s, color 0.18s;
+    box-shadow: 0 1px 4px rgba(220,53,69,0.07);
+  }
+  .btn-primary {
+    background: linear-gradient(90deg, #dc3545 0%, #b30000 100%);
+    border: none;
+  }
+  .btn-primary:hover {
+    background: #b30000;
+    color: #fff;
+  }
+  .btn-info {
+    background: linear-gradient(90deg, #17a2b8 0%, #0d6efd 100%);
+    border: none;
+    color: #fff;
+  }
+  .btn-info:hover {
+    background: #0d6efd;
+    color: #fff;
+  }
+  .btn-warning {
+    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+    border: none;
+    color: #b30000;
+  }
+  .btn-warning:hover {
+    background: #ff9800;
+    color: #fff;
+  }
+  .btn-danger {
+    background: linear-gradient(90deg, #dc3545 0%, #b30000 100%);
+    border: none;
+    color: #fff;
+  }
+  .btn-danger:hover {
+    background: #b30000;
+    color: #fff;
+  }
+  .pagination .page-link {
+    color: #b30000;
+    font-weight: 600;
+    border-radius: 6px;
+    margin: 0 2px;
+    border: 1px solid #f3d6db;
+    background: #fff8f8;
+    transition: background 0.15s, color 0.15s;
+  }
+  .pagination .page-link.active, .pagination .active .page-link {
+    background: #b30000;
+    color: #fff;
+    border: 1.5px solid #b30000;
+  }
+  .modal-content {
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(220,53,69,0.13);
+    border: 2px solid #f3d6db;
+  }
+  .modal-header {
+    background: linear-gradient(90deg, #fff 60%, #ffe5ea 100%);
+    border-bottom: 2px solid #f3d6db;
+    border-radius: 16px 16px 0 0;
+  }
+  .modal-title {
+    color: #b30000;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+  .modal-footer {
+    border-top: 1.5px solid #f3d6db;
+    background: #fff8f8;
+    border-radius: 0 0 16px 16px;
+  }
+  .alert-warning, .alert-secondary {
+    border-radius: 8px;
+    font-size: 1.08rem;
+    font-weight: 500;
+    padding: 12px 18px;
+  }
+`;
+if (!document.head.querySelector('style[data-blood-request-mng]')) {
+  style.setAttribute('data-blood-request-mng', 'true');
+  document.head.appendChild(style);
+}

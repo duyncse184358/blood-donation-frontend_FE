@@ -10,10 +10,12 @@ import DonationRecordForm from './DonationRecordForm';
 import BloodInventoryManager from './BloodInventoryManager';
 import BloodDiscardForm from './BloodDiscardForm';
 import DonorSearch from './DonorSearch';
+
 import NotificationForm from './NotificationForm';
 import ProfileUpdate from '../Member/CreateProfile';
 import DonationHistoryByRequestModal from './DonationHistoryByRequestModal';
 import DonorProfileModal from './DonorProfileModal';
+import CertificateManagement from './CertificateManagement';
 import api from '../../services/Api';
 
 const TABS = [
@@ -24,7 +26,7 @@ const TABS = [
   { key: 'discard', label: 'Ghi nhận loại bỏ máu', icon: 'fa-solid fa-trash-can' },
   { key: 'search', label: 'Tìm kiếm người hiến phù hợp', icon: 'fa-solid fa-magnifying-glass-location' },
   { key: 'notification', label: 'Quản lý thông báo', icon: 'fa-solid fa-bell' },
- 
+  { key: 'certificate', label: 'Quản lý chứng chỉ', icon: 'fa-solid fa-certificate' },
 ];
 
 function StaffDashboard() {
@@ -191,6 +193,7 @@ const reloadInventory = () => {
       case 'discard': return <BloodDiscardForm onSelectUnit={handleSelectDiscardUnit} />;
       case 'search': return <DonorSearch />;
       case 'notification': return <NotificationForm />;
+      case 'certificate': return <CertificateManagement />;
       case 'profile': return <ProfileUpdate />;
       default: return null;
     }

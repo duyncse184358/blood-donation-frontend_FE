@@ -1,0 +1,227 @@
+.certificate-modal {
+  background: rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 32px 0;
+}
+.certificate-content {
+  background: #fffdfa;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px 0 rgba(179,0,0,0.10), 0 3px 12px 0 rgba(179,0,0,0.08);
+  padding: 38px 38px 32px 38px;
+  max-width: 700px;
+  width: 100%;
+  margin: 0 auto;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+.cert-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.cert-header h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #b30000;
+  letter-spacing: 1px;
+  margin-bottom: 0;
+}
+.cert-body {
+  margin-bottom: 18px;
+  font-size: 1.08rem;
+  color: #222;
+  line-height: 1.7;
+}
+.cert-body b {
+  color: #b30000;
+}
+.cert-benefit {
+  background: #fff3e0;
+  border-left: 5px solid #ff9800;
+  border-radius: 10px;
+  color: #b30000;
+  font-size: 1.08rem;
+  margin-bottom: 18px;
+}
+.cert-footer {
+  margin-top: 18px;
+  text-align: right;
+  color: #b30000;
+  font-size: 1.08rem;
+}
+.cert-footer span {
+  color: #b30000;
+  font-size: 1.12rem;
+}
+.cert-hospital-confirm {
+  background: #f8f8f8;
+  border-radius: 12px;
+  border: 1.5px dashed #b30000;
+  margin-top: 32px;
+  padding: 18px 18px 12px 18px;
+  text-align: left;
+}
+.cert-hospital-confirm b {
+  color: #b30000;
+  font-size: 1.12rem;
+}
+.cert-hospital-confirm svg {
+  filter: drop-shadow(0 2px 8px #ffb3b3);
+}
+.cert-hospital-confirm .italic {
+  font-style: italic;
+  color: #888;
+}
+@media (max-width: 600px) {
+  .certificate-content {
+    padding: 12px 2vw 12px 2vw;
+    max-width: 99vw;
+  }
+}
+/* Blood Donation Certificate Styles */
+.certificate-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 32px 40px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.12), 0 1.5px 6px rgba(255,140,0,0.10);
+  border: 3px solid #ff9800;
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+  position: relative;
+}
+
+.certificate-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.certificate-logo {
+  height: 64px;
+  width: auto;
+}
+
+.certificate-title {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #ff9800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.certificate-body {
+  font-size: 1.15rem;
+  color: #333;
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+
+.certificate-info-table {
+  width: 100%;
+  margin: 18px 0 28px 0;
+  border-collapse: collapse;
+}
+.certificate-info-table td {
+  padding: 8px 0;
+  font-size: 1.08rem;
+}
+.certificate-info-table .label {
+  font-weight: 600;
+  color: #ff9800;
+  width: 38%;
+}
+.certificate-info-table .value {
+  color: #222;
+}
+
+.certificate-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 18px;
+}
+.certificate-qr img, .certificate-qr canvas {
+  width: 110px !important;
+  height: 110px !important;
+  margin-bottom: 8px;
+}
+.certificate-qr-label {
+  font-size: 0.98rem;
+  color: #888;
+}
+
+.certificate-footer {
+  margin-top: 32px;
+  text-align: right;
+  font-size: 1.05rem;
+  color: #555;
+}
+
+.certificate-signature {
+  margin-top: 18px;
+  font-style: italic;
+  color: #ff9800;
+  font-weight: 500;
+}
+
+.certificate-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+.certificate-actions button {
+  background: #ff9800;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 22px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.certificate-actions button:hover {
+  background: #e65100;
+}
+
+@media (max-width: 600px) {
+  .certificate-container {
+    padding: 16px 4vw;
+    font-size: 0.98rem;
+  }
+  .certificate-title {
+    font-size: 1.3rem;
+  }
+  .certificate-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Print styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .certificate-container, .certificate-container * {
+    visibility: visible;
+  }
+  .certificate-container {
+    box-shadow: none !important;
+    border: 2px solid #ff9800 !important;
+    margin: 0 !important;
+    padding: 0.5cm !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+  .certificate-actions {
+    display: none !important;
+  }
+}

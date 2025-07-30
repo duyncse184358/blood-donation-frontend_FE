@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import api from '../../services/Api';
 
 const BLOOD_TYPES = [
-  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
-  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
-  { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
-  { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
+  { id: 1, name: 'A+', label: 'Nhóm máu A dương' },
+  { id: 2, name: 'A-', label: 'Nhóm máu A âm' },
+  { id: 3, name: 'B+', label: 'Nhóm máu B dương' },
+  { id: 4, name: 'B-', label: 'Nhóm máu B âm' },
+  { id: 5, name: 'AB+', label: 'Nhóm máu AB dương' },
+  { id: 6, name: 'AB-', label: 'Nhóm máu AB âm' },
+  { id: 7, name: 'O+', label: 'Nhóm máu O dương' },
+  { id: 8, name: 'O-', label: 'Nhóm máu O âm' }
 ];
 
 function DonorSearch() {
@@ -47,7 +51,7 @@ function DonorSearch() {
           >
             <option value="">Chọn nhóm máu...</option>
             {BLOOD_TYPES.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
+              <option key={b.id} value={b.id}>{b.label}</option>
             ))}
           </select>
         </div>
@@ -102,7 +106,7 @@ function DonorSearch() {
                   <td>
                     {d.bloodTypeName
                       ? d.bloodTypeName
-                      : BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}
+                      : BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.label || ''}
                   </td>
                   <td>{d.phoneNumber}</td>
                   <td>{d.lastDonationDate || 'Chưa có dữ liệu'}</td>

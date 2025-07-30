@@ -168,7 +168,16 @@ function RegisterDonation() {
         let lastDonationDate = null;
         if (Array.isArray(profile?.donationHistory)) {
           const completed = profile.donationHistory
-            .filter(h => h.status === 'Completed')
+            .filter(h => {
+              const s = (h.status || '').trim().toLowerCase();
+              return (
+                s === 'completed' ||
+                s === 'complete' ||
+                s === 'certificated' ||
+                s === 'used' ||
+                s === 'use'
+              );
+            })
             .sort((a, b) => new Date(b.donationDate) - new Date(a.donationDate));
           if (completed.length > 0) {
             lastDonationDate = new Date(completed[0].donationDate);

@@ -8,6 +8,9 @@ import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
 import { Droplet, Calendar, Ruler, TestTube, CheckCircle, Clock } from 'lucide-react';
 import { keyframes } from 'styled-components';
+import { translateStatus, translateDate, translateBloodType } from '../../utils/translationUtils';
+import TranslatedStatus from '../../components/Shared/TranslatedStatus';
+
 
 // Animation cho modal
 const fadeInModal = keyframes`
@@ -202,6 +205,7 @@ function DonationHistory() {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
+
   useEffect(() => {
     if (!isAuthenticated || !user?.userId) {
       setLoading(false);
@@ -233,7 +237,7 @@ function DonationHistory() {
   const getStatusBadgeClass = (status) => {
     if (!status) return 'secondary';
     const s = status.toLowerCase();
-    if (s === 'completed' || s === 'complete') return 'success';
+    if (s === 'completed' || s === 'complete' || s === 'certificated') return 'success';
     if (s === 'pending') return 'warning';
     if (s === 'cancelled' || s === 'no show' || s === 'rejected') return 'secondary';
     return 'secondary';
@@ -243,6 +247,9 @@ function DonationHistory() {
     if (!status) return '---';
     const s = status.toLowerCase();
     if (s === 'completed' || s === 'complete') return 'Đã hoàn thành';
+    if (s === 'certificated') return 'Đã cấp chứng nhận';
+     if (s === 'Use') return 'dùng chứng chỉ';
+     if (s === 'Used') return 'Đã sử dụng chứng chỉ';
     if (s === 'pending') return 'Đang chờ';
     if (s === 'cancelled') return 'Đã hủy';
     if (s === 'no show') return 'Không đến';
@@ -294,27 +301,36 @@ function DonationHistory() {
 
         {!error && history.length > 0 && (
           <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            {history.map((item, idx) => (
-              <div className="col" key={item.donationId || idx}>
-                <DonationCard>
-                  <CardBody>
-                    <CardTitleGroup>
-                      <Droplet className="mr-2 h-5 w-5 text-red-500" />
-                      <h5>
-                        {item.bloodTypeName || 'Nhóm máu'} {item.rhFactor}
-                      </h5>
-                    </CardTitleGroup>
-                    <DetailsList>
-                      <ListItem>
-                        <strong><Calendar size={18} className="list-icon" />Ngày hiến:</strong>
-                        {item.donationDate ? new Date(item.donationDate).toLocaleDateString('vi-VN') : '---'}
-                      </ListItem>
-                    </DetailsList>
-                    <button className="btn btn-outline-primary btn-sm mt-2" onClick={() => { setSelectedItem(item); setShowModal(true); }}>Xem chi tiết</button>
-                  </CardBody>
-                </DonationCard>
-              </div>
-            ))}
+            {history
+              .slice()
+              .sort((a, b) => {
+                const dateA = a.donationDate ? new Date(a.donationDate) : new Date(0);
+                const dateB = b.donationDate ? new Date(b.donationDate) : new Date(0);
+                return dateB - dateA;
+              })
+              .map((item, idx) => {
+                return (
+                  <div className="col" key={item.donationId || idx}>
+                    <DonationCard>
+                      <CardBody>
+                        <CardTitleGroup>
+                          <Droplet className="mr-2 h-5 w-5 text-red-500" />
+                          <h5>
+                            {item.bloodTypeName || 'Nhóm máu'} {item.rhFactor}
+                          </h5>
+                        </CardTitleGroup>
+                        <DetailsList>
+                          <ListItem>
+                            <strong><Calendar size={18} className="list-icon" />Ngày hiến:</strong>
+                            {item.donationDate ? new Date(item.donationDate).toLocaleDateString('vi-VN') : '---'}
+                          </ListItem>
+                        </DetailsList>
+                        <button className="btn btn-outline-primary btn-sm mt-2 me-2" onClick={() => { setSelectedItem(item); setShowModal(true); }}>Xem chi tiết</button>
+                      </CardBody>
+                    </DonationCard>
+                  </div>
+                );
+              })}
           </div>
         )}
 
@@ -345,6 +361,7 @@ function DonationHistory() {
             </StyledModalDialog>
           </StyledModalOverlay>
         )}
+
       </DonationHistoryMain>
       <Footer />
     </DonationHistoryWrapper>

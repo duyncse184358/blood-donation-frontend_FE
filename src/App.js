@@ -14,6 +14,7 @@ import NotFoundPage from './pages/NotFoundPage';
 
 // Import trang quản lý chiến dịch (Admin)
 
+
 import MemberDashboardPage from './pages/Member/MemberDashboard'; 
 import RegisterDonationPage from './pages/Member/RegisterDonation'; 
 import DonationHistoryPage from './pages/Member/DonationHistory'; 
@@ -21,6 +22,8 @@ import RemindersPage from './pages/Member/Reminders';
 import ProfileUpdatePage from './pages/Member/CreateProfile.jsx';
 import UpdateProfilePage from './pages/Member/UpdateProfile.jsx';
 import RequestDetailPage from './pages/Member/RequestDetail.jsx';
+import BloodDonationCertificate from './components/Certificate/BloodDonationCertificate.jsx';
+import CertificateList from './pages/Member/CertificateList.jsx';
 
 // Import các trang thông báo mới
 import MemberNotificationsPage from './pages/Member/Notifications'; // Thông báo chung cho Member
@@ -77,6 +80,8 @@ function App() {
                             <Route path="/member/profile/update" element={<UpdateProfilePage />} />
                             <Route path="/member/emergency-notifications" element={<EmergencyNotificationsPage />} />
                             <Route path="/member/request-detail" element={<RequestDetailPage />} />
+                            <Route path="/member/certificate" element={<BloodDonationCertificate data={{}} />} />
+                            <Route path="/member/certificates" element={<CertificateList />} />
                         </Route>
 
                         {/* Staff Routes */}
@@ -112,3 +117,4 @@ function App() {
 }
 
 export default App;
+

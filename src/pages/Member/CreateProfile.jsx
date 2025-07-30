@@ -15,11 +15,17 @@ const provinces = [
 
 
 
+import { translateBloodType } from '../../utils/translationUtils';
+
 const bloodTypes = [
-  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
-  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
-  { id: 5, name: 'O+' }, { id: 6, name: 'O-' },
-  { id: 7, name: 'AB+' }, { id: 8, name: 'AB-' },
+  { id: 1, name: 'A+', displayName: translateBloodType('A+') },
+  { id: 2, name: 'A-', displayName: translateBloodType('A-') },
+  { id: 3, name: 'B+', displayName: translateBloodType('B+') },
+  { id: 4, name: 'B-', displayName: translateBloodType('B-') },
+  { id: 5, name: 'O+', displayName: translateBloodType('O+') },
+  { id: 6, name: 'O-', displayName: translateBloodType('O-') },
+  { id: 7, name: 'AB+', displayName: translateBloodType('AB+') },
+  { id: 8, name: 'AB-', displayName: translateBloodType('AB-') }
 ];
 
 const genders = [
@@ -109,7 +115,13 @@ function CreateProfile({ onClose }) {
         const historyRes = await api.get(`/DonationHistory/by-donor/${user.userId}`);
         if (Array.isArray(historyRes.data)) {
           const completed = historyRes.data.filter(
-            h => h.status === 'Complete' && h.donationDate
+            h => (
+              (h.status === 'Complete' ||
+               h.status === 'Certificated' ||
+               h.status === 'Used' ||
+               h.status === 'Use')
+              && h.donationDate
+            )
           );
           if (completed.length > 0) {
             const latest = completed.reduce((a, b) =>

@@ -3,10 +3,14 @@ import api from '../../services/Api';
 import { AuthContext } from '../../context/AuthContext';
 
 const BLOOD_TYPES = [
-  { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
-  { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
-  { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
-  { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
+  { id: 1, name: 'A+', label: 'Nhóm máu A dương' }, 
+  { id: 2, name: 'A-', label: 'Nhóm máu A âm' },
+  { id: 3, name: 'B+', label: 'Nhóm máu B dương' }, 
+  { id: 4, name: 'B-', label: 'Nhóm máu B âm' },
+  { id: 5, name: 'AB+', label: 'Nhóm máu AB dương' }, 
+  { id: 6, name: 'AB-', label: 'Nhóm máu AB âm' },
+  { id: 7, name: 'O+', label: 'Nhóm máu O dương' }, 
+  { id: 8, name: 'O-', label: 'Nhóm máu O âm' }
 ];
 
 function DonationHistoryByRequestModal({ requestId, onClose }) {
@@ -92,6 +96,12 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
         EmergencyId: form.emergencyId,
         Descriptions: form.descriptions,
         DonationRequestId: form.donationRequestId,
+        // Add all possible fields for completeness
+        donationId: form.donationId,
+        donorName: form.donorName,
+        donorPhone: form.donorPhone,
+        donorEmail: form.donorEmail,
+        // Add more fields if backend requires
       };
       const res = await api.put(`/DonationHistory/${form.donationId}`, payload);
       setHistory(res.data);

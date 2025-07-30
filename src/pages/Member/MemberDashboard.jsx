@@ -7,7 +7,8 @@ import Footer from '../../components/Footer/Footer';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { User, Heart, Activity, Bell, MailCheck, Clock, AlertCircle } from 'lucide-react';
+import { User, Heart, Activity, Bell, MailCheck, Clock, AlertCircle, Award } from 'lucide-react';
+import BloodDonationCertificate from '../../components/Certificate/BloodDonationCertificate';
 import ProfileUpdate from './CreateProfile';
 import './Memberdashboard.css';
 
@@ -18,10 +19,28 @@ function MemberDashboard() {
   const [notifLoading, setNotifLoading] = useState(true);
   const [notifError, setNotifError] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  // const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [emergencyNotifs, setEmergencyNotifs] = useState([]);
   const [unreadEmergencyCount, setUnreadEmergencyCount] = useState(0);
   const [lastDonationDate, setLastDonationDate] = useState(null);
   const [nextEligibleDate, setNextEligibleDate] = useState(null);
+
+  // Dữ liệu mẫu, thực tế lấy từ API hoặc props
+  const certificateData = {
+    organization: 'Trung tâm Hiến máu Quốc gia',
+    fullName: user?.fullName || user?.username || user?.email || '',
+    birthDate: user?.birthDate || '',
+    idNumber: user?.idNumber || '',
+    address: user?.address || '',
+    location: 'Bệnh viện Trung ương',
+    quantity: 350,
+    donationDate: lastDonationDate,
+    certificateNo: 'CERT-' + (user?.userId || '0001'),
+    patientName: '',
+    signerTitle: 'Giám đốc Trung tâm',
+    signerName: 'Nguyễn Văn A',
+    qrValue: 'CERT-' + (user?.userId || '0001'),
+  };
 
   const calculateDaysUntilNextDonation = (nextEligibleDate) => {
     const today = new Date();
@@ -258,15 +277,19 @@ function MemberDashboard() {
                 <button className="feature-card-button mt-auto">Truy cập</button>
               </Link>
             </div>
-            {/* Nhận thông báo khẩn cấp */}
+            {/* Xem chứng chỉ hiến máu */}
             <div className="col animate__animated animate__zoomIn animate__delay-0-3s">
-              <Link to="/notifications?type=emergency" className="feature-card h-100 d-flex flex-column emergency-notif">
+              <Link
+                to="/member/certificates"
+                className="feature-card h-100 d-flex flex-column certificate-feature"
+                style={{ cursor: 'pointer', textDecoration: 'none' }}
+              >
                 <div className="feature-icon-circle">
-                  <AlertCircle size={40} />
+                  <Award size={40} />
                 </div>
-                <h5 className="feature-card-title">Nhận thông báo khẩn cấp</h5>
-                <p className="feature-card-text flex-grow-1">Hệ thống gửi yêu cầu hiến máu khẩn cấp phù hợp (qua App/Email).</p>
-                <button className="feature-card-button mt-auto">Truy cập</button>
+                <h5 className="feature-card-title">Xem chứng chỉ hiến máu</h5>
+                <p className="feature-card-text flex-grow-1">Xem và tải chứng chỉ cho các lần hiến máu đã hoàn thành của bạn.</p>
+                <button className="feature-card-button mt-auto" style={{background:'#ff9800',border:'none',color:'#fff'}}>Xem chứng chỉ</button>
               </Link>
             </div>
             {/* Phản hồi yêu cầu khẩn cấp (có thể dẫn đến trang notifications chung hoặc trang chuyên biệt) */}
