@@ -14,6 +14,7 @@ export const BLOOD_TYPES_MAP = {
 
 export const STATUS_MAP = {
   'pending': 'Chờ xử lý',
+  'responded': 'Có phản hồi',
   'approved': 'Đã duyệt',
   'rejected': 'Từ chối',
   'completed': 'Hoàn thành',

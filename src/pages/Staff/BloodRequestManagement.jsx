@@ -6,6 +6,9 @@ import Navbar from '../../components/Navbar/Navbar';
 import BloodTypeDisplay from '../../components/Shared/BloodTypeDisplay';
 import TranslatedStatus from '../../components/Shared/TranslatedStatus';
 import DateDisplay from '../../components/Shared/DateDisplay';
+import PriorityDisplay from '../../components/Shared/PriorityDisplay';
+import ResponseStatusDisplay from '../../components/Shared/ResponseStatusDisplay';
+import BloodDonationCertificate from '../../components/Certificate/BloodDonationCertificate';
 import { 
   translateBloodType,
   translateStatus,
@@ -14,20 +17,20 @@ import {
 } from '../../utils/translationUtils';
 
 const BLOOD_TYPES = [
-  { id: 1, name: 'A+', displayName: translateBloodType('A+') },
-  { id: 2, name: 'A-', displayName: translateBloodType('A-') },
-  { id: 3, name: 'B+', displayName: translateBloodType('B+') },
-  { id: 4, name: 'B-', displayName: translateBloodType('B-') },
-  { id: 5, name: 'AB+', displayName: translateBloodType('AB+') },
-  { id: 6, name: 'AB-', displayName: translateBloodType('AB-') },
-  { id: 7, name: 'O+', displayName: translateBloodType('O+') },
-  { id: 8, name: 'O-', displayName: translateBloodType('O-') }
+  { id: 1, name: 'A+' },
+  { id: 2, name: 'A-' },
+  { id: 3, name: 'B+' },
+  { id: 4, name: 'B-' },
+  { id: 5, name: 'AB+' },
+  { id: 6, name: 'AB-' },
+  { id: 7, name: 'O+' },
+  { id: 8, name: 'O-' }
 ];
 const COMPONENTS = [
-  { id: 1, name: 'Hồng cầu' },
+  { id: 1, name: 'Máu toàn phần' },
   { id: 2, name: 'Huyết tương' },
   { id: 3, name: 'Tiểu cầu' },
-  { id: 4, name: 'Máu toàn phần' }
+  { id: 4, name: 'Hồng cầu' }
 ];
 const PRIORITIES = [
   { value: 'High', label: 'Khẩn cấp' },
@@ -36,14 +39,42 @@ const PRIORITIES = [
 ];
 const STATUS_OPTIONS = [
   { value: 'Pending', label: 'Chờ xử lý' },
-  { value: 'Responded', label: 'Đã có phản hồi' },
+  { value: 'Responded', label: 'Có phản hồi' },
   { value: 'Approved', label: 'Hoàn thành' },
-  { value: 'Rejected', label: 'Từ chối' }
+  { value: 'Cancelled', label: 'Đã hủy' }
 ];
 
 const PAGE_SIZE = 5; // Số lượng mỗi trang
 
 function BloodRequestManagement() {
+  // State cho modal chứng chỉ (đặt đúng trong function component)
+  const [selectedCertificate, setSelectedCertificate] = useState(null);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+
+  // Hàm mở modal chứng chỉ
+  const handleShowCertificate = (request) => {
+    setSelectedCertificate({
+      donationId: request.id,
+      userId: request.donorUserId || request.donorId || request.userId || '',
+      fullName: request.fullName || request.donorName || '',
+      birthDate: request.birthDate || '',
+      idNumber: request.idNumber || '',
+      address: request.address || '',
+      location: request.location || request.organization || '',
+      quantity: request.quantityNeededMl,
+      donationDate: request.dueDate,
+      certificateNo: 'B' + request.id,
+      organization: request.organization || 'Hệ thống hỗ trợ hiến máu',
+      bloodType: BLOOD_TYPES.find(b => b.id === request.bloodTypeId)?.name || '',
+    });
+    setShowCertificateModal(true);
+  };
+
+  // Hàm đóng modal chứng chỉ
+  const handleCloseCertificateModal = () => {
+    setShowCertificateModal(false);
+    setSelectedCertificate(null);
+  };
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -69,27 +100,19 @@ function BloodRequestManagement() {
   // Hàm để map status từ database thành status hiển thị
   const mapStatusToDisplay = (status) => {
     if (!status) return 'Pending';
-    
-    // Kiểm tra exact match trước
-    if (status === 'Pending' || status === 'Responded' || status === 'Approved' || status === 'Rejected') {
-      return status;
-    }
-    
     const normalizedStatus = status.toLowerCase();
-    
-    if (normalizedStatus.includes('pending') || normalizedStatus.includes('no response')) {
+    if (normalizedStatus === 'pending' || normalizedStatus.includes('pending') || normalizedStatus.includes('no response')) {
       return 'Pending';
     }
-    if (normalizedStatus.includes('interested') || normalizedStatus.includes('responded')) {
+    if (normalizedStatus === 'responded' || normalizedStatus.includes('interested') || normalizedStatus.includes('responded')) {
       return 'Responded';
     }
-    if (normalizedStatus.includes('approved') || normalizedStatus.includes('completed') || normalizedStatus.includes('complete')) {
+    if (normalizedStatus === 'approved' || normalizedStatus.includes('approved') || normalizedStatus.includes('completed') || normalizedStatus.includes('complete')) {
       return 'Approved';
     }
-    if (normalizedStatus.includes('rejected') || normalizedStatus.includes('declined')) {
-      return 'Rejected';
+    if (normalizedStatus === 'cancelled' || normalizedStatus.includes('cancelled')) {
+      return 'Cancelled';
     }
-    
     return 'Pending'; // Mặc định là Pending
   };
 
@@ -409,33 +432,66 @@ function BloodRequestManagement() {
                             </td>
                             <td>{translateMessage(r.description)}</td>
                             <td>
-                              <TranslatedStatus status={r.actualStatus} />
+                              <TranslatedStatus status={
+                                r.actualStatus === 'Pending' ? 'Chờ xử lý' :
+                                r.actualStatus === 'Responded' ? 'Có phản hồi' :
+                                r.actualStatus === 'Approved' ? 'Hoàn thành' :
+                                r.actualStatus === 'Cancelled' ? 'Đã hủy' :
+                                r.actualStatus
+                              } />
                             </td>
                             <td>
-                              <button
-                                className="btn btn-sm btn-primary me-2"
-                                onClick={() => handleViewNotification(r.id)}
-                              >
-                                Xem thông báo
-                              </button>
-                              <button
-                                className="btn btn-sm btn-info me-2"
-                                onClick={() => navigate(`/staff/emergency-responses/${r.id}`)}
-                              >
-                                Danh sách phản hồi
-                              </button>
-                              <button
-                                className="btn btn-sm btn-warning me-2"
-                                onClick={() => handleEditRequest(r)}
-                              >
-                                Sửa
-                              </button>
-                              <button
-                                className="btn btn-sm btn-danger"
-                                onClick={() => handleDeleteRequest(r.id)}
-                              >
-                                Xóa
-                              </button>
+                              <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.5rem' }}>
+                                <button
+                                  className="btn btn-sm btn-primary"
+                                  onClick={() => handleViewNotification(r.id)}
+                                >
+                                  Xem thông báo
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-success"
+                                  onClick={() => handleShowCertificate(r)}
+                                >
+                                  Xem chứng chỉ
+                                </button>
+      {/* Modal hiển thị chứng chỉ */}
+      {showCertificateModal && selectedCertificate && (
+        <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.3)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Chứng chỉ hiến máu</h5>
+                <button type="button" className="btn-close" onClick={handleCloseCertificateModal}></button>
+              </div>
+              <div className="modal-body" style={{padding:24}}>
+                <BloodDonationCertificate data={selectedCertificate} onClose={handleCloseCertificateModal} />
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={handleCloseCertificateModal}>Đóng</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+                                <button
+                                  className="btn btn-sm btn-info"
+                                  onClick={() => navigate(`/staff/emergency-responses/${r.id}`)}
+                                >
+                                  Danh sách phản hồi
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-warning"
+                                  onClick={() => handleEditRequest(r)}
+                                >
+                                  Sửa
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-danger"
+                                  onClick={() => handleDeleteRequest(r.id)}
+                                >
+                                  Xóa
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -512,13 +568,15 @@ function BloodRequestManagement() {
                     </select>
                   </div>
                   <div className="mb-2">
-                    <label className="form-label">Số lượng (ml)</label>
+                    <label className="form-label">Số lượng (ml) (tối đa 450ml)</label>
                     <input
                       type="number"
                       className="form-control"
                       name="quantityNeededMl"
                       value={editForm.quantityNeededMl}
                       onChange={handleEditFormChange}
+                      min="1"
+                      max="450"
                     />
                   </div>
                   <div className="mb-2">

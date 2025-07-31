@@ -5,6 +5,7 @@ import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
 import { useNavigate } from 'react-router-dom';
 
+import { translateBloodType } from '../../utils/translationUtils';
 // Import dữ liệu quận/huyện và phường/xã từ file riêng
 import { districtsData, wardsData } from '../../components/Data/hcm-address-data';
 
@@ -12,10 +13,6 @@ import { districtsData, wardsData } from '../../components/Data/hcm-address-data
 const provinces = [
   { code: '79', name: 'TP. Hồ Chí Minh' },
 ];
-
-
-
-import { translateBloodType } from '../../utils/translationUtils';
 
 const bloodTypes = [
   { id: 1, name: 'A+', displayName: translateBloodType('A+') },

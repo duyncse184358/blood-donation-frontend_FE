@@ -29,6 +29,24 @@ const TABS = [
   { key: 'certificate', label: 'Quản lý chứng chỉ', icon: 'fa-solid fa-certificate' },
 ];
 
+// Hàm chuyển đổi trạng thái sang tiếng Việt
+const translateStatus = (status) => {
+  const statusMap = {
+    'Available': 'Có sẵn',
+    'Reserved': 'Đã đặt',
+    'Discarded': 'Đã loại bỏ',
+    'Used': 'Đã sử dụng',
+    'Testing': 'Đang kiểm tra',
+    'Separating': 'Đang tách',
+    'Separated': 'Đã tách',
+    'Pending': 'Chờ xử lý',
+    'Usable': 'Có thể sử dụng',
+    'Accepted': 'Chấp nhận',
+    'Rejected': 'Từ chối'
+  };
+  return statusMap[status] || status;
+};
+
 function StaffDashboard() {
   const [activeTab, setActiveTab] = useState('emergency');
   const [modalType, setModalType] = useState(null);
@@ -312,12 +330,14 @@ const reloadInventory = () => {
                   <div className="mb-2"><b>Nhóm máu:</b> {editForm.bloodTypeName}</div>
                   <div className="mb-2"><b>Thành phần:</b> {editForm.componentName}</div>
                   <div className="mb-2">
-                    <b>Thể tích (ml):</b>
+                    <b>Thể tích (ml) (tối đa 450ml):</b>
                     <input
                       type="number"
                       className="form-control"
                       value={editForm.volumeMl || ''}
                       onChange={e => handleEditFormChange('volumeMl', e.target.value)}
+                      min="1" 
+                      max="450"
                     />
                   </div>
                   <div className="mb-2">
@@ -390,7 +410,7 @@ const reloadInventory = () => {
                       <div><b>Ngày lấy:</b> {discardUnit.collectionDate}</div>
                       <div><b>Hạn sử dụng:</b> {discardUnit.expirationDate}</div>
                       <div><b>Kết quả xét nghiệm:</b> {discardUnit.testResults}</div>
-                      <div><b>Trạng thái:</b> {discardUnit.status}</div>
+                      <div><b>Trạng thái:</b> {translateStatus(discardUnit.status)}</div>
                       <div><b>Lý do loại bỏ:</b> {discardUnit.discardReason}</div>
                       {discardMsg && <div className="alert alert-success mt-2">{discardMsg}</div>}
                       {discardErr && <div className="alert alert-danger mt-2">{discardErr}</div>}
@@ -409,10 +429,22 @@ const reloadInventory = () => {
                     <div className="modal-body">
                       <div className="mb-2"><b>Trạng thái:</b>
                         <select className="form-select" name="status" value={discardForm.status || ''} onChange={handleDiscardFormChange}>
-                          <option value="Available">Có sẵn</option>
-                          <option value="Reserved">Đã đặt</option>
-                          <option value="Discarded">Đã loại bỏ</option>
-                          <option value="Used">Đã sử dụng</option>
+                          <option value="">Chọn trạng thái</option>
+                          {[
+                            { value: 'Available', label: 'Có sẵn' },
+                            { value: 'Reserved', label: 'Đã đặt' },
+                            { value: 'Discarded', label: 'Đã loại bỏ' },
+                            { value: 'Used', label: 'Đã sử dụng' },
+                            { value: 'Testing', label: 'Đang kiểm tra' },
+                            { value: 'Separating', label: 'Đang tách' },
+                            { value: 'Separated', label: 'Đã tách' },
+                            { value: 'Usable', label: 'Có thể sử dụng' },
+                            { value: 'Pending', label: 'Chờ xử lý' }
+                          ].map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div className="mb-2"><b>Lý do loại bỏ:</b>

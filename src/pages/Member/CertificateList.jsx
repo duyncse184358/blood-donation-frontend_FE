@@ -98,7 +98,24 @@ function CertificateList() {
         ));
         // Sau khi cập nhật, lấy lại lịch sử mới nhất
         const refreshed = await api.get(`/DonationHistory/by-donor/${user.userId}`);
-        setHistory(Array.isArray(refreshed.data) ? refreshed.data : []);
+        let refreshedList = Array.isArray(refreshed.data) ? refreshed.data : [];
+        setHistory(refreshedList);
+        // Fetch profile cho từng bản ghi để lấy fullName
+        refreshedList.forEach((item) => {
+          if (item.userId) {
+            api.get(`/UserProfile/by-user/${item.userId}`)
+              .then(resUser => {
+                if (resUser.data && resUser.data.fullName) {
+                  setHistory(his => his.map(h =>
+                    String(h.donationId) === String(item.donationId)
+                      ? { ...h, fullName: resUser.data.fullName }
+                      : h
+                  ));
+                }
+              })
+              .catch(() => {});
+          }
+        });
       } catch (err) {
         setError('Không thể tải dữ liệu chứng chỉ từ lịch sử hiến máu.');
       } finally {
@@ -154,8 +171,8 @@ function CertificateList() {
   const getCertData = (item) => {
     const d = donationDetail || item || {};
     return {
-      userId: user.userId || d.userId || '',
-      fullName: d.fullName || user.fullName || user.username || '',
+      userId: d.userId || user.userId || '',
+      fullName: d.fullName || '',
       birthDate: d.birthDate || user.dateOfBirth || '',
       idNumber: d.idNumber || user.cccd || '',
       address: d.address || user.address || '',

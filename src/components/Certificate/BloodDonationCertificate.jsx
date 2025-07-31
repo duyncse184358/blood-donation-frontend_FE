@@ -12,7 +12,7 @@ function formatDateVN(dateStr) {
   return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
 }
 
-const BloodDonationCertificate = ({ data, onClose }) => {
+const BloodDonationCertificate = ({ data, onClose, onProfileNameLoaded }) => {
   const certRef = useRef();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,14 +22,17 @@ const BloodDonationCertificate = ({ data, onClose }) => {
     async function fetchProfile() {
       setLoading(true);
       try {
-        console.log('DATA:', data);
         const res = await import('../../services/Api');
         const api = res.default;
         const userId = data?.userId;
         if (userId) {
           const profileRes = await api.get(`/UserProfile/by-user/${userId}`);
-          console.log('PROFILE DATA:', profileRes.data);
-          if (!ignore) setProfile(profileRes.data);
+          if (!ignore) {
+            setProfile(profileRes.data);
+            if (profileRes.data && profileRes.data.fullName && typeof onProfileNameLoaded === 'function') {
+              onProfileNameLoaded(profileRes.data.fullName);
+            }
+          }
         }
       } catch {
         if (!ignore) setProfile(null);
@@ -65,7 +68,7 @@ const BloodDonationCertificate = ({ data, onClose }) => {
         </div>
         <div className="cert-body">
           <div><b>Đơn vị cấp:</b> {merged.organization || 'Hệ thống hỗ trợ hiến máu'}</div>
-          <div><b>Họ và tên:</b> {profile?.fullName || merged.fullName}</div>
+          <div><b>Họ và tên:</b> {loading ? 'Đang tải...' : (profile?.fullName || 'Không rõ')}</div>
           <div><b>Số điện thoại:</b> {profile?.phoneNumber || profile?.phone || merged.phoneNumber || merged.phone || ''}</div>
           <div><b>CCCD/CMND:</b> {profile?.idNumber || profile?.cccd || profile?.identityNumber || profile?.cmnd || profile?.citizenId || merged.idNumber || merged.cccd || merged.identityNumber || merged.cmnd || merged.citizenId}</div>
           <div><b>Ngày sinh:</b> {formatDateVN(profile?.birthDate || profile?.dateOfBirth || profile?.dob || merged.birthDate || merged.dateOfBirth || merged.dob)}</div>

@@ -46,6 +46,21 @@ function BloodDiscardForm({ onSelectUnit }) {
     setDiscardErr('');
   };
 
+  // Hàm chuyển đổi trạng thái sang tiếng Việt
+  const translateStatus = (status) => {
+    const statusMap = {
+      'Available': 'Có sẵn',
+      'Reserved': 'Đã đặt',
+      'Discarded': 'Đã loại bỏ',
+      'Used': 'Đã sử dụng',
+      'Testing': 'Đang kiểm tra',
+      'Separating': 'Đang tách',
+      'Separated': 'Đã tách',
+      'Pending': 'Chờ xử lý'
+    };
+    return statusMap[status] || status;
+  };
+
   const handleDiscardFormChange = (e) => {
     const { name, value } = e.target;
     setDiscardForm(prev => ({ ...prev, [name]: value }));
@@ -98,7 +113,11 @@ function BloodDiscardForm({ onSelectUnit }) {
                     {unit.status === 'Reserved' && <span className="badge bg-primary">Đã đặt</span>}
                     {unit.status === 'Discarded' && <span className="badge bg-danger">Đã loại bỏ</span>}
                     {unit.status === 'Used' && <span className="badge bg-secondary">Đã sử dụng</span>}
-                    {unit.status !== 'Available' && unit.status !== 'Reserved' && unit.status !== 'Discarded' && unit.status !== 'Used' && (
+                    {unit.status === 'Testing' && <span className="badge bg-info">Đang kiểm tra</span>}
+                    {unit.status === 'Separating' && <span className="badge bg-warning">Đang tách</span>}
+                    {unit.status === 'Separated' && <span className="badge bg-info">Đã tách</span>}
+                    {unit.status === 'Pending' && <span className="badge bg-secondary">Chờ xử lý</span>}
+                    {!['Available', 'Reserved', 'Discarded', 'Used', 'Testing', 'Separating', 'Separated', 'Pending'].includes(unit.status) && (
                       <span className="badge bg-secondary">{unit.status}</span>
                     )}
                   </td>
@@ -163,7 +182,7 @@ function BloodDiscardForm({ onSelectUnit }) {
                     <div><b>Ngày lấy:</b> {discardUnit.collectionDate}</div>
                     <div><b>Hạn sử dụng:</b> {discardUnit.expirationDate}</div>
                     <div><b>Kết quả xét nghiệm:</b> {discardUnit.testResults}</div>
-                    <div><b>Trạng thái:</b> {discardUnit.status}</div>
+                    <div><b>Trạng thái:</b> {translateStatus(discardUnit.status)}</div>
                     <div><b>Lý do loại bỏ:</b> {discardUnit.discardReason}</div>
                     {discardMsg && <div className="alert alert-success mt-2">{discardMsg}</div>}
                     {discardErr && <div className="alert alert-danger mt-2">{discardErr}</div>}
@@ -182,10 +201,15 @@ function BloodDiscardForm({ onSelectUnit }) {
                   <div className="modal-body">
                     <div className="mb-2"><b>Trạng thái:</b>
                       <select className="form-select" name="status" value={discardForm.status || ''} onChange={handleDiscardFormChange}>
+                        <option value="">Chọn trạng thái</option>
                         <option value="Available">Có sẵn</option>
                         <option value="Reserved">Đã đặt</option>
                         <option value="Discarded">Đã loại bỏ</option>
                         <option value="Used">Đã sử dụng</option>
+                        <option value="Testing">Đang kiểm tra</option>
+                        <option value="Separating">Đang tách</option>
+                        <option value="Separated">Đã tách</option>
+                        <option value="Pending">Chờ xử lý</option>
                       </select>
                     </div>
                     <div className="mb-2"><b>Lý do loại bỏ:</b>

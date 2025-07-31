@@ -243,6 +243,25 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
                     </span>
                   </td>
                   <td>
+                    <button className="btn btn-sm btn-info me-1" onClick={async () => {
+                      try {
+                        const res = await api.get(`/BloodUnit/${u.unitId}`);
+                        if (res.data) {
+                          alert(
+                            `Mã: ${res.data.unitId}\n` +
+                            `Nhóm máu: ${res.data.bloodTypeName}\n` +
+                            `Thành phần: ${res.data.componentName}\n` +
+                            `Thể tích: ${res.data.volumeMl} ml\n` +
+                            `Ngày lấy: ${res.data.collectionDate}\n` +
+                            `Trạng thái: ${res.data.status}`
+                          );
+                        } else {
+                          alert('Không tìm thấy thông tin chi tiết!');
+                        }
+                      } catch {
+                        alert('Không thể lấy thông tin chi tiết!');
+                      }
+                    }}>Xem chi tiết</button>
                     <button className="btn btn-sm btn-warning me-1" onClick={() => onEditUnit(u)}>Sửa</button>
                     <button className="btn btn-sm btn-danger" onClick={() => handleDelete(u.unitId)}>Xóa</button>
                   </td>

@@ -21,7 +21,7 @@ const initialForm = {
   quantityMl: '',
   eligibilityStatus: 'Eligible',
   reasonIneligible: '',
-  testingResults: '',
+  testingResults: 'Đủ điều kiện',
   staffUserId: '', // Sẽ được tự động gán từ token
   status: 'Complete',
   emergencyId: '',
@@ -74,6 +74,11 @@ function DonationRecordForm() {
     }
     if (!form.quantityMl || form.quantityMl <= 0) {
       setError('Trường Số ml máu phải lớn hơn 0.');
+      setLoading(false);
+      return;
+    }
+    if (form.quantityMl > 450) {
+      setError('Số ml máu không được vượt quá 450ml.');
       setLoading(false);
       return;
     }
@@ -207,7 +212,7 @@ function DonationRecordForm() {
         </div>
         {/* Thành phần máu mặc định là 1, không hiển thị */}
         <div className="col-md-4">
-          <label className="form-label">Số ml máu</label>
+          <label className="form-label">Số ml máu (tối đa 450ml)</label>
           <input
             type="number"
             className="form-control"
@@ -215,6 +220,8 @@ function DonationRecordForm() {
             value={form.quantityMl}
             onChange={handleChange}
             placeholder="Nhập số ml máu"
+            min="1"
+            max="450"
             required
           />
         </div>
@@ -243,14 +250,17 @@ function DonationRecordForm() {
         </div>
         <div className="col-md-6">
           <label className="form-label">Kết quả xét nghiệm</label>
-          <input
-            type="text"
-            className="form-control"
+          <select
+            className="form-select"
             name="testingResults"
             value={form.testingResults}
             onChange={handleChange}
-            placeholder="Nhập kết quả xét nghiệm"
-          />
+            required
+          >
+            <option value="">Chọn kết quả xét nghiệm</option>
+            <option value="Đủ điều kiện">Đủ điều kiện</option>
+            <option value="Không đủ điều kiện">Không đủ điều kiện</option>
+          </select>
         </div>
         {/* Mã nhân viên ghi nhận (StaffUserId) lấy từ token, không hiển thị */}
         <div className="col-md-12">

@@ -7,15 +7,22 @@ import {
 } from '../../utils/translationUtils';
 
 const NotificationDisplay = ({ notification }) => {
+  if (!notification) {
+    return null;
+  }
+
   const getPriorityClass = (priority) => {
-    const p = priority?.toLowerCase();
+    if (!priority) return 'bg-info text-dark';
+    const p = priority.toLowerCase();
     if (p === 'high' || p === 'emergency') return 'bg-danger';
     if (p === 'medium') return 'bg-warning text-dark';
     return 'bg-info text-dark';
   };
 
   const getDeliveryMethodText = (method) => {
-    return DELIVERY_METHOD_MAP[method?.toLowerCase()] || method;
+    if (!method) return '';
+    const methodKey = method.toLowerCase();
+    return DELIVERY_METHOD_MAP[methodKey] || method;
   };
 
   return (
@@ -37,8 +44,10 @@ const NotificationDisplay = ({ notification }) => {
           <small className="text-muted">
             <span>Gửi đến: {translateRole(notification.recipientUserId)}</span>
             {notification.deliveryMethod && (
-              <span className="mx-2">|</span>
-              <span>Phương thức: {getDeliveryMethodText(notification.deliveryMethod)}</span>
+              <>
+                <span className="mx-2">|</span>
+                <span>Phương thức: {getDeliveryMethodText(notification.deliveryMethod)}</span>
+              </>
             )}
             <span className="mx-2">|</span>
             <span>{translateDate(notification.sentDate)}</span>

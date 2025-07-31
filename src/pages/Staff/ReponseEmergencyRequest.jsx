@@ -19,6 +19,140 @@ const COMPONENTS = [
 ];
 
 function ReponseEmergencyRequesr() {
+  const styles = {
+    emergencyResponseContainer: {
+      padding: '2rem',
+      backgroundColor: '#fff',
+      borderRadius: '12px',
+      boxShadow: '0 0 20px rgba(0, 0, 0, 0.05)',
+      margin: '2rem auto',
+    },
+    pageHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '2rem',
+      padding: '0 0 1rem',
+      borderBottom: '2px solid #f8d7da'
+    },
+    pageTitle: {
+      color: '#dc3545',
+      fontSize: '1.5rem',
+      fontWeight: '600',
+      margin: 0
+    },
+    customTable: {
+      width: '100%',
+      borderCollapse: 'separate',
+      borderSpacing: '0',
+      border: '1px solid #dee2e6',
+      borderRadius: '8px',
+      overflow: 'hidden'
+    },
+    tableContainer: {
+      margin: '1.5rem 0',
+      borderRadius: '12px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+      overflow: 'hidden',
+      background: '#ffffff'
+    },
+    thead: {
+      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+      color: '#495057'
+    },
+    th: {
+      padding: '1.25rem 1rem',
+      fontWeight: '600',
+      borderBottom: '2px solid #dee2e6',
+      textTransform: 'uppercase',
+      fontSize: '0.875rem',
+      letterSpacing: '0.5px'
+    },
+    td: {
+      padding: '1.25rem 1rem',
+      borderBottom: '1px solid #edf2f7',
+      verticalAlign: 'middle',
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        backgroundColor: '#f8f9fa'
+      }
+    },
+    statusBadge: {
+      padding: '0.5rem 1rem',
+      borderRadius: '20px',
+      fontSize: '0.875rem',
+      fontWeight: '500',
+      display: 'inline-block'
+    },
+    actionButton: {
+      padding: '0.5rem 1.25rem',
+      borderRadius: '8px',
+      border: 'none',
+      fontSize: '0.875rem',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+      marginRight: '0.75rem',
+      background: 'linear-gradient(135deg, #dc3545 0%, #ff4757 100%)',
+      color: '#fff',
+      boxShadow: '0 2px 4px rgba(220, 53, 69, 0.2)',
+      '&:hover': {
+        transform: 'translateY(-1px)',
+        boxShadow: '0 4px 8px rgba(220, 53, 69, 0.3)',
+      },
+      '&:active': {
+        transform: 'translateY(0)',
+        boxShadow: '0 2px 4px rgba(220, 53, 69, 0.2)',
+      }
+    },
+    loadingState: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '4rem',
+      color: '#6c757d',
+      background: 'linear-gradient(135deg, #fff5f5 0%, #ffffff 100%)',
+      borderRadius: '12px',
+      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+      margin: '1rem 0'
+    },
+    loadingSpinner: {
+      width: '3rem',
+      height: '3rem',
+      color: '#dc3545'
+    },
+    loadingText: {
+      marginTop: '1.25rem',
+      fontSize: '1.1rem',
+      fontWeight: '500',
+      color: '#495057',
+      textAlign: 'center',
+      animation: 'pulse 2s infinite'
+    },
+    customAlert: {
+      padding: '1.25rem',
+      borderRadius: '8px',
+      marginBottom: '1.5rem',
+      fontSize: '0.95rem',
+      display: 'flex',
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'all 0.3s ease',
+      borderLeft: '4px solid',
+      alignItems: 'center',
+      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
+    },
+    successAlert: {
+      background: 'linear-gradient(135deg, #e6f4ea 0%, #f0fff4 100%)',
+      borderColor: '#28a745',
+      color: '#155724'
+    },
+    errorAlert: {
+      background: 'linear-gradient(135deg, #fde8e8 0%, #fff5f5 100%)',
+      borderColor: '#dc3545',
+      color: '#721c24'
+    }
+  };
   const { requestId } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -216,35 +350,51 @@ function ReponseEmergencyRequesr() {
   };
 
   return (
-    <div className="container mt-4">
-      <h4>Danh sách phản hồi cho yêu cầu máu #{requestId}</h4>
-      <button className="btn btn-secondary mb-3" onClick={() => navigate(-1)}>
-        Quay lại
-      </button>
+    <div className="emergency-response-container">
+      <div className="page-header">
+        <h4 className="page-title">
+          <i className="fa-solid fa-clock-rotate-left text-danger me-2"></i>
+          Danh sách phản hồi cho yêu cầu máu #{requestId}
+        </h4>
+        <button className="btn btn-outline-danger" onClick={() => navigate(-1)}>
+          <i className="fa-solid fa-arrow-left me-2"></i>
+          Quay lại
+        </button>
+      </div>
       {noResponseAlert && (
-        <div className="alert alert-warning">
+        <div className="alert custom-alert-warning">
+          <i className="fa-solid fa-triangle-exclamation me-2"></i>
           Đã quá 15 phút nhưng chưa có phản hồi nào từ người nhận!
         </div>
       )}
       {loading ? (
-        <div>Đang tải...</div>
+        <div className="loading-spinner">
+          <div className="spinner-border text-danger" role="status">
+            <span className="visually-hidden">Đang tải...</span>
+          </div>
+          <span className="loading-text">Đang tải dữ liệu...</span>
+        </div>
       ) : responses.length === 0 ? (
-        <div className="alert alert-secondary">Chưa có phản hồi nào.</div>
+        <div className="alert custom-alert-secondary">
+          <i className="fa-solid fa-inbox me-2"></i>
+          Chưa có phản hồi nào.
+        </div>
       ) : (
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>Mã phản hồi</th>
-              <th>Người nhận</th>
-              <th>Phương thức</th>
-              <th>Đã đọc</th>
-              <th>Thời gian gửi</th>
-              <th>Trạng thái</th>
-              <th>Nội dung</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div className="table-responsive">
+          <table className="table custom-table">
+            <thead>
+              <tr>
+                <th>Mã phản hồi</th>
+                <th>Người nhận</th>
+                <th>Phương thức</th>
+                <th>Đã đọc</th>
+                <th>Thời gian gửi</th>
+                <th>Trạng thái</th>
+                <th>Nội dung</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
             {responses.map((resp, idx) => (
               <tr key={resp.notificationId || idx}>
                 <td>{resp.notificationId}</td>
@@ -287,6 +437,7 @@ function ReponseEmergencyRequesr() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {/* Modal ghi nhận thực tế */}
@@ -307,10 +458,10 @@ function ReponseEmergencyRequesr() {
                   <div className="mb-2">
                     <label className="form-label">Ngày hiến máu</label>
                     <input
-                      type="datetime-local"
+                      type="date"
                       className="form-control"
                       name="donationDate"
-                      value={modalForm.donationDate}
+                      value={modalForm.donationDate ? modalForm.donationDate.split('T')[0] : ''}
                       onChange={handleModalChange}
                       required
                     />
@@ -332,7 +483,7 @@ function ReponseEmergencyRequesr() {
                   </div>
                   {/* BỎ hiển thị trường thành phần máu, giá trị mặc định là 1 */}
                   <div className="mb-2">
-                    <label className="form-label">Số lượng (ml)</label>
+                    <label className="form-label">Số lượng (ml) (tối đa 450ml)</label>
                     <input
                       type="number"
                       className="form-control"
@@ -340,6 +491,7 @@ function ReponseEmergencyRequesr() {
                       value={modalForm.quantityMl}
                       onChange={handleModalChange}
                       min={1}
+                      max={450}
                       required
                     />
                   </div>
@@ -430,6 +582,246 @@ function ReponseEmergencyRequesr() {
           onClose={() => setShowProfileModal(false)}
         />
       )}
+
+      <style>{`
+        .emergency-response-container {
+          padding: 2rem;
+          background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(220, 53, 69, 0.1);
+          margin: 2rem;
+          animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+          padding: 1rem 1.5rem;
+          background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+          border-radius: 12px;
+          box-shadow: 0 2px 10px rgba(220, 53, 69, 0.05);
+          border-left: 4px solid #dc3545;
+        }
+
+        .page-title {
+          color: #dc3545;
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .page-title i {
+          font-size: 1.75rem;
+          color: #dc3545;
+          opacity: 0.9;
+        }
+
+        .table-responsive {
+          background: #ffffff;
+          border-radius: 12px;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+          padding: 1rem;
+          margin-top: 1.5rem;
+        }
+
+        .custom-table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+          border: 1px solid rgba(222, 226, 230, 0.8);
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .custom-table th {
+          background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+          padding: 1.25rem 1rem;
+          font-weight: 600;
+          color: #495057;
+          border-bottom: 2px solid #f1f1f1;
+          text-transform: uppercase;
+          font-size: 0.85rem;
+          letter-spacing: 0.5px;
+        }
+
+        .custom-table td {
+          padding: 1.25rem 1rem;
+          border-bottom: 1px solid #f1f1f1;
+          vertical-align: middle;
+          transition: all 0.2s ease;
+        }
+
+        .custom-table tbody tr {
+          transition: all 0.2s ease;
+        }
+
+        .custom-table tbody tr:hover {
+          background-color: #f8f9fa;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .loading-spinner {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 4rem;
+          color: #6c757d;
+          background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+          border-radius: 12px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+          margin: 1rem 0;
+        }
+
+        .loading-spinner .spinner-border {
+          width: 3rem;
+          height: 3rem;
+          color: #dc3545 !important;
+        }
+
+        .loading-text {
+          margin-top: 1.25rem;
+          font-size: 1.1rem;
+          font-weight: 500;
+          color: #495057;
+          text-align: center;
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { opacity: 0.6; }
+        }
+
+        .custom-alert-warning {
+          background-color: #fff3cd;
+          border: 1px solid #ffeeba;
+          color: #856404;
+          padding: 1rem;
+          border-radius: 8px;
+          margin-bottom: 1rem;
+        }
+
+        .custom-alert-secondary {
+          background-color: #e2e3e5;
+          border: 1px solid #d6d8db;
+          color: #383d41;
+          padding: 1rem;
+          border-radius: 8px;
+          margin-bottom: 1rem;
+        }
+
+        .badge {
+          padding: 0.6rem 1rem;
+          border-radius: 50px;
+          font-weight: 500;
+          font-size: 0.85rem;
+          letter-spacing: 0.3px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+        }
+
+        .badge i {
+          font-size: 0.75rem;
+        }
+
+        .btn {
+          padding: 0.7rem 1.5rem;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          font-weight: 500;
+          letter-spacing: 0.3px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-outline-danger {
+          border: 2px solid #dc3545;
+          color: #dc3545;
+          background: transparent;
+        }
+
+        .btn-outline-danger:hover {
+          background: #dc3545;
+          color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        }
+
+        .btn-info, .btn-primary {
+          border: none;
+          font-size: 0.9rem;
+        }
+
+        .btn-info {
+          background: linear-gradient(135deg, #17a2b8, #0f7a8a);
+          color: white;
+        }
+
+        .btn-primary {
+          background: linear-gradient(135deg, #0d6efd, #0a58ca);
+          color: white;
+        }
+
+        .btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-content {
+          border-radius: 12px;
+          border: none;
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+          border-bottom: 2px solid #f8d7da;
+          padding: 1rem 1.5rem;
+        }
+
+        .modal-footer {
+          border-top: 1px solid #dee2e6;
+          padding: 1rem 1.5rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+          border-color: #dc3545;
+          box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        @media (max-width: 768px) {
+          .emergency-response-container {
+            margin: 1rem;
+            padding: 1rem;
+          }
+
+          .page-header {
+            flex-direction: column;
+            gap: 1rem;
+          }
+
+          .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+          }
+        }
+      `}</style>
     </div>
   );
 }
