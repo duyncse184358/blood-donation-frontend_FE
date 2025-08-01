@@ -73,6 +73,15 @@ function CertificateList() {
   const [selectedCert, setSelectedCert] = useState(null);
   const [donationDetail, setDonationDetail] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
+  
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, type: '', message: '' });
+  
+  // Show toast notification
+  const showToast = (type, message) => {
+    setToast({ show: true, type, message });
+    setTimeout(() => setToast({ show: false, type: '', message: '' }), 3000);
+  };
 
 
   useEffect(() => {
@@ -144,14 +153,35 @@ function CertificateList() {
   };
 
   const handleExportPDF = async () => {
-    if (!certRef.current) return;
-    const html2canvas = (await import('html2canvas')).default;
-    const jsPDF = (await import('jspdf')).default;
-    const canvas = await html2canvas(certRef.current, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('landscape', 'mm', 'a4');
-    pdf.addImage(imgData, 'PNG', 10, 10, 277, 190);
-    pdf.save(`GiayChungNhanHienMau_${selectedCert?.certificateNo || 'export'}.pdf`);
+    if (!certRef.current) {
+      showToast('danger', 'Không thể xuất PDF: Không tìm thấy chứng chỉ');
+      return;
+    }
+    
+    try {
+      showToast('info', 'Đang xuất PDF...');
+      
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).default;
+      
+      const canvas = await html2canvas(certRef.current, { 
+        scale: 2,
+        useCORS: true,
+        allowTaint: true 
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      pdf.addImage(imgData, 'PNG', 10, 10, 277, 190);
+      
+      const fileName = `GiayChungNhanHienMau_${selectedCert?.certificateNo || 'export'}.pdf`;
+      pdf.save(fileName);
+      
+      showToast('success', 'Xuất PDF thành công!');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      showToast('danger', 'Xuất PDF thất bại. Vui lòng thử lại!');
+    }
   };
 
   const handleClose = () => {
@@ -297,12 +327,32 @@ function CertificateList() {
               )}
             </div>
             <div style={{textAlign:'center',marginTop:0, borderTop:'1px solid #eee', padding:'16px 0', background:'#fafafa'}}>
-              {!(selectedCert?.status === 'Use' || selectedCert?.status === 'Used') && (
-                <button className="btn btn-warning me-2" onClick={handleUseCertificate}>Sử dụng</button>
-              )}
               <button className="btn btn-danger me-2" onClick={handleExportPDF}>Xuất PDF</button>
               <button className="btn btn-secondary" onClick={handleClose}>Đóng</button>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Toast Notification */}
+      {toast.show && (
+        <div
+          className={`toast align-items-center text-bg-${toast.type} border-0 show position-fixed top-0 end-0 m-4`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          style={{ zIndex: 9999, minWidth: 300 }}
+        >
+          <div className="d-flex">
+            <div className="toast-body" style={{ fontSize: '16px', padding: '12px' }}>
+              {toast.message}
+            </div>
+            <button 
+              type="button" 
+              className="btn-close btn-close-white me-2 m-auto" 
+              aria-label="Close" 
+              onClick={() => setToast({ show: false, type: '', message: '' })}
+            ></button>
           </div>
         </div>
       )}

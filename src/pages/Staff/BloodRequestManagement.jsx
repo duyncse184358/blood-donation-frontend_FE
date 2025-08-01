@@ -243,7 +243,7 @@ function BloodRequestManagement() {
     setEditingRequest(request);
     setEditForm({
       bloodTypeId: request.bloodTypeId,
-      componentId: request.componentId,
+      componentId: 1, // Mặc định là Máu toàn phần (id: 1)
       quantityNeededMl: request.quantityNeededMl,
       priority: request.priority,
       dueDate: request.dueDate ? request.dueDate.slice(0, 10) : '',
@@ -456,31 +456,6 @@ function BloodRequestManagement() {
                                   Xem thông báo
                                 </button>
                                 <button
-                                  className="btn btn-sm btn-success"
-                                  onClick={() => handleShowCertificate(r)}
-                                >
-                                  Xem chứng chỉ
-                                </button>
-      {/* Modal hiển thị chứng chỉ */}
-      {showCertificateModal && selectedCertificate && (
-        <div className="modal show d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.3)' }}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Chứng chỉ hiến máu</h5>
-                <button type="button" className="btn-close" onClick={handleCloseCertificateModal}></button>
-              </div>
-              <div className="modal-body" style={{padding:24}}>
-                <BloodDonationCertificate data={selectedCertificate} onClose={handleCloseCertificateModal} />
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={handleCloseCertificateModal}>Đóng</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-                                <button
                                   className="btn btn-sm btn-info"
                                   onClick={() => navigate(`/staff/emergency-responses/${r.id}`)}
                                 >
@@ -583,10 +558,9 @@ function BloodRequestManagement() {
                       name="componentId"
                       value={editForm.componentId}
                       onChange={handleEditFormChange}
+                      disabled={true}
                     >
-                      {COMPONENTS.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
+                      <option value={1}>Máu toàn phần</option>
                     </select>
                   </div>
                   <div className="mb-2">

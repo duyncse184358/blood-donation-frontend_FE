@@ -49,10 +49,28 @@ function Report() {
   // Danh sách tất cả các nhóm máu phổ biến
   const ALL_BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-  // Thống kê người dùng theo vai trò
+  // Thống kê người dùng theo vai trò dựa trên roleID với tên role rõ ràng
   const userRoleCount = users.reduce((acc, cur) => {
-    const role = cur.roleName || cur.RoleName || 'Khác';
-    acc[role] = (acc[role] || 0) + 1;
+    const roleId = cur.roleId || cur.RoleId;
+    let roleName = cur.roleName || cur.RoleName;
+    
+    // Mapping roleId to clear role names
+    const roleMapping = {
+      1: 'Admin',
+      2: 'Staff', 
+      3: 'Member',
+      4: 'Doctor',
+      5: 'Nurse'
+    };
+    
+    // Use mapped role name if available, otherwise use existing roleName or fallback
+    if (roleId && roleMapping[roleId]) {
+      roleName = roleMapping[roleId];
+    } else if (!roleName) {
+      roleName = roleId ? `Role ${roleId}` : 'Không xác định';
+    }
+    
+    acc[roleName] = (acc[roleName] || 0) + 1;
     return acc;
   }, {});
 
@@ -139,46 +157,105 @@ function Report() {
             <div className="card shadow-sm p-3 border-0 rounded-4">
               <div className="d-flex align-items-center mb-3">
                 <i className="fa-solid fa-users text-primary me-2" style={{ fontSize: '1.5rem' }}></i>
-                <h5 className="mb-0 text-primary">Người sử dụng theo vai trò</h5>
+                <h5 className="mb-0 text-primary">Thống kê tài khoản theo vai trò</h5>
               </div>
-              <Doughnut
+              <Pie
                 data={{
                   labels: Object.keys(userRoleCount),
                   datasets: [{
                     data: Object.values(userRoleCount),
-                    backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d'],
+                    backgroundColor: [
+                      '#007bff', // Blue
+                      '#dc3545', // Red  
+                      '#ffc107', // Yellow
+                      '#28a745', // Green
+                      '#6c757d', // Gray
+                      '#17a2b8', // Cyan
+                      '#fd7e14', // Orange
+                      '#e83e8c', // Pink
+                      '#6f42c1', // Purple
+                      '#20c997'  // Teal
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
                   }]
                 }}
                 options={{
+                  responsive: true,
                   plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { 
+                      position: 'bottom',
+                      labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                      }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = ((context.parsed / total) * 100).toFixed(1);
+                          return `${context.label}: ${context.parsed} tài khoản (${percentage}%)`;
+                        }
+                      }
+                    }
                   },
                 }}
               />
-              <ul className="mt-3" style={{ fontSize: 15 }}>
-                {Object.entries(userRoleCount).map(([role, count]) => (
-                  <li key={role}>
-                    <b>{role}:</b> {count} người dùng
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-3">
-                {Object.entries(userRoleCount).map(([role, count]) => (
-                  <div key={role} className="mb-3">
-                    <h6 className="text-primary">
-                      {role} ({count} người dùng):
-                    </h6>
-                    <ul style={{ paddingLeft: '1.5rem', fontSize: 14 }}>
-                      {users
-                        .filter(user => user.roleName === role || user.RoleName === role)
-                        .map(user => (
-                          <li key={user.id || user.userId}>
-                            {user.username || user.email || 'Không rõ tên'}
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                ))}
+              <div className="mt-4" style={{ fontSize: 15 }}>
+                <h6 className="text-primary mb-3">
+                  <i className="fa-solid fa-chart-pie me-2"></i>
+                  Chi tiết thống kê:
+                </h6>
+                {Object.entries(userRoleCount).map(([roleName, count], index) => {
+                  const colors = [
+                    '#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d',
+                    '#17a2b8', '#fd7e14', '#e83e8c', '#6f42c1', '#20c997'
+                  ];
+                  const total = Object.values(userRoleCount).reduce((a, b) => a + b, 0);
+                  const percentage = ((count / total) * 100).toFixed(1);
+                  const color = colors[index % colors.length];
+                  
+                  return (
+                    <div key={roleName} style={{ 
+                      marginBottom: '12px', 
+                      padding: '12px 16px', 
+                      backgroundColor: '#f8f9fa',
+                      borderRadius: '10px',
+                      border: `3px solid ${color}`,
+                      display: 'flex', 
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div 
+                          style={{ 
+                            width: '20px', 
+                            height: '20px', 
+                            backgroundColor: color, 
+                            borderRadius: '50%', 
+                            marginRight: '12px',
+                            border: '2px solid #fff',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                        ></div>
+                        <span style={{ fontWeight: '600', color: '#495057' }}>
+                          {roleName}
+                        </span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '18px', color: color }}>
+                          {count} tài khoản
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#6c757d', fontWeight: '500' }}>
+                          {percentage}% tổng số
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -204,11 +281,32 @@ function Report() {
                   plugins: { legend: { display: false } },
                 }}
               />
-              <ul className="mt-3" style={{ fontSize: 15 }}>
-                {ALL_BLOOD_TYPES.map(type => (
-                  <li key={type}><b>Nhóm máu {type}:</b> {bloodTypeCount[type]} đơn vị</li>
-                ))}
-              </ul>
+              <div className="mt-3" style={{ fontSize: 15 }}>
+                {ALL_BLOOD_TYPES.map((type, index) => {
+                  const colors = ['#dc3545', '#e74c3c', '#c0392b', '#a93226'];
+                  const color = colors[index % colors.length];
+                  
+                  return (
+                    <div key={type} style={{ 
+                      marginBottom: '8px', 
+                      padding: '6px 10px', 
+                      backgroundColor: '#fff5f5',
+                      borderRadius: '6px',
+                      borderLeft: `4px solid ${color}`,
+                      display: 'flex', 
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}>
+                      <span style={{ fontWeight: '600', color: '#495057' }}>
+                        Nhóm máu {type}
+                      </span>
+                      <span style={{ fontWeight: 'bold', color: color }}>
+                        {bloodTypeCount[type]} đơn vị
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -305,18 +403,49 @@ function Report() {
                   },
                 }}
               />
-              <ul className="mt-3" style={{ fontSize: 15 }}>
-                {Object.entries(requestStatusCount).map(([status, count]) => (
-                  <li key={status}><b>{status}:</b> {count} đơn</li>
-                ))}
-              </ul>
+              <div className="mt-3" style={{ fontSize: 15 }}>
+                {Object.entries(requestStatusCount).map(([status, count], index) => {
+                  const colors = ['#ffc107', '#007bff', '#dc3545', '#28a745', '#6c757d'];
+                  const color = colors[index % colors.length];
+                  
+                  // Dịch trạng thái sang tiếng Việt
+                  const statusMap = {
+                    'Pending': 'Chờ xử lý',
+                    'Approved': 'Đã duyệt',
+                    'Rejected': 'Từ chối',
+                    'Completed': 'Hoàn thành',
+                    'Cancelled': 'Đã hủy'
+                  };
+                  const displayStatus = statusMap[status] || status;
+                  
+                  return (
+                    <div key={status} style={{ 
+                      marginBottom: '8px', 
+                      padding: '6px 10px', 
+                      backgroundColor: '#f8f9fa',
+                      borderRadius: '6px',
+                      borderLeft: `4px solid ${color}`,
+                      display: 'flex', 
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}>
+                      <span style={{ fontWeight: '600', color: '#495057' }}>
+                        {displayStatus}
+                      </span>
+                      <span style={{ fontWeight: 'bold', color: color }}>
+                        {count} đơn
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
       )}
       <div className="mt-4 text-muted" style={{ fontSize: 15 }}>
         <b>Chú thích:</b> <br />
-        - <b>Người sử dụng theo vai trò</b>: Thống kê số lượng tài khoản từng loại quyền trong hệ thống.<br />
+        - <b>Thống kê tài khoản theo vai trò</b>: Số lượng tài khoản từng loại quyền trong hệ thống (Admin, Staff, Member, Doctor, Nurse).<br />
         - <b>Kho máu theo nhóm máu</b>: Tổng số đơn vị máu hiện có chia theo từng nhóm máu.<br />
         - <b>Lịch sử ghi nhận hiến máu theo ngày</b>: Số lượt hiến máu được ghi nhận từng ngày, có thể lọc theo khoảng ngày.<br />
         - <b>Số đơn hiến máu theo trạng thái</b>: Thống kê số lượng đơn hiến máu ở từng trạng thái (đang chờ, đã duyệt, đã hoàn thành, v.v).

@@ -1,5 +1,6 @@
 // src/pages/Member/RegisterDonation.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 import Navbar from '../../components/Navbar/Navbar'; // Đảm bảo đường dẫn chính xác
 import Footer from '../../components/Footer/Footer';
@@ -26,6 +27,7 @@ const DONATION_MEDICAL_OPTIONS = [
 ];
 
 function RegisterDonation() {
+  const navigate = useNavigate();
   const bloodTypes = [
     { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
     { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
@@ -279,7 +281,7 @@ function RegisterDonation() {
       ].join(', ');
 
       await api.post('/DonationRequest/RegisterDonationRequest', { ...payload, staffNotes: staffNotesValue });
-      setMessage('Yêu cầu hiến máu của bạn đã được gửi thành công! Bạn sẽ nhận được thông báo về trạng thái yêu cầu.');
+      setMessage('Yêu cầu hiến máu của bạn đã được gửi thành công! Đang chuyển hướng đến trang xem đơn đăng ký...');
       
       setFormData({ 
         bloodTypeId: '',
@@ -290,6 +292,11 @@ function RegisterDonation() {
       setFieldErrors({}); 
       setGeneralError(''); 
       setHasSubmitted(false); 
+
+      // Chuyển hướng sau 2 giây để người dùng có thể thấy thông báo thành công
+      setTimeout(() => {
+        navigate('/member/request-detail');
+      }, 2000);
 
       if (formData.preferredDate) {
         api.get(`/DonationRequest/SlotCounts?date=${formData.preferredDate}`)
