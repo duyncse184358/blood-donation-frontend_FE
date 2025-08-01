@@ -47,6 +47,13 @@ const STATUS_OPTIONS = [
 const PAGE_SIZE = 5; // Số lượng mỗi trang
 
 function BloodRequestManagement() {
+  // Toast state
+  const [toast, setToast] = useState({ show: false, type: '', message: '' });
+  // Hiện toast
+  const showToast = (type, message) => {
+    setToast({ show: true, type, message });
+    setTimeout(() => setToast({ show: false, type: '', message: '' }), 2500);
+  };
   // State cho modal chứng chỉ (đặt đúng trong function component)
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
@@ -270,10 +277,10 @@ function BloodRequestManagement() {
             : r
         )
       );
-      setMessage('Cập nhật yêu cầu thành công.');
+      showToast('success', 'Cập nhật yêu cầu thành công.');
       setEditingRequest(null);
     } catch {
-      setMessage('Cập nhật yêu cầu thất bại.');
+      showToast('danger', 'Cập nhật yêu cầu thất bại.');
     }
     setUpdating(false);
   };
@@ -294,9 +301,9 @@ function BloodRequestManagement() {
         headers: { 'Content-Type': 'application/json' }
       });
       setRequests(prev => prev.filter(r => r.id !== id && r.status !== 'Deleted' && r.actualStatus !== 'Deleted'));
-      setMessage('Đã xóa yêu cầu thành công.');
+      showToast('success', 'Đã xóa yêu cầu thành công.');
     } catch {
-      setMessage('Xóa yêu cầu thất bại.');
+      showToast('danger', 'Xóa yêu cầu thất bại.');
     }
   };
 
@@ -527,6 +534,21 @@ function BloodRequestManagement() {
           </>
         )}
 
+        {/* Toast notification */}
+        {toast.show && (
+          <div
+            className={`toast align-items-center text-bg-${toast.type} border-0 show position-fixed top-0 end-0 m-4`}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            style={{ zIndex: 9999, minWidth: 280 }}
+          >
+            <div className="d-flex">
+              <div className="toast-body">{toast.message}</div>
+              <button type="button" className="btn-close btn-close-white me-2 m-auto" aria-label="Close" onClick={() => setToast({ show: false, type: '', message: '' })}></button>
+            </div>
+          </div>
+        )}
         {message && (
           <div className="alert alert-warning mt-3">{message}</div>
         )}

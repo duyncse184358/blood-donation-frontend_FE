@@ -35,7 +35,7 @@ const STATUSES = [
   { value: 'Pending', label: 'Đang chờ xử lý' },
 ];
 
-function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
+function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory, onShowDetail }) {
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -44,33 +44,19 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
   const [filterBloodType, setFilterBloodType] = useState('');
   const [filterComponent, setFilterComponent] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  // Already have onShowDetail from props
 
-  useEffect(() => {
-    fetchUnits();
-    // eslint-disable-next-line
-  }, [reloadFlag]);
 
-  const fetchUnits = () => {
-    setLoading(true);
-    api.get('/BloodUnit')
-      .then(res => {
-        const sorted = [...res.data].sort((a, b) => new Date(b.collectionDate) - new Date(a.collectionDate));
-        setUnits(sorted);
-      })
-      .catch(() => setUnits([]))
-      .finally(() => setLoading(false));
-  };
-
-  // Lọc dữ liệu theo filter và loại bỏ các đơn vị máu có status === 'Deleted'
+  // Filter and paginate units
   const filteredUnits = units.filter(u =>
-    u.status !== 'Deleted' &&
     (filterBloodType === '' || u.bloodTypeName === filterBloodType) &&
     (filterComponent === '' || u.componentName === filterComponent) &&
-    (filterStatus === '' || u.status === filterStatus)
+    (filterStatus === '' || u.status === filterStatus) &&
+    u.status !== 'Deleted'
   );
-
+  const totalPages = Math.max(1, Math.ceil(filteredUnits.length / PAGE_SIZE));
   const pagedUnits = filteredUnits.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const totalPages = Math.ceil(filteredUnits.length / PAGE_SIZE);
+
 
   // Xóa đơn vị máu
   const handleDelete = async (unitId) => {
@@ -101,6 +87,21 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
   useEffect(() => {
     setPage(1);
   }, [filterBloodType, filterComponent, filterStatus]);
+
+  // Lấy danh sách đơn vị máu
+  useEffect(() => {
+    setLoading(true);
+    setMessage('');
+    api.get('/BloodUnit')
+      .then(res => {
+        setUnits(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch(() => {
+        setMessage('Không thể tải danh sách kho máu!');
+        setUnits([]);
+      })
+      .finally(() => setLoading(false));
+  }, [reloadFlag]);
 
   const getEmptyBloodTypes = () => {
     const bloodTypesWithUnits = units.map(u => u.bloodTypeName);
@@ -243,26 +244,26 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
                     </span>
                   </td>
                   <td>
-                    <button className="btn btn-sm btn-info me-1" onClick={async () => {
-                      try {
-                        const res = await api.get(`/BloodUnit/${u.unitId}`);
-                        if (res.data) {
-                          alert(
-                            `Mã: ${res.data.unitId}\n` +
-                            `Nhóm máu: ${res.data.bloodTypeName}\n` +
-                            `Thành phần: ${res.data.componentName}\n` +
-                            `Thể tích: ${res.data.volumeMl} ml\n` +
-                            `Ngày lấy: ${res.data.collectionDate}\n` +
-                            `Trạng thái: ${res.data.status}`
-                          );
-                        } else {
-                          alert('Không tìm thấy thông tin chi tiết!');
-                        }
-                      } catch {
-                        alert('Không thể lấy thông tin chi tiết!');
-                      }
-                    }}>Xem chi tiết</button>
+                    <button className="btn btn-sm btn-info me-1" onClick={() => onShowDetail(u.unitId)}>
+                      Xem chi tiết
+                    </button>
                     <button className="btn btn-sm btn-warning me-1" onClick={() => onEditUnit(u)}>Sửa</button>
+                    {u.status === 'Separating' && (
+                      <button
+                        className="btn btn-sm btn-outline-primary me-1"
+                        onClick={async () => {
+                          try {
+                            await api.post(`/BloodUnit/separate/${u.unitId}`);
+                            alert('Đã tách thành phần máu thành công!');
+                            if (reloadInventory) reloadInventory();
+                          } catch {
+                            alert('Tách thành phần máu thất bại!');
+                          }
+                        }}
+                      >
+                        Tách thành phần
+                      </button>
+                    )}
                     <button className="btn btn-sm btn-danger" onClick={() => handleDelete(u.unitId)}>Xóa</button>
                   </td>
                 </tr>
@@ -291,8 +292,13 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory }) {
           </nav>
         </>
       )}
+
+
+
+
     </div>
   );
 }
 
+// Không còn quản lý modal hoặc overlay ở đây. Tất cả modal chi tiết sẽ do component cha quản lý.
 export default BloodInventoryManager;

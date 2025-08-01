@@ -47,11 +47,11 @@ const translateStatus = (status) => {
   return statusMap[status] || status;
 };
 
+
 function StaffDashboard() {
   const [activeTab, setActiveTab] = useState('emergency');
   const [modalType, setModalType] = useState(null);
   const [selected, setSelected] = useState(null);
-  const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editUnit, setEditUnit] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -63,13 +63,23 @@ function StaffDashboard() {
   const [discardErr, setDiscardErr] = useState('');
   const [inventoryReloadFlag, setInventoryReloadFlag] = useState(0);
 
-const reloadInventory = () => {
-  setInventoryReloadFlag(f => f + 1);
-};
+
+  // Derived: có modal nào đang mở không?
+  const isModalVisible = Boolean(
+    (modalType === 'detail' && selected) ||
+    (modalType === 'bloodUnitDetail' && selected) ||
+    (modalType === 'inventory') ||
+    editUnit ||
+    discardUnit
+  );
+
+  const reloadInventory = () => {
+    setInventoryReloadFlag(f => f + 1);
+  };
 
   useEffect(() => {
     const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
-    if (isAnyModalOpen) {
+    if (isModalVisible) {
       document.body.classList.add('modal-open');
       if (scrollBarWidth > 0) {
         document.body.style.paddingRight = `${scrollBarWidth}px`;
@@ -82,18 +92,16 @@ const reloadInventory = () => {
       document.body.classList.remove('modal-open');
       document.body.style.paddingRight = '';
     };
-  }, [isAnyModalOpen]);
+  }, [isModalVisible]);
 
   const openModal = (type, data) => {
     setModalType(type);
     setSelected(data);
-    setIsAnyModalOpen(true);
   };
 
   const closeModal = () => {
     setModalType(null);
     setSelected(null);
-    setIsAnyModalOpen(false);
   };
 
   const handleEditUnit = (unit) => {
@@ -154,6 +162,16 @@ const reloadInventory = () => {
     setEditMessage('');
   };
 
+  const handleShowDetail = async (unitId) => {
+    try {
+      const response = await api.get(`/BloodUnit/${unitId}`);
+      setSelected(response.data);
+      setModalType('bloodUnitDetail');
+    } catch (error) {
+      console.error('Error fetching blood unit details:', error);
+    }
+  };
+
   const handleSelectDiscardUnit = (unit) => {
     setDiscardUnit(unit);
     setDiscardForm(unit);
@@ -200,6 +218,21 @@ const reloadInventory = () => {
     }
   };
 
+  // Hàm mở modal chi tiết đơn vị máu (dùng cho các nơi cần xem chi tiết)
+  const handleShowBloodUnitDetail = async (unitId) => {
+    try {
+      const res = await api.get(`/BloodUnit/${unitId}`);
+      if (res.data) {
+        setSelected(res.data);
+        setModalType('bloodUnitDetail');
+      } else {
+        console.error('Không tìm thấy thông tin chi tiết!');
+      }
+    } catch (error) {
+      console.error('Không thể lấy thông tin chi tiết:', error);
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'emergency': return <EmergencyRequestForm />;
@@ -207,7 +240,7 @@ const reloadInventory = () => {
       case 'donation': return <DonationRecordForm />;
       case 'inventory':
         if (modalType === 'inventory') return null;
-        return <BloodInventoryManager onEditUnit={handleEditUnit} reloadFlag={inventoryReloadFlag} reloadInventory={reloadInventory} />;
+        return <BloodInventoryManager onEditUnit={handleEditUnit} reloadFlag={inventoryReloadFlag} reloadInventory={reloadInventory} openModal={openModal} onShowDetail={handleShowBloodUnitDetail} />;
       case 'discard': return <BloodDiscardForm onSelectUnit={handleSelectDiscardUnit} />;
       case 'search': return <DonorSearch />;
       case 'notification': return <NotificationForm />;
@@ -216,6 +249,8 @@ const reloadInventory = () => {
       default: return null;
     }
   };
+
+
 
   return (
     <div className="staff-dashboard-wrapper">
@@ -258,6 +293,7 @@ const reloadInventory = () => {
           </section>
         </div>
 
+
         {modalType === 'detail' && selected && (
           <div
             className="modal show d-block"
@@ -271,6 +307,48 @@ const reloadInventory = () => {
                   <button type="button" className="btn-close" onClick={closeModal}></button>
                 </div>
                 <DetailEditForm selected={selected} closeModal={closeModal} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {modalType === 'bloodUnitDetail' && selected && (
+          <div className="modal show d-block" tabIndex="-1" style={{
+            background: 'rgba(0,0,0,0.2)',
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            zIndex: 1050,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+            onClick={closeModal}
+          >
+            <div className="modal-dialog" style={{ margin: 0 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Chi tiết đơn vị máu</h5>
+                  <button type="button" className="btn-close" onClick={closeModal}></button>
+                </div>
+                <div className="modal-body">
+                  <table className="table table-bordered table-sm mb-0">
+                    <tbody>
+                      <tr><th style={{width:170}}>Mã đơn vị</th><td>{selected.unitId}</td></tr>
+                      <tr><th>Nhóm máu</th><td>{selected.bloodTypeName}</td></tr>
+                      <tr><th>Thành phần</th><td>{selected.componentName}</td></tr>
+                      <tr><th>Thể tích</th><td>{selected.volumeMl} ml</td></tr>
+                      <tr><th>Ngày lấy</th><td>{selected.collectionDate}</td></tr>
+                      <tr><th>Trạng thái</th><td>{translateStatus(selected.status)}</td></tr>
+                      <tr><th>Mã chứng chỉ</th><td>{selected.certificateNo || (selected.donationId ? ('B' + selected.donationId) : '')}</td></tr>
+                      <tr><th>Mã hiến máu</th><td>{selected.donationId || '-'}</td></tr>
+                      <tr><th>Ngày hết hạn</th><td>{selected.expirationDate || '-'}</td></tr>
+                      <tr><th>Ghi chú</th><td>{selected.remarks || '-'}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" type="button" onClick={closeModal}>Đóng</button>
+                </div>
               </div>
             </div>
           </div>
@@ -464,7 +542,7 @@ const reloadInventory = () => {
           </div>
         )}
 
-        {isAnyModalOpen && <div className="modal-backdrop fade show"></div>}
+        {isModalVisible && <div className="modal-backdrop fade show"></div>}
       </main>
       <Footer />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />

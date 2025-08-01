@@ -13,6 +13,13 @@ const BLOOD_TYPES = [
 ];
 
 function EmergencyNotificationSend() {
+  // Toast state
+  const [toast, setToast] = useState({ show: false, type: '', message: '' });
+  // Hiện toast
+  const showToast = (type, message) => {
+    setToast({ show: true, type, message });
+    setTimeout(() => setToast({ show: false, type: '', message: '' }), 2500);
+  };
   const { id } = useParams();
   const location = useLocation();
 
@@ -101,6 +108,7 @@ function EmergencyNotificationSend() {
   const handleSendNotification = async () => {
     if (selectedDonors.length === 0) {
       setSendResult('error:Vui lòng chọn ít nhất một người nhận.');
+      showToast('danger', 'Vui lòng chọn ít nhất một người nhận.');
       return;
     }
     setSending(true);
@@ -130,15 +138,18 @@ function EmergencyNotificationSend() {
         setSendResult(`success:Đã gửi thông báo thành công cho ${successCount} người!${skipCount > 0 ? ` (Bỏ qua ${skipCount} người đã được gửi trước đó)` : ''}`);
         setSentUserIds(prev => [...prev, ...selectedDonors.filter(id => !prev.includes(id))]);
         setShowResultModal(true);
+        showToast('success', `Đã gửi thông báo thành công cho ${successCount} người!${skipCount > 0 ? ` (Bỏ qua ${skipCount} người đã được gửi trước đó)` : ''}`);
       } else {
         setSendResult('warning:Không có thông báo nào được gửi. Tất cả người được chọn đã nhận thông báo trước đó.');
         setShowResultModal(true);
+        showToast('warning', 'Không có thông báo nào được gửi. Tất cả người được chọn đã nhận thông báo trước đó.');
       }
       setSelectedDonors([]);
     } catch (error) {
       console.error('Send notification error:', error);
       setSendResult('error:Gửi thông báo thất bại. Vui lòng thử lại.');
       setShowResultModal(true);
+      showToast('danger', 'Gửi thông báo thất bại. Vui lòng thử lại.');
     }
     setSending(false);
   };
@@ -147,6 +158,21 @@ function EmergencyNotificationSend() {
     <div className="page-wrapper">
       <Header />
       <Navbar />
+      {/* Toast notification */}
+      {toast.show && (
+        <div
+          className={`toast align-items-center text-bg-${toast.type} border-0 show position-fixed top-0 end-0 m-4`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          style={{ zIndex: 9999, minWidth: 280 }}
+        >
+          <div className="d-flex">
+            <div className="toast-body">{toast.message}</div>
+            <button type="button" className="btn-close btn-close-white me-2 m-auto" aria-label="Close" onClick={() => setToast({ show: false, type: '', message: '' })}></button>
+          </div>
+        </div>
+      )}
       <main className="container my-5">
         <h2 className="mb-4 text-danger">Chi tiết thông báo khẩn cấp</h2>
         {error && <div className="alert alert-danger">{error}</div>}
