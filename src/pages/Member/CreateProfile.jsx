@@ -702,3 +702,120 @@ function CreateProfile({ onClose }) {
 }
 
 export default CreateProfile;
+
+
+// Blood donation themed CSS
+const style = document.createElement('style');
+style.innerHTML = `
+  .profile-page-container {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 18px rgba(220,53,69,0.13);
+    max-width: 900px;
+    margin: 32px auto;
+    padding: 32px 28px;
+    border: 1.5px solid #f3d6db;
+  }
+  .profile-page-container h2 {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #b30000;
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 6px #f8d7da;
+  }
+  .profile-page-container h5 {
+    font-size: 1.18rem;
+    font-weight: 700;
+    color: #b30000;
+    margin-bottom: 12px;
+    margin-top: 24px;
+    letter-spacing: 0.5px;
+  }
+  .profile-page-container .form-label {
+    font-weight: 600;
+    color: #b30000;
+    margin-bottom: 4px;
+  }
+  .profile-page-container .form-control, .profile-page-container .form-select {
+    border-radius: 8px;
+    font-size: 1.05rem;
+    background: #fff8f8;
+    border: 1.5px solid #f3d6db;
+    margin-bottom: 2px;
+  }
+  .profile-page-container .form-control:focus, .profile-page-container .form-select:focus {
+    border-color: #b30000;
+    box-shadow: 0 0 0 2px #f8d7da;
+  }
+  .profile-page-container .btn-primary {
+    background: linear-gradient(90deg, #dc3545 0%, #b30000 100%);
+    border: none;
+    font-weight: 700;
+    font-size: 1.08rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(220,53,69,0.09);
+    padding: 0.55em 1.3em;
+    transition: background 0.18s, color 0.18s;
+  }
+  .profile-page-container .btn-primary:hover {
+    background: #b30000;
+    color: #fff;
+  }
+  .profile-page-container .btn-warning {
+    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+    border: none;
+    color: #b30000;
+    font-weight: 700;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(255,193,7,0.09);
+    padding: 0.55em 1.3em;
+    transition: background 0.18s, color 0.18s;
+  }
+  .profile-page-container .btn-warning:hover {
+    background: #ff9800;
+    color: #fff;
+  }
+  .profile-page-container .btn-outline-secondary {
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    border: 1.5px solid #f3d6db;
+    color: #b30000;
+    background: #fff8f8;
+    transition: background 0.15s, color 0.15s;
+  }
+  .profile-page-container .btn-outline-secondary:hover {
+    background: #f8d7da;
+    color: #b30000;
+  }
+  .profile-page-container .list-group-item {
+    font-size: 1.05rem;
+    background: #fff8f8;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    border: 1.5px solid #f3d6db;
+  }
+  .profile-page-container .alert-success {
+    border-radius: 8px;
+    font-size: 1.08rem;
+    font-weight: 500;
+    padding: 12px 18px;
+    background: #f8d7da;
+    color: #b30000;
+    border: 1.5px solid #f3d6db;
+  }
+  .profile-page-container .alert-danger {
+    border-radius: 8px;
+    font-size: 1.08rem;
+    font-weight: 500;
+    padding: 12px 18px;
+    background: #ffebee;
+    color: #b30000;
+    border: 1.5px solid #f3d6db;
+  }
+`;
+if (!document.head.querySelector('style[data-profile-page]')) {
+  style.setAttribute('data-profile-page', 'true');
+  document.head.appendChild(style);
+}

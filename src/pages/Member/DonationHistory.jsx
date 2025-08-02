@@ -218,14 +218,17 @@ function DonationHistory() {
       try {
         const response = await api.get(`/DonationHistory/by-donor/${user.userId}`);
         setHistory(Array.isArray(response.data) ? response.data : []);
-      } catch (err) {
-        let msg = 'Đã xảy ra lỗi khi lấy lịch sử hiến máu. Vui lòng thử lại sau.';
-        if (err?.response?.status === 404) {
-          msg = 'Không tìm thấy lịch sử hiến máu cho tài khoản này.';
-        } else if (err?.message) {
-          msg = err.message;
+        if (!response.data || (Array.isArray(response.data) && response.data.length === 0)) {
+          setError('Bạn chưa có lịch sử hiến máu nào.');
         }
-        setError(msg);
+      } catch (err) {
+        if (err?.response?.status === 404) {
+          setError('Bạn chưa có lịch sử hiến máu nào.');
+        } else {
+          let msg = 'Đã xảy ra lỗi khi lấy lịch sử hiến máu. Vui lòng thử lại sau.';
+          if (err?.message) msg = err.message;
+          setError(msg);
+        }
       } finally {
         setLoading(false);
       }
@@ -288,14 +291,8 @@ function DonationHistory() {
         <DonationHistoryHeader>Lịch sử hiến máu của bạn</DonationHistoryHeader>
 
         {error && (
-          <InfoMessageBox className="error">
+          <InfoMessageBox className={error === 'Bạn chưa có lịch sử hiến máu nào.' ? 'no-data' : 'error'}>
             {error}
-          </InfoMessageBox>
-        )}
-
-        {!error && history.length === 0 && (
-          <InfoMessageBox className="no-data">
-            Bạn chưa có lịch sử hiến máu nào.
           </InfoMessageBox>
         )}
 

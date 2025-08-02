@@ -126,7 +126,11 @@ function CertificateList() {
           }
         });
       } catch (err) {
-        setError('Không thể tải dữ liệu chứng chỉ từ lịch sử hiến máu.');
+        if (err.response && err.response.status === 404) {
+          setError('Không thể tải dữ liệu chứng chỉ từ lịch sử hiến máu.');
+        } else {
+          setError('Không thể tải dữ liệu chứng chỉ từ lịch sử hiến máu.');
+        }
       } finally {
         setLoading(false);
       }
@@ -246,7 +250,10 @@ function CertificateList() {
         ) : error ? (
           <div style={{color: 'red'}}>{error}</div>
         ) : completedCertificates.length === 0 ? (
-          <div>Bạn chưa có chứng chỉ hiến máu nào (chỉ hiển thị các lần hiến máu đã hoàn thành).</div>
+          <div className="alert alert-warning" style={{fontSize:'1.08rem',borderRadius:8,padding:'16px',margin:'24px 0',color:'#b30000',background:'#fff8f8',border:'1.5px solid #f3d6db',textAlign:'center'}}>
+            Tài khoản này chưa có chứng chỉ hiến máu nào.<br/>
+            (Chỉ hiển thị các lần hiến máu đã hoàn thành và được cấp chứng nhận)
+          </div>
         ) : (
           <table className="table table-bordered">
             <thead>
