@@ -49,27 +49,22 @@ function Report() {
   // Danh sách tất cả các nhóm máu phổ biến
   const ALL_BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-  // Thống kê người dùng theo vai trò dựa trên roleID với tên role rõ ràng
+  // Thống kê người dùng theo vai trò dựa trên roleID với tên vai trò tiếng Việt
+  const roleMappingVi = {
+    1: 'Quản trị viên',
+    2: 'Nhân viên',
+    3: 'Thành viên',
+    4: 'Bác sĩ',
+    5: 'Y tá'
+  };
   const userRoleCount = users.reduce((acc, cur) => {
     const roleId = cur.roleId || cur.RoleId;
     let roleName = cur.roleName || cur.RoleName;
-    
-    // Mapping roleId to clear role names
-    const roleMapping = {
-      1: 'Admin',
-      2: 'Staff', 
-      3: 'Member',
-      4: 'Doctor',
-      5: 'Nurse'
-    };
-    
-    // Use mapped role name if available, otherwise use existing roleName or fallback
-    if (roleId && roleMapping[roleId]) {
-      roleName = roleMapping[roleId];
+    if (roleId && roleMappingVi[roleId]) {
+      roleName = roleMappingVi[roleId];
     } else if (!roleName) {
-      roleName = roleId ? `Role ${roleId}` : 'Không xác định';
+      roleName = roleId ? `Vai trò ${roleId}` : 'Không xác định';
     }
-    
     acc[roleName] = (acc[roleName] || 0) + 1;
     return acc;
   }, {});
@@ -157,7 +152,7 @@ function Report() {
             <div className="card shadow-sm p-3 border-0 rounded-4">
               <div className="d-flex align-items-center mb-3">
                 <i className="fa-solid fa-users text-primary me-2" style={{ fontSize: '1.5rem' }}></i>
-                <h5 className="mb-0 text-primary">Thống kê tài khoản theo vai trò</h5>
+              <h5 className="mb-0 text-primary">Thống kê tài khoản theo vai trò</h5>
               </div>
               <Pie
                 data={{
@@ -265,7 +260,7 @@ function Report() {
             <div className="card shadow-sm p-3 border-0 rounded-4">
               <div className="d-flex align-items-center mb-3">
                 <i className="fa-solid fa-tint text-danger me-2" style={{ fontSize: '1.5rem' }}></i>
-                <h5 className="mb-0 text-danger">Kho máu theo nhóm máu</h5>
+              <h5 className="mb-0 text-danger">Kho máu theo nhóm máu</h5>
               </div>
               <Bar
                 data={{
@@ -387,11 +382,21 @@ function Report() {
             <div className="card shadow-sm p-3 border-0 rounded-4">
               <div className="d-flex align-items-center mb-3">
                 <i className="fa-solid fa-file-alt text-warning me-2" style={{ fontSize: '1.5rem' }}></i>
-                <h5 className="mb-0 text-warning">Số đơn hiến máu theo trạng thái</h5>
+              <h5 className="mb-0 text-warning">Số đơn hiến máu theo trạng thái</h5>
               </div>
               <Pie
                 data={{
-                  labels: Object.keys(requestStatusCount),
+                  labels: Object.keys(requestStatusCount).map(status => {
+                    const statusMapVi = {
+                      'Pending': 'Chờ xử lý',
+                      'Approved': 'Chấp nhận',
+                      'Accepted': 'Chấp nhận',
+                      'Rejected': 'Từ chối',
+                      'Completed': 'Hoàn thành',
+                      'Cancelled': 'Đã hủy'
+                    };
+                    return statusMapVi[status] || status;
+                  }),
                   datasets: [{
                     data: Object.values(requestStatusCount),
                     backgroundColor: ['#ffc107', '#007bff', '#dc3545', '#28a745', '#6c757d'],
@@ -407,17 +412,15 @@ function Report() {
                 {Object.entries(requestStatusCount).map(([status, count], index) => {
                   const colors = ['#ffc107', '#007bff', '#dc3545', '#28a745', '#6c757d'];
                   const color = colors[index % colors.length];
-                  
-                  // Dịch trạng thái sang tiếng Việt
-                  const statusMap = {
+                  const statusMapVi = {
                     'Pending': 'Chờ xử lý',
-                    'Approved': 'Đã duyệt',
+                    'Approved': 'Chấp nhận',
+                    'Accepted': 'Chấp nhận',
                     'Rejected': 'Từ chối',
                     'Completed': 'Hoàn thành',
                     'Cancelled': 'Đã hủy'
                   };
-                  const displayStatus = statusMap[status] || status;
-                  
+                  const displayStatus = statusMapVi[status] || status;
                   return (
                     <div key={status} style={{ 
                       marginBottom: '8px', 
@@ -445,10 +448,10 @@ function Report() {
       )}
       <div className="mt-4 text-muted" style={{ fontSize: 15 }}>
         <b>Chú thích:</b> <br />
-        - <b>Thống kê tài khoản theo vai trò</b>: Số lượng tài khoản từng loại quyền trong hệ thống (Admin, Staff, Member, Doctor, Nurse).<br />
+        - <b>Thống kê tài khoản theo vai trò</b>: Số lượng tài khoản từng loại quyền trong hệ thống (Quản trị viên, Nhân viên, Thành viên, Bác sĩ, Y tá).<br />
         - <b>Kho máu theo nhóm máu</b>: Tổng số đơn vị máu hiện có chia theo từng nhóm máu.<br />
         - <b>Lịch sử ghi nhận hiến máu theo ngày</b>: Số lượt hiến máu được ghi nhận từng ngày, có thể lọc theo khoảng ngày.<br />
-        - <b>Số đơn hiến máu theo trạng thái</b>: Thống kê số lượng đơn hiến máu ở từng trạng thái (đang chờ, đã duyệt, đã hoàn thành, v.v).
+        - <b>Số đơn hiến máu theo trạng thái</b>: Thống kê số lượng đơn hiến máu ở từng trạng thái (chờ xử lý, chấp nhận, đã hoàn thành, v.v).<br />
       </div>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     </div>

@@ -57,17 +57,17 @@ function ManageUserAccount() {
     // eslint-disable-next-line
   }, [isAuthenticated, user]);
 
-  // Xóa tài khoản
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa tài khoản này?')) return;
+  // Vô hiệu hóa tài khoản
+  const handleDeactivate = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn vô hiệu hóa tài khoản này?')) return;
     setError('');
     setSuccess('');
     try {
-      await api.delete(`/ManageUserAccounts/${id}`);
-      setSuccess('Xóa tài khoản thành công.');
+      await api.put(`/ManageUserAccounts/${id}`, { isActive: false });
+      setSuccess('Vô hiệu hóa tài khoản thành công.');
       fetchAccounts();
     } catch (err) {
-      setError('Xóa tài khoản thất bại.');
+      setError('Vô hiệu hóa tài khoản thất bại.');
     }
   };
 
@@ -271,8 +271,8 @@ function ManageUserAccount() {
                     >
                       Cập nhật
                     </button>
-                    <button onClick={() => handleDelete(acc.id)} style={{ color: 'red' }}>
-                      Xóa
+                    <button onClick={() => handleDeactivate(acc.id)} style={{ color: 'orange' }}>
+                      Vô hiệu hóa
                     </button>
                   </td>
                 </tr>

@@ -48,17 +48,17 @@ function DashboardPage() {
     // eslint-disable-next-line
   }, [isAuthenticated, user]);
 
-  // Xóa tài khoản
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa tài khoản này?')) return;
+  // Vô hiệu hóa tài khoản
+  const handleDeactivate = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn vô hiệu hóa tài khoản này?')) return;
     setError('');
     setSuccess('');
     try {
-      await api.delete(`/ManageUserAccounts/${id}`);
-      setSuccess('Xóa tài khoản thành công.');
+      await api.put(`/ManageUserAccounts/${id}`, { isActive: false });
+      setSuccess('Vô hiệu hóa tài khoản thành công.');
       fetchUsers();
     } catch (err) {
-      setError('Xóa tài khoản thất bại.');
+      setError('Vô hiệu hóa tài khoản thất bại.');
     }
   };
 
@@ -279,10 +279,10 @@ function DashboardPage() {
                         Cập nhật
                       </button>
                       <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(u.userId || u.UserId || u.id)}
+                        className="btn btn-warning btn-sm"
+                        onClick={() => handleDeactivate(u.userId || u.UserId || u.id)}
                       >
-                        Xóa
+                        Vô hiệu hóa
                       </button>
                     </td>
                   </tr>
