@@ -83,7 +83,12 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
         BloodTypeId: form.bloodTypeId,
         ComponentId: 1, // Luôn là 1
         QuantityMl: form.quantityMl,
-        EligibilityStatus:form.eligibilityStatus ,
+        EligibilityStatus:
+          form.eligibilityStatus === true || form.eligibilityStatus === 'true'
+            ? 'true'
+            : form.eligibilityStatus === false || form.eligibilityStatus === 'false'
+            ? 'false'
+            : '',
         ReasonIneligible: form.reasonIneligible,
         TestingResults: form.testingResults,
         StaffUserId: user?.userId || form.staffUserId,
