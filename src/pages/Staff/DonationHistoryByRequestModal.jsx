@@ -84,10 +84,10 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
         ComponentId: 1, // Luôn là 1
         QuantityMl: form.quantityMl,
         EligibilityStatus:
-          form.eligibilityStatus === true || form.eligibilityStatus === 'true'
-            ? 'true'
-            : form.eligibilityStatus === false || form.eligibilityStatus === 'false'
-            ? 'false'
+          form.eligibilityStatus === true || form.eligibilityStatus === 'Eligible'
+            ? 'Eligible'
+            : form.eligibilityStatus === false || form.eligibilityStatus === 'Eligible'
+            ? 'Not Eligible'
             : '',
         ReasonIneligible: form.reasonIneligible,
         TestingResults: form.testingResults,
@@ -157,11 +157,11 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                   <div><b>Nhóm máu:</b> {history.bloodTypeName}</div>
                   <div><b>Số lượng (ml):</b> {history.quantityMl}</div>
                   <div><b>Tình trạng đủ điều kiện:</b>{' '}
-                    {history.eligibilityStatus === 'true'
+                    {history.eligibilityStatus === 'Eligible' || history.eligibilityStatus === 'true'
                       ? 'Đủ điều kiện'
-                      : history.eligibilityStatus === 'false'
+                      : history.eligibilityStatus === 'Not Eligible' || history.eligibilityStatus === 'false'
                       ? 'Không đủ điều kiện'
-                      : ''}
+                      : history.eligibilityStatus || 'Chưa xác định'}
                   </div>
                   <div><b>Lý do không đủ điều kiện:</b> {history.reasonIneligible}</div>
                   <div><b>Kết quả xét nghiệm:</b> {history.testingResults}</div>
@@ -193,7 +193,18 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                     <input type="number" className="form-control" name="quantityMl" value={form.quantityMl || ''} onChange={handleChange} />
                   </div>
                   <div className="mb-2"><b>Tình trạng đủ điều kiện:</b>
-                    <select className="form-select" name="eligibilityStatus" value={form.eligibilityStatus === true ? 'true' : form.eligibilityStatus === false ? 'false' : ''} onChange={e => setForm(f => ({ ...f, eligibilityStatus: e.target.value === 'true' ? true : e.target.value === 'false' ? false : '' }))}>
+                    <select 
+                      className="form-select" 
+                      name="eligibilityStatus" 
+                      value={
+                        form.eligibilityStatus === 'Eligible' || form.eligibilityStatus === true || form.eligibilityStatus === 'true' 
+                          ? 'true' 
+                          : form.eligibilityStatus === 'Not Eligible' || form.eligibilityStatus === false || form.eligibilityStatus === 'false' 
+                          ? 'false' 
+                          : ''
+                      } 
+                      onChange={e => setForm(f => ({ ...f, eligibilityStatus: e.target.value }))}
+                    >
                       <option value="">Chọn tình trạng</option>
                       <option value="true">Đủ điều kiện</option>
                       <option value="false">Không đủ điều kiện</option>
