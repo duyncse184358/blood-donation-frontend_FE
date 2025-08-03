@@ -154,6 +154,11 @@ function EmergencyNotifications() {
                             .replace(/(<([^>]+)>)/gi, '') // Bỏ thẻ HTML nếu có
                             .replace(/(?:\r\n|\r|\n)/g, ' ') // Bỏ xuống dòng
                             .replace(/[\[\]\{\}"]/g, '') // Bỏ [, ], {, }
+                            .replace(/High/g, 'Cao')
+                            .replace(/Low/g, 'Thấp')
+                            .replace(/Medium/g, 'Trung bình')
+                            .replace(/\bam\b/gi, 'sáng')
+                            .replace(/\bpm\b/gi, 'tối')
                             .trim()
                         : ''}
                     </p>

@@ -247,20 +247,41 @@ function ReponseEmergencyRequesr() {
     setHistory(null);
 
     try {
+      // Lấy tất cả lịch sử hiến máu thực tế cho yêu cầu này
       const res = await api.get(`/DonationHistory/by-request/${requestId}`);
-      setHistory(res.data);
+      // Nếu đã có ghi nhận hiến máu thực tế cho người này thì không cho ghi nhận lại
+      if (Array.isArray(res.data)) {
+        const found = res.data.find(h => h.donorUserId === donorUserId);
+        if (found) {
+          setModalErr('Người này đã được ghi nhận hiến máu thực tế cho yêu cầu này. Không thể ghi nhận lại!');
+          return;
+        }
+      } else if (res.data && res.data.donorUserId === donorUserId) {
+        setModalErr('Người này đã được ghi nhận hiến máu thực tế cho yêu cầu này. Không thể ghi nhận lại!');
+        return;
+      }
+      setHistory(null);
+      // Nếu chưa có, lấy nhóm máu và ngày hiến mặc định từ yêu cầu khẩn cấp
+      let defaultBloodTypeId = emergencyRequest?.bloodTypeId || '';
+      let defaultDate = '';
+      if (emergencyRequest?.neededDate) {
+        const date = new Date(emergencyRequest.neededDate);
+        if (!isNaN(date.getTime())) {
+          defaultDate = date.toISOString().slice(0, 16);
+        }
+      }
       setModalForm({
-        donationDate: res.data.donationDate ? res.data.donationDate.substring(0, 16) : '',
-        bloodTypeId: res.data.bloodTypeId || (emergencyRequest?.bloodTypeId || ''),
+        donationDate: defaultDate,
+        bloodTypeId: defaultBloodTypeId,
         componentId: 1,
-        quantityMl: res.data.quantityMl || '',
-        eligibilityStatus: res.data.eligibilityStatus === true || res.data.eligibilityStatus === 'true' ? 'true'
-          : res.data.eligibilityStatus === false || res.data.eligibilityStatus === 'false' ? 'false' : '',
-        reasonIneligible: res.data.reasonIneligible || '',
-        testingResults: res.data.testingResults || '',
-        descriptions: res.data.descriptions || '',
-        status: res.data.status || 'Complete'
+        quantityMl: '',
+        eligibilityStatus: '',
+        reasonIneligible: '',
+        testingResults: '',
+        descriptions: '',
+        status: 'Complete'
       });
+      setShowModal(true);
     } catch {
       // Nếu chưa có, lấy nhóm máu và ngày hiến mặc định từ yêu cầu khẩn cấp
       let defaultBloodTypeId = emergencyRequest?.bloodTypeId || '';
@@ -282,8 +303,8 @@ function ReponseEmergencyRequesr() {
         descriptions: '',
         status: 'Complete'
       });
+      setShowModal(true);
     }
-    setShowModal(true);
   };
 
   // Đóng modal
@@ -361,12 +382,7 @@ function ReponseEmergencyRequesr() {
           Quay lại
         </button>
       </div>
-      {noResponseAlert && (
-        <div className="alert custom-alert-warning">
-          <i className="fa-solid fa-triangle-exclamation me-2"></i>
-          Đã quá 15 phút nhưng chưa có phản hồi nào từ người nhận!
-        </div>
-      )}
+{/* Bỏ thông báo quá 15 phút không có phản hồi */}
       {loading ? (
         <div className="loading-spinner">
           <div className="spinner-border text-danger" role="status">
@@ -386,7 +402,6 @@ function ReponseEmergencyRequesr() {
               <tr>
                 <th>Mã phản hồi</th>
                 <th>Người nhận</th>
-                <th>Phương thức</th>
                 <th>Đã đọc</th>
                 <th>Thời gian gửi</th>
                 <th>Trạng thái</th>
@@ -399,7 +414,7 @@ function ReponseEmergencyRequesr() {
               <tr key={resp.notificationId || idx}>
                 <td>{resp.notificationId}</td>
                 <td>{resp.fullName || resp.recipientUserId}</td>
-                <td>{resp.deliveryMethod}</td>
+                {/* Bỏ cột Phương thức */}
                 <td>
                   {resp.isRead ? (
                     <span className="badge bg-success">Đã đọc</span>
@@ -424,14 +439,21 @@ function ReponseEmergencyRequesr() {
                   >
                     Xem hồ sơ
                   </button>
-                  {resp.responseStatus === 'Interested' && (
+                  {resp.responseStatus === 'Interested' ? (
                     <button
                       className="btn btn-sm btn-primary"
                       onClick={() => handleOpenModal(resp.recipientUserId, resp.fullName)}
                     >
                       Ghi nhận thực tế
                     </button>
-                  )}
+                  ) : resp.responseStatus === 'Declined' ? (
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={() => setModalErr('Đơn đã bị từ chối không ghi nhận được việc hiến máu!')}
+                    >
+                      Ghi nhận thực tế
+                    </button>
+                  ) : null}
                 </td>
               </tr>
             ))}
@@ -501,12 +523,15 @@ function ReponseEmergencyRequesr() {
                       className="form-select"
                       name="eligibilityStatus"
                       value={modalForm.eligibilityStatus}
-                      onChange={handleModalChange}
+                      onChange={e => {
+                        const value = e.target.value;
+                        setModalForm(f => ({ ...f, eligibilityStatus: value }));
+                      }}
                       required
                     >
                       <option value="">Chọn tình trạng</option>
-                      <option value="true">Đủ điều kiện</option>
-                      <option value="false">Không đủ điều kiện</option>
+                      <option value="Eligible">Đủ điều kiện</option>
+                      <option value="Not Eligible">Không đủ điều kiện</option>
                     </select>
                   </div>
                   <div className="mb-2">

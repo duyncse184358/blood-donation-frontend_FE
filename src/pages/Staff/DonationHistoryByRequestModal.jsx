@@ -58,6 +58,17 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
       setSaving(false);
       return;
     }
+    // VALIDATION: Bắt buộc chọn tình trạng đủ điều kiện và kết quả xét nghiệm
+    if (!form.eligibilityStatus) {
+      setErr('Bạn phải chọn tình trạng đủ điều kiện!');
+      setSaving(false);
+      return;
+    }
+    if (!form.testingResults) {
+      setErr('Bạn phải chọn kết quả xét nghiệm!');
+      setSaving(false);
+      return;
+    }
 
     try {
       let donorUserId = form.donorUserId;
@@ -84,9 +95,9 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
         ComponentId: 1, // Luôn là 1
         QuantityMl: form.quantityMl,
         EligibilityStatus:
-          form.eligibilityStatus === true || form.eligibilityStatus === 'Eligible'
+          form.eligibilityStatus === true || form.eligibilityStatus === 'Eligible' || form.eligibilityStatus === 'true'
             ? 'Eligible'
-            : form.eligibilityStatus === false || form.eligibilityStatus === 'Eligible'
+            : form.eligibilityStatus === false || form.eligibilityStatus === 'Not Eligible' || form.eligibilityStatus === 'false'
             ? 'Not Eligible'
             : '',
         ReasonIneligible: form.reasonIneligible,
@@ -193,21 +204,18 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                     <input type="number" className="form-control" name="quantityMl" value={form.quantityMl || ''} onChange={handleChange} />
                   </div>
                   <div className="mb-2"><b>Tình trạng đủ điều kiện:</b>
-                    <select 
-                      className="form-select" 
-                      name="eligibilityStatus" 
-                      value={
-                        form.eligibilityStatus === 'Eligible' || form.eligibilityStatus === true || form.eligibilityStatus === 'true' 
-                          ? 'true' 
-                          : form.eligibilityStatus === 'Not Eligible' || form.eligibilityStatus === false || form.eligibilityStatus === 'false' 
-                          ? 'false' 
-                          : ''
-                      } 
+                    <select
+                      className="form-select"
+                      name="eligibilityStatus"
+                      value={form.eligibilityStatus === 'Eligible' || form.eligibilityStatus === true || form.eligibilityStatus === 'true' ? 'Eligible'
+                        : form.eligibilityStatus === 'Not Eligible' || form.eligibilityStatus === false || form.eligibilityStatus === 'false' ? 'Not Eligible'
+                        : ''}
                       onChange={e => setForm(f => ({ ...f, eligibilityStatus: e.target.value }))}
+                      required
                     >
                       <option value="">Chọn tình trạng</option>
-                      <option value="true">Đủ điều kiện</option>
-                      <option value="false">Không đủ điều kiện</option>
+                      <option value="Eligible">Đủ điều kiện</option>
+                      <option value="Not Eligible">Không đủ điều kiện</option>
                     </select>
                   </div>
                   <div className="mb-2"><b>Lý do không đủ điều kiện:</b>
@@ -217,8 +225,11 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                     <select
                       className="form-select"
                       name="testingResults"
-                      value={form.testingResults || ''}
+                      value={form.testingResults === 'Đủ điều kiện' ? 'Đủ điều kiện'
+                        : form.testingResults === 'Không đủ điều kiện' ? 'Không đủ điều kiện'
+                        : ''}
                       onChange={handleChange}
+                      required
                     >
                       <option value="">Chọn kết quả</option>
                       <option value="Đủ điều kiện">Đủ điều kiện</option>

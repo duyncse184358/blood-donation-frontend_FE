@@ -134,7 +134,14 @@ function EmergencyRequestForm() {
           
           <div className="form-group col-md-6">
             <label className="form-label">Hạn cần máu <span className="text-danger">*</span></label>
-            <input type="date" className="form-control custom-input" name="dueDate" value={form.dueDate} onChange={handleChange} required />
+            <input
+              type="datetime-local"
+              className="form-control custom-input"
+              name="dueDate"
+              value={form.dueDate}
+              onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+              required
+            />
           </div>
         </div>
 

@@ -257,7 +257,7 @@ function DonationRecordForm() {
             onChange={handleChange}
             required
           >
-            <option value="">Chọn kết quả xét nghiệm</option>
+            {/* Loại bỏ lựa chọn rỗng, chỉ cho phép chọn Đủ điều kiện hoặc Không đủ điều kiện */}
             <option value="Đủ điều kiện">Đủ điều kiện</option>
             <option value="Không đủ điều kiện">Không đủ điều kiện</option>
           </select>

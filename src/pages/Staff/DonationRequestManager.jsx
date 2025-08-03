@@ -6,10 +6,7 @@ const STATUS_OPTIONS = [
   { value: '', label: 'Tất cả trạng thái' },
   { value: 'Pending', label: 'Đang chờ' },
   { value: 'Accepted', label: 'Chấp nhận' },
-  { value: 'Rejected', label: 'Từ chối' },
-  { value: 'Scheduled', label: 'Đã xếp lịch' },
-  { value: 'Completed', label: 'Đã hiến' },
-  { value: 'Cancelled', label: 'Đã hủy' }
+  { value: 'Rejected', label: 'Từ chối' }
 ];
 const SHIFTS = [
   { value: '', label: 'Tất cả ca' },
@@ -235,7 +232,13 @@ function DonationRequestManager({ openModal }) {
                     </button>
                     <button
                       className="btn btn-sm btn-info me-1"
-                      onClick={() => handleShowHistory(r.requestId)}
+                      onClick={() => {
+                        if (r.status === 'Rejected') {
+                          setErrorMessage('Đơn đã bị từ chối không ghi nhận được việc hiến máu!');
+                        } else {
+                          handleShowHistory(r.requestId);
+                        }
+                      }}
                     >
                       Ghi nhận hiến máu
                     </button>

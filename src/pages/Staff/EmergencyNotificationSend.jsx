@@ -117,18 +117,29 @@ function EmergencyNotificationSend() {
       let successCount = 0;
       let skipCount = 0;
 
+      // Hàm chuyển đổi mức độ ưu tiên sang tiếng Việt
+      const replacePriorityVN = (msg) => {
+        if (!msg) return '';
+        return msg
+          .replace(/High/g, 'Khẩn cấp')
+          .replace(/Medium/g, 'Cao')
+          .replace(/Low/g, 'Bình thường');
+      };
+
       for (const userId of selectedDonors) {
         if (sentUserIds.includes(userId)) {
           skipCount++;
           continue;
         }
+        let rawMsg = cleanText(notification?.message || notification?.content || 'Hiến máu khẩn cấp');
+        rawMsg = replacePriorityVN(rawMsg);
         await api.post('/EmergencyNotification', {
           emergencyId: notification?.emergencyId,
           recipientUserId: userId,
           sentDate: new Date().toISOString(),
           deliveryMethod,
           isRead: false,
-          message: cleanText(notification?.message || notification?.content || 'Hiến máu khẩn cấp'),
+          message: rawMsg,
           responseStatus: 'No Response'
         });
         successCount++;
@@ -184,13 +195,31 @@ function EmergencyNotificationSend() {
               <strong>Tiêu đề:</strong> {'Hiến máu khẩn cấp'}
             </div>
             <div className="card-body">
-              <p><strong>Nội dung:</strong> {cleanText(notification.content || notification.message)}</p>
-              <p><strong>Ngày gửi:</strong> {notification.sentDate ? new Date(notification.sentDate).toLocaleString('vi-VN') : 'N/A'}</p>
-              {notification.detail && (
-                <div className="alert alert-info mt-2">
-                  <strong>Chi tiết:</strong> {cleanText(notification.detail)}
-                </div>
-              )}
+              {(() => {
+                // Hàm chuyển đổi mức độ ưu tiên sang tiếng Việt và am/pm sang sáng/chiều
+                const replaceVN = (msg) => {
+                  if (!msg) return '';
+                  return msg
+                    .replace(/High/g, 'Khẩn cấp')
+                    .replace(/Medium/g, 'Cao')
+                    .replace(/Low/g, 'Bình thường')
+                    .replace(/\bam\b/gi, 'sáng')
+                    .replace(/\bpm\b/gi, 'chiều');
+                };
+                const mainMsg = replaceVN(cleanText(notification.content || notification.message));
+                const detailMsg = notification.detail ? replaceVN(cleanText(notification.detail)) : '';
+                return (
+                  <>
+                    <p><strong>Nội dung:</strong> {mainMsg}</p>
+                    <p><strong>Ngày gửi:</strong> {notification.sentDate ? new Date(notification.sentDate).toLocaleString('vi-VN') : 'N/A'}</p>
+                    {detailMsg && (
+                      <div className="alert alert-info mt-2">
+                        <strong>Chi tiết:</strong> {detailMsg}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         )}
@@ -266,18 +295,25 @@ function EmergencyNotificationSend() {
                         <td>{d.fullName}</td>
                         <td>{d.dateOfBirth}</td>
                         <td>
-                          {d.gender === 1 || d.gender === 'Nam'
-                            ? 'Nam'
-                            : d.gender === 2 || d.gender === 'Nữ'
-                            ? 'Nữ'
-                            : d.gender === 3 || d.gender === 'Khác'
-                            ? 'Khác'
-                            : ''}
+                          {(() => {
+                            if (d.gender == null) return '';
+                            const g = String(d.gender).trim().toLowerCase();
+                            if (d.gender === 1 || g === 'nam' || g === 'male') return 'Nam';
+                            if (d.gender === 2 || g === 'nữ' || g === 'female') return 'Nữ';
+                            if (d.gender === 3 || g === 'khác' || g === 'other') return 'Khác';
+                            return '';
+                          })()}
                         </td>
                         <td>{d.address}</td>
                         <td>{BLOOD_TYPES.find(b => b.id === d.bloodTypeId)?.name || ''}</td>
                         <td>{d.phoneNumber}</td>
-                        <td>{d.lastDonationDate ? new Date(d.lastDonationDate).toLocaleString('vi-VN') : 'Chưa có'}</td>
+                        <td>{
+                          d.lastDonationDate
+                            ? new Date(d.lastDonationDate).toLocaleString('vi-VN')
+                            : d.lastBloodDonationDate
+                              ? new Date(d.lastBloodDonationDate).toLocaleString('vi-VN')
+                              : 'Chưa có'
+                        }</td>
                       </tr>
                     );
                   })}
