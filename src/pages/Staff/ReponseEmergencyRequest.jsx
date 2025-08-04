@@ -197,7 +197,8 @@ function ReponseEmergencyRequesr() {
     api.get(`/EmergencyRequest/${requestId}`)
       .then(res => setEmergencyRequest(res.data))
       .catch(() => setEmergencyRequest(null));
-
+//
+    // Lấy danh sách phản hồi cho yêu cầu khẩn cấp
     api.get(`/EmergencyNotification/by-emergency/${requestId}`)
       .then(async res => {
         let data = Array.isArray(res.data) ? res.data : [res.data];
@@ -321,8 +322,8 @@ function ReponseEmergencyRequesr() {
     const { name, value } = e.target;
     setModalForm(f => ({ ...f, [name]: value }));
   };
-
-  // Lưu ghi nhận thực tế (tạo mới hoặc cập nhật)
+//
+  // Lưu ghi nhận thực tế
   const handleModalSave = async e => {
     e.preventDefault();
     setSaving(true);

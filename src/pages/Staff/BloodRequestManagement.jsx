@@ -122,7 +122,7 @@ function BloodRequestManagement() {
     }
     return 'Pending'; // Mặc định là Pending
   };
-
+//
   // Lấy toàn bộ danh sách yêu cầu máu khẩn cấp
   const fetchRequests = async () => {
     setLoading(true);
@@ -288,7 +288,7 @@ function BloodRequestManagement() {
   const handleCancelEdit = () => {
     setEditingRequest(null);
   };
-
+// Xóa yêu cầu máu khẩn cấp
   // Xóa yêu cầu máu khẩn cấp
   const handleDeleteRequest = async (id) => {
     if (!id) {

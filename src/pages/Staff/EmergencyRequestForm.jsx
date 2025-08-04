@@ -67,6 +67,7 @@ function EmergencyRequestForm() {
         dueDate: form.dueDate,
         description: form.description
       };
+// Gọi API tạo yêu cầu khẩn cấp        
       await api.post('/EmergencyRequest/create', payload);
       setMsg('Tạo yêu cầu máu khẩn cấp thành công!');
       setForm({
