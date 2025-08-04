@@ -423,13 +423,11 @@ function StaffDashboard() {
                       onChange={e => handleEditFormChange('status', e.target.value)}
                     >
                       <option value="Available">Có sẵn</option>
-                      <option value="Reserved">Đã đặt</option>
                       <option value="Discarded">Đã loại bỏ</option>
                       <option value="Used">Đã sử dụng</option>
                       <option value="Testing">Đang kiểm tra</option>
                       <option value="Separating">Đang tách</option>
                       <option value="Separated">Đã tách</option>
-                      <option value="Usable">Có thể sử dụng</option>
                       <option value="Pending">Đang chờ xử lý</option>
                     </select>
                   </div>
@@ -507,13 +505,11 @@ function StaffDashboard() {
                           <option value="">Chọn trạng thái</option>
                           {[
                             { value: 'Available', label: 'Có sẵn' },
-                            { value: 'Reserved', label: 'Đã đặt' },
                             { value: 'Discarded', label: 'Đã loại bỏ' },
                             { value: 'Used', label: 'Đã sử dụng' },
                             { value: 'Testing', label: 'Đang kiểm tra' },
                             { value: 'Separating', label: 'Đang tách' },
                             { value: 'Separated', label: 'Đã tách' },
-                            { value: 'Usable', label: 'Có thể sử dụng' },
                             { value: 'Pending', label: 'Chờ xử lý' }
                           ].map(option => (
                             <option key={option.value} value={option.value}>

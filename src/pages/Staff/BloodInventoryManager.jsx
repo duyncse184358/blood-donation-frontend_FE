@@ -25,13 +25,11 @@ const COMPONENTS = [
 const STATUSES = [
   { value: '', label: '--Tất cả--' },
   { value: 'Available', label: 'Có sẵn' },
-  { value: 'Reserved', label: 'Đã đặt' },
   { value: 'Discarded', label: 'Đã loại bỏ' },
   { value: 'Used', label: 'Đã sử dụng' },
   { value: 'Testing', label: 'Đang kiểm tra' },
   { value: 'Separating', label: 'Đang tách' },
   { value: 'Separated', label: 'Đã tách' },
-  { value: 'Usable', label: 'Có thể sử dụng' },
   { value: 'Pending', label: 'Đang chờ xử lý' },
 ];
 
@@ -220,26 +218,22 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory, onShow
                       className={
                         "badge " +
                         (u.status === 'Available' ? "bg-success" :
-                        u.status === 'Reserved' ? "bg-primary" :
                         u.status === 'Discarded' ? "bg-danger" :
                         u.status === 'Used' ? "bg-secondary" :
                         u.status === 'Testing' ? "bg-warning text-dark" :
                         u.status === 'Separating' ? "bg-info text-dark" :
                         u.status === 'Separated' ? "bg-dark" :
-                        u.status === 'Usable' ? "bg-success" :
                         u.status === 'Pending' ? "bg-light text-dark" :
                         "bg-light text-dark")
                       }
                       style={{ fontSize: '0.95em', padding: '0.4em 0.8em' }}
                     >
                       {u.status === 'Available' && 'Có sẵn'}
-                      {u.status === 'Reserved' && 'Đã đặt'}
                       {u.status === 'Discarded' && 'Đã loại bỏ'}
                       {u.status === 'Used' && 'Đã sử dụng'}
                       {u.status === 'Testing' && 'Đang kiểm tra'}
                       {u.status === 'Separating' && 'Đang tách'}
                       {u.status === 'Separated' && 'Đã tách'}
-                      {u.status === 'Usable' && 'Có thể sử dụng'}
                       {u.status === 'Pending' && 'Đang chờ xử lý'}
                     </span>
                   </td>

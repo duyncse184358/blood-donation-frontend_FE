@@ -28,7 +28,10 @@ const bloodTypes = [
 const genders = [
   { value: 'Male', label: 'Nam' }, { value: 'Female', label: 'Nữ' }, { value: 'Other', label: 'Khác' }
 ];
-const rhFactors = ['Rh+', 'Rh-'];
+const rhFactors = [
+  { value: 'Positive', label: 'RH+' },
+  { value: 'Negative', label: 'RH-' }
+];
 const genderMap = {
   Male: 'Nam',
   Female: 'Nữ',
@@ -211,7 +214,7 @@ function CreateProfile({ onClose }) {
           latitude: profile.latitude !== null && profile.latitude !== undefined ? String(profile.latitude) : '',
           longitude: profile.longitude !== null && profile.longitude !== undefined ? String(profile.longitude) : '',
           bloodTypeId: profile.bloodTypeId ? String(profile.bloodTypeId) : '', 
-          rhFactor: profile.rhFactor || '',
+      rhFactor: profile.rhFactor === 'Positive' ? 'Positive' : profile.rhFactor === 'Negative' ? 'Negative' : '',
           medicalHistory: profile.medicalHistory || '',
           lastBloodDonationDate: profile.lastBloodDonationDate ? profile.lastBloodDonationDate.split('T')[0] : '', 
           cccd: profile.cccd || '',
@@ -477,7 +480,10 @@ function CreateProfile({ onClose }) {
             <li className="list-group-item"><strong>Vĩ độ:</strong> {formData.latitude}</li>
             <li className="list-group-item"><strong>Kinh độ:</strong> {formData.longitude}</li>
             <li className="list-group-item"><strong>Nhóm máu:</strong> {bloodTypes.find(b => String(b.id) === formData.bloodTypeId)?.name || ''}</li>
-            <li className="list-group-item"><strong>Yếu tố Rh:</strong> {formData.rhFactor}</li>
+            <li className="list-group-item"><strong>Yếu tố Rh:</strong> {
+              formData.rhFactor === 'Positive' ? 'RH+' :
+              formData.rhFactor === 'Negative' ? 'RH-' : ''
+            }</li>
             <li className="list-group-item"><strong>Lịch sử bệnh án/y tế:</strong> {formData.medicalHistory}</li>
             <li className="list-group-item"><strong>Ngày hiến máu gần nhất:</strong> {formData.lastBloodDonationDate}</li>
           </ul>
@@ -628,7 +634,9 @@ function CreateProfile({ onClose }) {
               <select className="form-select" id="rhFactor" name="rhFactor"
                 value={formData.rhFactor} onChange={handleChange} disabled={submitting}>
                 <option value="">Chọn yếu tố Rh</option>
-                {rhFactors.map(factor => <option key={factor} value={factor}>{factor}</option>)}
+                {rhFactors.map(factor => (
+                  <option key={factor.value} value={factor.value}>{factor.label}</option>
+                ))}
               </select>
             </div>
             <div className="col-12">
