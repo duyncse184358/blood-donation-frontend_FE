@@ -6,6 +6,7 @@ import Footer from '../../components/Footer/Footer';
 import LoadingSpinner from '../../components/Shared/LoadingSpinner';
 import useAuth from '../../hooks/useAuth';
 import api from '../../services/Api';
+import './EmergencyNotifications.css';
 
 function EmergencyNotifications() {
   const { isAuthenticated, user } = useAuth();
@@ -147,20 +148,21 @@ function EmergencyNotifications() {
                     </p>
                     <p className="card-text mb-1">
                       <b>Nội dung:</b>{' '}
-                      {n.message
-                        ? n.message
-                            // Lọc thông tin: chỉ lấy phần sau dấu ":" và bỏ icon nếu có
-                            .replace(/^.*?:\s?/, '') // Bỏ phần đầu đến dấu ":"
-                            .replace(/(<([^>]+)>)/gi, '') // Bỏ thẻ HTML nếu có
-                            .replace(/(?:\r\n|\r|\n)/g, ' ') // Bỏ xuống dòng
-                            .replace(/[\[\]\{\}"]/g, '') // Bỏ [, ], {, }
+                      {n.message ? (
+                        <span style={{ 
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word' 
+                        }}>
+                          {n.message
                             .replace(/High/g, 'Cao')
                             .replace(/Low/g, 'Thấp')
                             .replace(/Medium/g, 'Trung bình')
                             .replace(/\bam\b/gi, 'sáng')
                             .replace(/\bpm\b/gi, 'tối')
-                            .trim()
-                        : ''}
+                            .replace(/mưu/g, 'máu')
+                          }
+                        </span>
+                      ) : ''}
                     </p>
                     <p className="card-text mb-1">
                       <b>Trạng thái phản hồi:</b>{' '}

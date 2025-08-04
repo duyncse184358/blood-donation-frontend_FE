@@ -370,9 +370,14 @@ function BloodRequestManagement() {
     if (noResponseTimer.current) clearTimeout(noResponseTimer.current);
   };
 
-  // Nhóm các yêu cầu theo status
+  // Nhóm các yêu cầu theo status và sắp xếp theo ngày mới nhất
   const groupedRequests = STATUS_OPTIONS.reduce((acc, opt) => {
-    acc[opt.value] = requests.filter(r => r.actualStatus === opt.value);
+    // Lọc các yêu cầu theo trạng thái và sắp xếp theo ngày mới nhất
+    const sortedRequests = requests
+      .filter(r => r.actualStatus === opt.value)
+      .sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
+    
+    acc[opt.value] = sortedRequests;
     return acc;
   }, {});
 
@@ -396,15 +401,18 @@ function BloodRequestManagement() {
         ) : (
           <>
             {STATUS_OPTIONS.map(statusOpt => {
-              const allRequests = groupedRequests[statusOpt.value] || [];
-              const totalPages = Math.ceil(allRequests.length / PAGE_SIZE);
+              const statusRequests = groupedRequests[statusOpt.value] || [];
+              const totalPages = Math.ceil(statusRequests.length / PAGE_SIZE);
               const currentPage = pageByStatus[statusOpt.value] || 1;
-              const pagedRequests = allRequests.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+              const pagedRequests = statusRequests.slice(
+                (currentPage - 1) * PAGE_SIZE,
+                currentPage * PAGE_SIZE
+              );
 
               return (
                 <div key={statusOpt.value} className="mb-5">
                   <h5>
-                    {statusOpt.label} ({allRequests.length})
+                    {statusOpt.label} ({statusRequests.length})
                   </h5>
                   <table className="table table-bordered mt-2">
                     <thead>
@@ -423,7 +431,7 @@ function BloodRequestManagement() {
                       {pagedRequests.length > 0 ? (
                         pagedRequests.map((r, i) => (
                           <tr key={r.id}>
-                            <td>{(currentPage - 1) * PAGE_SIZE + i + 1}</td>
+                            <td>{i + 1}</td>
                             <td>
                               <BloodTypeDisplay 
                                 type={BLOOD_TYPES.find(b => b.id === r.bloodTypeId)?.name} 
@@ -716,6 +724,23 @@ export default BloodRequestManagement;
 // You có thể chuyển sang file riêng nếu muốn
 const style = document.createElement('style');
 style.innerHTML = `
+  .date-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+    padding: 8px 16px;
+    background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    margin: 24px 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .date-header .badge {
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: #6c757d;
+  }
   .container h4 {
     font-size: 2.1rem;
     font-weight: 800;

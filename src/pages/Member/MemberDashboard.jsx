@@ -19,6 +19,7 @@ function MemberDashboard() {
   const [notifLoading, setNotifLoading] = useState(true);
   const [notifError, setNotifError] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileRefreshFlag, setProfileRefreshFlag] = useState(false);
   // const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [emergencyNotifs, setEmergencyNotifs] = useState([]);
   const [unreadEmergencyCount, setUnreadEmergencyCount] = useState(0);
@@ -94,6 +95,7 @@ function MemberDashboard() {
       });
   }, [isAuthenticated, user?.userId]);
 
+  // Fetch user profile and donation info, refresh when profile modal closes
   useEffect(() => {
     if (isAuthenticated && user?.userId) {
       const fetchUserProfile = async () => {
@@ -108,15 +110,19 @@ function MemberDashboard() {
             const nextDate = new Date(lastDate);
             nextDate.setMonth(nextDate.getMonth() + 3);
             setNextEligibleDate(nextDate);
+          } else {
+            setLastDonationDate(null);
+            setNextEligibleDate(null);
           }
         } catch (err) {
+          setLastDonationDate(null);
+          setNextEligibleDate(null);
           console.error('Không thể tải thông tin hồ sơ người dùng:', err);
         }
       };
-
       fetchUserProfile();
     }
-  }, [isAuthenticated, user?.userId]);
+  }, [isAuthenticated, user?.userId, profileRefreshFlag]);
 
   if (authLoading) {
     return (
@@ -333,7 +339,10 @@ function MemberDashboard() {
             <div className="modal-content-custom animate__animated animate__zoomIn">
               <button
                 className="btn-close-modal"
-                onClick={() => setShowProfileModal(false)}
+                onClick={() => {
+                  setShowProfileModal(false);
+                  setProfileRefreshFlag(flag => !flag); // trigger refresh
+                }}
                 aria-label="Đóng"
               >
                 &times; {/* Sử dụng ký tự X đơn giản cho nút đóng */}

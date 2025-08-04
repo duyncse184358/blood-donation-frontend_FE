@@ -106,20 +106,18 @@ function CreateProfile({ onClose }) {
     setError('');
     setMessage('');
     try {
+      // 1. Lấy profile hiện tại
       const res = await api.get(`/UserProfile/by-user/${user.userId}`);
       let profile = res.data;
 
-      // --- Thêm: Lấy ngày hiến máu gần nhất từ lịch sử có status = Complete ---
+      // 2. Lấy lịch sử hiến máu, lọc các lần 'Complete' hoặc 'Certificated'
       let latestDonationDate = '';
       try {
         const historyRes = await api.get(`/DonationHistory/by-donor/${user.userId}`);
         if (Array.isArray(historyRes.data)) {
           const completed = historyRes.data.filter(
             h => (
-              (h.status === 'Complete' ||
-               h.status === 'Certificated' ||
-               h.status === 'Used' ||
-               h.status === 'Use')
+              (h.status === 'Complete' || h.status === 'Certificated')
               && h.donationDate
             )
           );
@@ -130,34 +128,40 @@ function CreateProfile({ onClose }) {
             latestDonationDate = latest.donationDate.split('T')[0];
           }
         }
-      } catch {
-        // Không cần xử lý lỗi
-      }
+      } catch {}
 
-      // Nếu có ngày hiến máu gần nhất và khác với DB thì tự động cập nhật vào DB
-      if (
-        latestDonationDate &&
-        (!profile || !profile.lastBloodDonationDate || profile.lastBloodDonationDate.split('T')[0] !== latestDonationDate)
-      ) {
-        const payload = {
-          ...(profile || {}),
-          userId: user.userId,
-          lastBloodDonationDate: latestDonationDate,
-        };
-        try {
-          if (profile) {
-            await api.put(`/UserProfile/by-user/${user.userId}`, payload);
-          } else {
-            await api.post(`/UserProfile`, payload);
-          }
-          // Sau khi cập nhật, reload lại profile
-          const updatedRes = await api.get(`/UserProfile/by-user/${user.userId}`);
-          profile = updatedRes.data;
-        } catch (e) {
-          // Không cần xử lý lỗi cập nhật tự động
-        }
-      }
-      // --- Kết thúc phần thêm ---
+      // 3. Luôn cập nhật lại profile bằng API PUT, lấy tất cả thông tin hiện tại + ngày hiến máu gần nhất
+      const payload = {
+        userId: user.userId,
+        fullName: profile?.fullName || '',
+        dateOfBirth: profile?.dateOfBirth || '',
+        gender:
+          profile?.gender === 'Nam' || profile?.gender === 'Nữ' || profile?.gender === 'Khác'
+            ? profile?.gender
+            : (profile?.gender?.toLowerCase() === 'male'
+                ? 'Nam'
+                : profile?.gender?.toLowerCase() === 'female'
+                  ? 'Nữ'
+                  : profile?.gender?.toLowerCase() === 'other'
+                    ? 'Khác'
+                    : ''),
+        address: profile?.address || '',
+        latitude: profile?.latitude !== null && profile?.latitude !== undefined ? profile.latitude : null,
+        longitude: profile?.longitude !== null && profile?.longitude !== undefined ? profile.longitude : null,
+        bloodTypeId: profile?.bloodTypeId ? profile.bloodTypeId : null,
+        rhFactor: profile?.rhFactor === 'Positive' ? 'Positive' : profile?.rhFactor === 'Negative' ? 'Negative' : '',
+        medicalHistory: profile?.medicalHistory || '',
+        lastBloodDonationDate: latestDonationDate,
+        cccd: profile?.cccd || '',
+        phoneNumber: profile?.phoneNumber || '',
+      };
+      await api.put(`/UserProfile/by-user/${user.userId}`, payload);
+
+      // 4. Reload lại profile sau khi cập nhật
+      try {
+        const updatedRes = await api.get(`/UserProfile/by-user/${user.userId}`);
+        profile = updatedRes.data;
+      } catch {}
 
       if (profile) {
         if (profile.dateOfBirth) {
@@ -186,7 +190,6 @@ function CreateProfile({ onClose }) {
             foundDistrict = parts[2];
             foundProvince = parts[3];
           }
-          
           const p = provinces.find(p => p.name === foundProvince);
           if (p) setProvinceCode(p.code);
           const d = districtsData[p?.code]?.find(d => d.name === foundDistrict);
@@ -199,7 +202,6 @@ function CreateProfile({ onClose }) {
           ...prev,
           fullName: profile.fullName || '',
           dateOfBirth: profile.dateOfBirth || '', 
-          // Đảm bảo gender luôn là 'Nam', 'Nữ', hoặc 'Khác'
           gender:
             profile.gender === 'Nam' || profile.gender === 'Nữ' || profile.gender === 'Khác'
               ? profile.gender
@@ -214,9 +216,9 @@ function CreateProfile({ onClose }) {
           latitude: profile.latitude !== null && profile.latitude !== undefined ? String(profile.latitude) : '',
           longitude: profile.longitude !== null && profile.longitude !== undefined ? String(profile.longitude) : '',
           bloodTypeId: profile.bloodTypeId ? String(profile.bloodTypeId) : '', 
-      rhFactor: profile.rhFactor === 'Positive' ? 'Positive' : profile.rhFactor === 'Negative' ? 'Negative' : '',
+          rhFactor: profile.rhFactor === 'Positive' ? 'Positive' : profile.rhFactor === 'Negative' ? 'Negative' : '',
           medicalHistory: profile.medicalHistory || '',
-          lastBloodDonationDate: profile.lastBloodDonationDate ? profile.lastBloodDonationDate.split('T')[0] : '', 
+          lastBloodDonationDate: latestDonationDate,
           cccd: profile.cccd || '',
           phoneNumber: profile.phoneNumber || '',
         }));
@@ -464,7 +466,7 @@ function CreateProfile({ onClose }) {
 
       {/* Hiển thị thông tin profile nếu đã có */}
       {!isCreateMode && (
-        <div className="mb-4">
+        <div className="mb-4 text-start">
           <h5>Thông tin hồ sơ cá nhân</h5>
           <ul className="list-group">
             <li className="list-group-item"><strong>Họ và tên:</strong> {formData.fullName}</li>

@@ -478,12 +478,12 @@ function ReponseEmergencyRequesr() {
                     <input className="form-control" value={modalDonor.fullName || modalDonor.donorUserId} disabled />
                   </div>
                   <div className="mb-2">
-                    <label className="form-label">Ngày hiến máu</label>
+                    <label className="form-label">Ngày và giờ hiến máu</label>
                     <input
-                      type="date"
+                      type="datetime-local"
                       className="form-control"
                       name="donationDate"
-                      value={modalForm.donationDate ? modalForm.donationDate.split('T')[0] : ''}
+                      value={modalForm.donationDate}
                       onChange={handleModalChange}
                       required
                     />

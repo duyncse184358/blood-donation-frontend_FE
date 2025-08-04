@@ -9,11 +9,11 @@ import api from '../../services/Api';
 import './Notifications.css'; // Import CSS tùy chỉnh cho Notifications
 
 function Notifications() {
-  // SỬA ĐỔI: Dùng `user` thay vì `currentUser`
   const { isAuthenticated, user } = useAuth(); 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [markingRead, setMarkingRead] = useState(false); // Thêm state để theo dõi trạng thái đánh dấu đã đọc
 
   useEffect(() => {
     const fetchUserNotifications = async () => {
@@ -41,16 +41,52 @@ function Notifications() {
 
   // Đánh dấu đã đọc notification
   const markAsRead = async (notificationId, notificationType) => {
-    // Nếu là thông báo chung thì không cần update isRead
-    if (notificationType === 'Chung' || notificationType === 'chung' || !notificationType) return;
-    try {
-      await api.put(`/Notification/${notificationId}`, { isRead: true, recipientUserId: user.userId });
-      setNotifications(prev =>
-        prev.map(n => n.notificationId === notificationId ? { ...n, isRead: true } : n)
-      );
-    } catch (err) {
-      console.error("Failed to mark notification as read:", err);
-      setError('Không thể đánh dấu đã đọc. Vui lòng thử lại.');
+    // Nếu là thông báo chung hoặc đang trong quá trình đánh dấu thì không xử lý
+    if (notificationType === 'Chung' || notificationType === 'chung' || !notificationType || markingRead) return;
+    
+    // Kiểm tra xem thông báo đã được đọc chưa
+    const notification = notifications.find(n => n.notificationId === notificationId);
+    if (!notification) {
+      console.error("Notification not found:", notificationId);
+      return;
+    }
+    
+    // Nếu chưa đọc thì mới gọi API update
+    if (!notification.isRead) {
+      setMarkingRead(true);
+      setError('');
+      
+      try {
+        // Tạo NotificationDto đầy đủ cho API
+        const notificationDto = {
+          notificationId: notificationId,
+          message: notification.message,
+          detail: notification.detail,
+          type: notification.type,
+          sentDate: notification.sentDate,
+          isRead: true,
+          recipientUserId: user.userId,
+          senderId: notification.senderId
+        };
+
+        const response = await api.put(`/Notification/${notificationId}`, notificationDto);
+
+        if (response && response.status === 200) {
+          setNotifications(prev =>
+            prev.map(n => n.notificationId === notificationId ? { ...n, isRead: true } : n)
+          );
+        } else {
+          throw new Error('Failed to update notification status');
+        }
+      } catch (err) {
+        console.error("Error marking notification as read:", err);
+        setError('Đang có lỗi xảy ra. Vui lòng thử lại sau.');
+        
+        // Rollback UI state if needed
+        setNotifications(prev => [...prev]);
+      } finally {
+        setMarkingRead(false);
+      }
     }
   };
 
@@ -135,8 +171,9 @@ function Notifications() {
                 key={notification.notificationId}
                 className={`list-group-item notification-item ${!notification.isRead ? 'notification-unread' : 'notification-read'}`}
                 aria-current={!notification.isRead ? 'true' : 'false'}
-                onClick={() => !notification.isRead && markAsRead(notification.notificationId, notification.type)}
+                onClick={() => markAsRead(notification.notificationId, notification.type)}
                 style={{ cursor: 'pointer' }}
+                title="Nhấn để xem chi tiết thông báo"
               >
                 <div className="d-flex w-100 justify-content-between align-items-center mb-1">
                   <h5 className={`mb-0 notification-type ${notification.type === 'Emergency' ? 'text-danger' : 'text-primary'}`}>

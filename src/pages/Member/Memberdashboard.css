@@ -1,3 +1,77 @@
+/* Làm nổi bật chữ cho MemberDashboard */
+.dashboard-header {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: var(--homepage-red-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 2px 2px 4px rgba(215, 38, 61, 0.1);
+}
+
+.feature-card-title {
+  font-weight: 800;
+  color: var(--main-white);
+  font-size: 1.35rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  letter-spacing: 0.5px;
+}
+
+.feature-card-text {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.feature-card-button, .detail-button {
+  font-weight: 700;
+  color: var(--main-white) !important;
+  background: var(--homepage-red-gradient);
+  border: none;
+  box-shadow: 0 4px 24px rgba(215, 38, 61, 0.12);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.feature-card-button:hover, .detail-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(215, 38, 61, 0.18);
+}
+
+.alert-info h5, .alert-warning, .alert-success {
+  font-weight: 700;
+  color: var(--main-red);
+}
+
+.alert-info p, .alert-warning p, .alert-success p {
+  font-weight: 600;
+  color: var(--main-orange);
+}
+
+.custom-update-profile-btn {
+  font-weight: 700;
+  font-size: 1.15rem;
+  background: var(--homepage-red-gradient);
+  color: var(--main-white);
+  border: none;
+  box-shadow: 0 4px 24px rgba(215, 38, 61, 0.12);
+  transition: all 0.3s ease;
+}
+
+.modal-content-custom {
+  font-weight: 600;
+  color: #333;
+}
+
+.notification-card-base .title {
+  font-weight: 700;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.notification-card-base .description {
+  font-weight: 600;
+  color: #fff;
+}
 .certificate-feature {
   background: linear-gradient(135deg, #fff7e6 0%, #ffe0b2 100%);
   border: 2px solid #ff9800;
@@ -53,14 +127,32 @@
 
 /* CSS Variables - Professional Blood Donation Color Palette */
 :root {
-    --primary: #D7263D;        /* Đỏ tươi - màu chủ đạo */
-    --secondary: #FF6F61;      /* Đỏ cam - nút CTA */
-    --light-pink: #F5B7B1;     /* Hồng nhạt - màu phụ */
-    --accent: #FFD166;         /* Vàng nhạt - điểm nhấn */
-    --white: #FFFFFF;          /* Trắng - nền chính */
-    --gray-light: #F2F2F2;     /* Xám nhạt - nền section */
-    --gray-dark: #333333;      /* Xám đậm - text chính */
-    --gray-medium: #666666;    /* Xám vừa - text phụ */
+    --donate-bg: #FFE8E8;
+    --donate-text: #B00020;
+    --profile-bg: #E0F7FA;
+    --profile-text: #006064;
+    --history-bg: #E3F2FD;
+    --history-text: #0D47A1;
+    --certificate-bg: #FFF8E1;
+    --certificate-text: #B57F00;
+    --respond-bg: #FFEBEE;
+    --respond-text: #C62828;
+    --reminder-bg: #EDE7F6;
+    --reminder-text: #5E35B1;
+    --main-red: #D7263D;
+    --main-orange: #FF6F61;
+    --main-pink: #FFB6B9;
+    --main-lightred: #FFD6DA;
+    --main-yellow: #FFD166;
+    --main-white: #FFFFFF;
+    --main-dark: #333333;
+    --main-gray: #F2F2F2;
+    --homepage-red-gradient: linear-gradient(135deg, #ff4d4d 0%, #d7263d 100%);
+    --homepage-orange-gradient: linear-gradient(135deg, #ffb86f 0%, #ff6f61 100%);
+    --homepage-pink-gradient: linear-gradient(135deg, #ffd6da 0%, #ffb6b9 100%);
+    --homepage-yellow-gradient: linear-gradient(135deg, #fff8e1 0%, #ffd166 100%);
+    --homepage-lightred-gradient: linear-gradient(135deg, #ffd6da 0%, #ffb6b9 100%);
+    --homepage-gray-gradient: linear-gradient(135deg, #f2f2f2 0%, #e8e8e8 100%);
 }
 
 /* General Styling */
@@ -167,11 +259,15 @@
 
 /* Specific Notification Card Styles */
 .emergency-notification-card {
-    background: linear-gradient(to right, var(--primary), #B91E33); /* Đỏ tươi gradient */
+    background: var(--homepage-red-gradient);
+    border: 2px solid var(--main-red);
+    box-shadow: 0 4px 24px rgba(215, 38, 61, 0.12);
 }
 
 .general-notification-card {
-    background: linear-gradient(to right, var(--secondary), #E85A4F); /* Đỏ cam gradient */
+    background: var(--homepage-orange-gradient);
+    border: 2px solid var(--main-orange);
+    box-shadow: 0 4px 24px rgba(255, 111, 97, 0.12);
 }
 
 
@@ -196,8 +292,9 @@
 }
 
 .feature-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border-color: rgba(255, 255, 255, 0.8);
 }
 
 .feature-icon-circle {
@@ -253,12 +350,66 @@
 }
 
 /* Specific Feature Card Backgrounds - Matching homepage color scheme */
-.feature-card.profile { background: linear-gradient(to right, var(--secondary), #E85A4F); } /* Đỏ cam */
-.feature-card.donate { background: linear-gradient(to right, var(--primary), #B91E33); } /* Đỏ tươi */
-.feature-card.history { background: linear-gradient(to right, var(--light-pink), #F0A19C); } /* Hồng nhạt */
-.feature-card.emergency-notif { background: linear-gradient(to right, var(--accent), #FFD166); } /* Vàng nhạt */
-.feature-card.respond { background: linear-gradient(to right, #8B7D8B, #6A5D6A); } /* Tím xám tương thích */
-.feature-card.reminder { background: linear-gradient(to right, #7FB3D3, #5F9EA0); } /* Xanh teal tương thích */
+
+.feature-card.donate {
+    background: var(--homepage-red-gradient);
+    border: 2px solid var(--main-red);
+    box-shadow: 0 4px 24px rgba(215, 38, 61, 0.12);
+}
+.feature-card.donate .feature-card-title,
+.feature-card.donate .feature-icon-circle svg {
+    color: var(--main-white);
+}
+
+.feature-card.profile {
+    background: var(--homepage-orange-gradient);
+    border: 2px solid var(--main-orange);
+    box-shadow: 0 4px 24px rgba(255, 111, 97, 0.12);
+}
+.feature-card.profile .feature-card-title,
+.feature-card.profile .feature-icon-circle svg {
+    color: var(--main-white);
+}
+
+.feature-card.history {
+    background: var(--homepage-pink-gradient);
+    border: 2px solid var(--main-pink);
+    box-shadow: 0 4px 24px rgba(255, 182, 185, 0.12);
+}
+.feature-card.history .feature-card-title,
+.feature-card.history .feature-icon-circle svg {
+    color: var(--main-red);
+}
+
+.feature-card.certificate-feature {
+    background: var(--homepage-yellow-gradient);
+    border: 2px solid var(--main-yellow);
+    box-shadow: 0 4px 24px rgba(255, 209, 102, 0.12);
+}
+.feature-card.certificate-feature .feature-card-title,
+.feature-card.certificate-feature .feature-icon-circle svg {
+    color: var(--main-dark);
+}
+
+.feature-card.respond {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+    border: 2px solid #ff4757;
+    box-shadow: 0 4px 24px rgba(255, 71, 87, 0.12);
+}
+.feature-card.respond .feature-card-title,
+.feature-card.respond .feature-icon-circle svg {
+    color: var(--main-white);
+}
+
+.feature-card.reminder {
+    background: linear-gradient(135deg, #a8e6cf 0%, #8dc5b6 100%);
+    border: 2px solid #8dc5b6;
+    box-shadow: 0 4px 24px rgba(141, 197, 182, 0.12);
+}
+.feature-card.reminder .feature-card-title,
+.feature-card.reminder .feature-icon-circle svg {
+    color: var(--main-white);
+}
 
 
 /* Custom Update Profile Button */

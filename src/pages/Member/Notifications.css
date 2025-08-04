@@ -1,101 +1,230 @@
-/* src/styles/Notifications.css */
+/* Notifications.css */
 
 .notification-page-main {
-    min-height: calc(100vh - 180px); /* Đảm bảo main content có chiều cao đủ */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    min-height: calc(100vh - 180px);
+    padding: 2rem;
+    background-color: #f8f9fa;
+}
+
+.notification-page-main h1 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+}
+
+.notification-page-main h1:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: linear-gradient(90deg, #007bff, #00d4ff);
+    border-radius: 2px;
+}
+
+.notification-page-main .lead {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
 }
 
 .notification-list-container {
     width: 100%;
-    max-width: 800px; /* Giới hạn chiều rộng tối đa của danh sách thông báo */
-    background-color: #ffffff;
-    border-radius: 12px;
-    overflow: hidden; /* Đảm bảo bo tròn góc */
-    border: 1px solid #e0e0e0; /* Viền nhẹ */
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: transparent;
 }
 
 .notification-item {
-    padding: 1.25rem 1.5rem;
-    border-left: 5px solid transparent; /* Viền trái để chỉ trạng thái */
-    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
-    cursor: pointer;
-    margin-bottom: 0 !important; /* Loại bỏ margin giữa các item list-group nếu có */
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem !important;
+    border: 1px solid rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
 }
 
-.notification-item:not(:last-child) {
-    border-bottom: 1px solid #e9ecef; /* Đường phân cách giữa các item */
+.notification-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: #e9ecef;
+    transition: background-color 0.3s ease;
 }
 
 .notification-item:hover {
-    background-color: #f8f9fa; /* Nền xám nhạt khi hover */
-    transform: translateY(-2px); /* Hiệu ứng nhấc nhẹ khi hover */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* Bóng nhẹ khi hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-/* Style cho thông báo chưa đọc */
+/* Unread Notification Styles */
 .notification-unread {
-    background-color: #e9f5ff; /* Nền xanh nhạt hơn */
-    border-left-color: #007bff; /* Viền trái màu xanh đậm */
-    font-weight: 600; /* In đậm để dễ nhận biết */
-    color: #333;
+    background: linear-gradient(to right, rgba(0,123,255,0.03), white);
 }
 
-.notification-unread .notification-type {
-    color: #0056b3; /* Màu chữ type đậm hơn cho chưa đọc */
+.notification-unread::before {
+    background: #007bff;
 }
 
-/* Style cho thông báo đã đọc */
-.notification-read {
-    background-color: #ffffff; /* Nền trắng */
-    border-left-color: #6c757d; /* Viền trái màu xám */
-    color: #666;
+.notification-unread .notification-message {
+    color: #2c3e50;
+    font-weight: 500;
 }
 
-.notification-read .notification-type {
-    color: #6c757d; /* Màu chữ type xám hơn cho đã đọc */
+/* Emergency Notification Styles */
+.notification-item .text-danger {
+    color: #dc3545 !important;
 }
 
+.notification-item[data-type="Emergency"]::before {
+    background: #dc3545;
+}
+
+/* Read Notification Styles */
+.notification-read::before {
+    background: #6c757d;
+}
+
+.notification-read .notification-message {
+    color: #6c757d;
+}
+
+/* Type and Message Styling */
 .notification-type {
     font-size: 1.1rem;
-    font-weight: 700;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
 }
 
 .notification-message {
     font-size: 1rem;
-    line-height: 1.5;
-    margin-top: 0.5rem;
+    line-height: 1.6;
+    color: #4a5568;
+    margin: 0.5rem 0;
 }
 
+.notification-detail {
+    background-color: rgba(0,123,255,0.05) !important;
+    border: 1px solid rgba(0,123,255,0.1) !important;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #2c3e50;
+}
+
+/* Date and Status Styling */
 .notification-date {
     font-size: 0.85rem;
+    color: #8898aa;
 }
 
 .notification-status-text {
+    display: flex;
+    align-items: center;
     font-size: 0.85rem;
-    font-style: italic;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
+    color: #8898aa;
 }
 
-/* Responsive adjustments */
+.notification-status-text i {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Section Headers */
+h4.text-primary, h4.text-success {
+    font-weight: 600;
+    padding: 0.5rem 0;
+    margin: 2rem 0 1rem;
+    position: relative;
+}
+
+h4.text-primary:after, h4.text-success:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    border-radius: 2px;
+}
+
+h4.text-primary:after {
+    background: #007bff;
+}
+
+h4.text-success:after {
+    background: #28a745;
+}
+
+/* Empty State Styling */
+.alert-secondary {
+    background-color: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    color: #6c757d;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+}
+
+/* Animation Classes */
+.animate__animated {
+    animation-duration: 0.6s;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    .notification-list-container {
-        padding: 0;
-        border-radius: 8px;
-    }
-    .notification-item {
+    .notification-page-main {
         padding: 1rem;
-        border-left-width: 4px;
     }
+
+    .notification-item {
+        padding: 1.25rem;
+    }
+
     .notification-type {
         font-size: 1rem;
     }
+
     .notification-message {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
     }
-    .notification-date,
-    .notification-status-text {
-        font-size: 0.8rem;
+
+    .notification-detail {
+        font-size: 0.9rem;
+        padding: 0.75rem !important;
+    }
+
+    h4.text-primary, h4.text-success {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .notification-page-main h1 {
+        font-size: 1.75rem;
+    }
+
+    .notification-page-main .lead {
+        font-size: 1rem;
+    }
+
+    .notification-item {
+        padding: 1rem;
+    }
+
+    .notification-detail {
+        margin: 0.5rem 0;
     }
 }
