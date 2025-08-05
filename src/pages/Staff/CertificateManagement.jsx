@@ -8,10 +8,10 @@ const BLOOD_TYPES = [
   { value: 'A-', label: 'A-' },
   { value: 'B+', label: 'B+' },
   { value: 'B-', label: 'B-' },
-  { value: 'AB+', label: 'AB+' },
-  { value: 'AB-', label: 'AB-' },
-  { value: 'O+', label: 'O+' },
-  { value: 'O-', label: 'O-' },
+  { value: 'AB+', label: 'O+' },
+  { value: 'AB-', label: 'O-' },
+  { value: 'O+', label: 'AB+' },
+  { value: 'O-', label: 'AB-' },
 ];
 const COMPONENTS = [
   { value: '', label: '--Chọn thành phần--' },

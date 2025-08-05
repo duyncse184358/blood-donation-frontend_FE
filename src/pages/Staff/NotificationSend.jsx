@@ -40,29 +40,25 @@ function UserTable({ users, onSend, sendingUserId, formMessage, notificationType
                             <th>ID</th>
                             <th>Tên</th>
                             <th>Email</th>
-                            <th>Vai trò</th>
-                            <th className="text-center">Trạng thái</th>
+                            <th className="text-center">Trạng thái hoạt động</th>
                             <th>Gửi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {users.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="text-center text-muted py-3">Không có user nào trong hệ thống.</td>
+                                <td colSpan={5} className="text-center text-muted py-3">Không có user nào trong hệ thống.</td>
                             </tr>
                         ) : (
                             users.map(u => (
                                 <tr key={u.userId}>
                                     <td>{u.userId}</td>
-                                    <td>{u.username || u.email || '---'}</td>
+                                    <td>{u.userProfile?.fullName || u.username || '---'}</td>
                                     <td>{u.email}</td>
-                                    <td>
-                                        {roleOptions.find(r => r.value.toLowerCase() === (u.role || '').toLowerCase())?.label || u.role || '---'}
-                                    </td>
                                     <td className="text-center">
                                         {(u.isActive === true || u.IsActive === true)
-                                            ? <i className="fas fa-check-circle" style={{ color: 'green', fontSize: '1.2rem' }}></i> :
-                                            <i className="fas fa-times-circle" style={{ color: 'red', fontSize: '1.2rem' }}></i>
+                                            ? <span className="text-success"><i className="fas fa-check-circle" style={{ fontSize: '1.2rem' }}></i> Đang hoạt động</span>
+                                            : <span className="text-secondary"><i className="fas fa-times-circle" style={{ fontSize: '1.2rem' }}></i> Không hoạt động</span>
                                         }
                                     </td>
                                     <td>

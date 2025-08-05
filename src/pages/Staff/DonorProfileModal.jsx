@@ -4,8 +4,8 @@ import api from '../../services/Api';
 const BLOOD_TYPES = [
   { id: 1, name: 'A+' }, { id: 2, name: 'A-' },
   { id: 3, name: 'B+' }, { id: 4, name: 'B-' },
-  { id: 5, name: 'AB+' }, { id: 6, name: 'AB-' },
-  { id: 7, name: 'O+' }, { id: 8, name: 'O-' }
+  { id: 5, name: 'O+' }, { id: 6, name: 'O-' },
+  { id: 7, name: 'AB+' }, { id: 8, name: 'AB-' }
 ];
 
 const PAGE_SIZE = 5;

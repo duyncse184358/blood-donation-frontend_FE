@@ -3,7 +3,7 @@ import api from '../../services/Api';
 
 const PAGE_SIZE = 5;
 
-function BloodDiscardForm({ onSelectUnit }) {
+function BloodDiscardForm({ onSelectUnit, reloadFlag, reloadInventory }) {
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [discardUnit, setDiscardUnit] = useState(null);
@@ -24,7 +24,7 @@ function BloodDiscardForm({ onSelectUnit }) {
 
   useEffect(() => {
     fetchUnits();
-  }, []);
+  }, [reloadFlag]); // Load lại khi reloadFlag thay đổi
 
   // Lọc các đơn vị máu quá hạn (expirationDate < hôm nay) và loại bỏ các đơn vị đã bị xóa (status === 'Deleted')
   const expiredUnits = units.filter(
@@ -66,16 +66,36 @@ function BloodDiscardForm({ onSelectUnit }) {
     setDiscardForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleDiscardUpdate = (e) => {
+  const handleDiscardUpdate = async (e) => {
     e.preventDefault();
-    // Gọi API cập nhật trạng thái/Lý do loại bỏ ở đây
-    // api.put(`/BloodUnit/${discardUnit.unitId}`, discardForm)
-    //   .then(() => {
-    //     setDiscardMsg('Cập nhật thành công');
-    //     fetchUnits();
-    //   })
-    //   .catch(() => setDiscardErr('Cập nhật thất bại'))
-    //   .finally(() => setDiscardEdit(false));
+    try {
+      await api.put(`/BloodUnit/${discardUnit.unitId}`, {
+        ...discardUnit,
+        ...discardForm,
+        status: discardForm.status || discardUnit.status,
+        discardReason: discardForm.discardReason || discardUnit.discardReason
+      });
+      
+      setDiscardMsg('Cập nhật thành công');
+      
+      // Gọi reloadInventory để cập nhật dữ liệu ở cả hai component
+      if (reloadInventory) {
+        reloadInventory();
+      }
+      
+      // Fetch lại dữ liệu sau khi cập nhật
+      await fetchUnits();
+      
+      // Đợi 1.5 giây để người dùng thấy thông báo thành công
+      setTimeout(() => {
+        setDiscardEdit(false);
+        handleDiscardClose();
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Lỗi khi cập nhật:', err);
+      setDiscardErr('Cập nhật thất bại: ' + (err.response?.data?.message || 'Vui lòng thử lại'));
+    }
   };
 
   return (

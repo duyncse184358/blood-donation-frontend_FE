@@ -100,19 +100,12 @@ export function translateRole(role) {
 
 // Translate notification types
 export function translateNotificationType(type) {
-  if (!type) return 'Chung';
+  if (!type) return '';
   const t = type.toLowerCase();
   switch (t) {
-    case 'emergency': return 'Khẩn cấp';
-    case 'reminder': return 'Nhắc nhở';
-    case 'info':
-    case 'information': return 'Thông tin';
-    case 'system': return 'Hệ thống';
-    case 'alert':
-    case 'warning': return 'Cảnh báo';
-    case 'success': return 'Thành công';
-    case 'error': return 'Lỗi';
-    default: return 'Khác';
+    case 'chung': return 'Thông báo chung';
+    case 'don': return 'Thông báo đơn';
+    default: return type || '';
   }
 }
 

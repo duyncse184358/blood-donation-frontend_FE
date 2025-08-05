@@ -40,7 +40,8 @@ const translateStatus = (status) => {
     'Pending': 'Chờ xử lý',
     'Usable': 'Có thể sử dụng',
     'Accepted': 'Chấp nhận',
-    'Rejected': 'Từ chối'
+    'Rejected': 'Từ chối',
+    'Certificated': 'Đã nhận chứng chỉ'
   };
   return statusMap[status] || status;
 };
@@ -210,7 +211,16 @@ function StaffDashboard() {
       setDiscardForm(res.data);
       setDiscardMsg('Cập nhật thành công!');
       setDiscardEdit(false);
-      // Có thể reload lại data nếu muốn
+      
+      // Reload data after successful update
+      if (reloadInventory) {
+        reloadInventory();
+      }
+      
+      // Auto close modal after 1.5s
+      setTimeout(() => {
+        handleDiscardClose();
+      }, 1500);
     } catch {
       setDiscardErr('Cập nhật thất bại!');
     }
@@ -239,7 +249,7 @@ function StaffDashboard() {
       case 'inventory':
         if (modalType === 'inventory') return null;
         return <BloodInventoryManager onEditUnit={handleEditUnit} reloadFlag={inventoryReloadFlag} reloadInventory={reloadInventory} openModal={openModal} onShowDetail={handleShowBloodUnitDetail} />;
-      case 'discard': return <BloodDiscardForm onSelectUnit={handleSelectDiscardUnit} />;
+      case 'discard': return <BloodDiscardForm onSelectUnit={handleSelectDiscardUnit} reloadFlag={inventoryReloadFlag} reloadInventory={reloadInventory} />;
       case 'search': return <DonorSearch />;
       case 'notification': return <NotificationForm />;
       case 'profile': return <ProfileUpdate />;
@@ -675,9 +685,10 @@ function DetailEditForm({ selected, closeModal }) {
           value={status}
           onChange={e => setStatus(e.target.value)}
         >
+          <option value="Pending">Đang Chờ</option>
           <option value="Accepted">Chấp nhận</option>
           <option value="Rejected">Từ chối</option>
-            <option value="Pending">Đang Chờ</option>
+          <option value="Certificated">Đã nhận chứng chỉ</option>
         </select>
       </div>
       <div className="mb-2">

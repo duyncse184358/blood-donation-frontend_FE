@@ -7,10 +7,10 @@ const BLOOD_TYPES = [
   { id: 2, name: 'A-' },
   { id: 3, name: 'B+' },
   { id: 4, name: 'B-' },
-  { id: 5, name: 'AB+' },
-  { id: 6, name: 'AB-' },
-  { id: 7, name: 'O+' },
-  { id: 8, name: 'O-' }
+  { id: 5, name: 'O+' },
+  { id: 6, name: 'O-' },
+  { id: 7, name: 'AB+' },
+  { id: 8, name: 'AB-' }
 ];
 
 function DonationHistoryByRequestModal({ requestId, onClose }) {
@@ -179,6 +179,7 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                   <div><b>Trạng thái:</b> {history.status === 'Complete' ? 'Hoàn thành'
                     : history.status === 'Pending' ? 'Đang xử lý'
                     : history.status === 'Cancelled' ? 'Đã hủy'
+                    : history.status === 'Certificated' ? 'Đã nhận chứng chỉ'
                     : history.status}</div>
                   <div><b>Ghi chú:</b> {history.descriptions}</div>
                   <button type="button" className="btn btn-warning mt-3" onClick={() => setEdit(true)}>
@@ -241,6 +242,7 @@ function DonationHistoryByRequestModal({ requestId, onClose }) {
                       <option value="Complete">Hoàn thành</option>
                       <option value="Pending">Đang xử lý</option>
                       <option value="Cancelled">Đã hủy</option>
+                      <option value="Certificated">Đã nhận chứng chỉ</option>
                     </select>
                   </div>
                   <div className="mb-2"><b>Ghi chú:</b>

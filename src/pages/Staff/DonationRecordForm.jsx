@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import api from '../../services/Api';
-import { AuthContext } from '../../context/AuthContext'; // Import AuthContext để lấy thông tin user
+import { AuthContext } from '../../context/AuthContext';
+import '../../styles/DonationRecordForm.css';
 
 const bloodTypes = [
   { id: 1, name: 'A+' },
@@ -169,7 +170,7 @@ function DonationRecordForm() {
   };
 
   return (
-    <>
+    <div className="donation-record-form">
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">
           <label className="form-label">Mã người hiến </label>
@@ -348,7 +349,7 @@ function DonationRecordForm() {
           {createAccountError && <div className="alert alert-danger mt-3">{createAccountError}</div>}
         </div>
       )}
-    </>
+    </div>
   );
 }
 

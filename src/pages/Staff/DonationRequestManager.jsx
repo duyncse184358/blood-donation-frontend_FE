@@ -2,11 +2,24 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/Api';
 
 const PAGE_SIZE = 10;
+const translateDonationStatus = (status) => {
+  const statusMap = {
+    'Pending': 'Đang chờ',
+    'Accepted': 'Chấp nhận',
+    'Rejected': 'Từ chối',
+    'Certificated': 'Đã nhận chứng chỉ',
+    'Completed': 'Đã hiến',
+    'Cancelled': 'Đã hủy'
+  };
+  return statusMap[status] || status;
+};
+
 const STATUS_OPTIONS = [
   { value: '', label: 'Tất cả trạng thái' },
   { value: 'Pending', label: 'Đang chờ' },
   { value: 'Accepted', label: 'Chấp nhận' },
-  { value: 'Rejected', label: 'Từ chối' }
+  { value: 'Rejected', label: 'Từ chối' },
+  { value: 'Certificated', label: 'Đã nhận chứng chỉ' }
 ];
 const SHIFTS = [
   { value: '', label: 'Tất cả ca' },
@@ -108,9 +121,17 @@ function DonationRequestManager({ openModal }) {
   const handleShowHistory = async (requestId) => {
     setErrorMessage('');
     try {
-      // Lấy thông tin request để biết donorUserId
+      // Lấy thông tin request để biết donorUserId và trạng thái
       const res = await api.get(`/DonationRequest/${requestId}`);
       const donorUserId = res.data.donorUserId;
+      const status = res.data.status;
+
+      // Kiểm tra trạng thái trước
+      if (status === 'Certificated') {
+        setErrorMessage('Yêu cầu hiến máu này đã được cấp chứng chỉ, không thể ghi nhận lại!');
+        return;
+      }
+
       if (!donorUserId) {
         setErrorMessage('Không tìm thấy người hiến máu cho yêu cầu này.');
         return;
@@ -204,17 +225,7 @@ function DonationRequestManager({ openModal }) {
                   <td>{(page - 1) * PAGE_SIZE + idx + 1}</td>
                   <td>{r.donorUserName || r.donorUserId}</td>
                   <td>
-                    {(() => {
-                      switch (r.status) {
-                        case 'Accepted': return 'Chấp nhận';
-                        case 'Rejected': return 'Từ chối';
-                        case 'Pending': return 'Đang chờ';
-                        case 'Scheduled': return 'Đã xếp lịch';
-                        case 'Completed': return 'Đã hiến';
-                        case 'Cancelled': return 'Đã hủy';
-                        default: return r.status || '';
-                      }
-                    })()}
+                    {translateDonationStatus(r.status)}
                   </td>
                   <td>{r.requestDate ? new Date(r.requestDate).toLocaleString('vi-VN') : ''}</td>
                   <td>
@@ -231,16 +242,20 @@ function DonationRequestManager({ openModal }) {
                       Cập nhật trạng thái
                     </button>
                     <button
-                      className="btn btn-sm btn-info me-1"
+                      className={`btn btn-sm btn-info me-1 ${r.status === 'Certificated' ? 'disabled' : ''}`}
                       onClick={() => {
                         if (r.status === 'Rejected') {
                           setErrorMessage('Đơn đã bị từ chối không ghi nhận được việc hiến máu!');
+                        } else if (r.status === 'Certificated') {
+                          setErrorMessage('Người hiến đã được cấp chứng chỉ, không thể ghi nhận hiến máu!');
                         } else {
                           handleShowHistory(r.requestId);
                         }
                       }}
+                      disabled={r.status === 'Certificated'}
+                      title={r.status === 'Certificated' ? 'Không thể ghi nhận - ' + translateDonationStatus('Certificated') : ''}
                     >
-                      Ghi nhận hiến máu
+                      {r.status === 'Certificated' ? translateDonationStatus('Certificated') : 'Ghi nhận hiến máu'}
                     </button>
                     <button
                       className="btn btn-sm btn-secondary"

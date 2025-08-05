@@ -126,7 +126,7 @@ function NotificationForm() {
               <thead className="thead-dark">
                 <tr>
                   <th>ID Người nhận</th>
-                  <th>Loại</th>
+                  <th>Loại thông báo</th>
                   <th>Nội dung</th>
                   <th>Ngày gửi</th>
                   <th>Đã đọc</th>
