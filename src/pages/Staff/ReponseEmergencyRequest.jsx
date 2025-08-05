@@ -158,7 +158,7 @@ function ReponseEmergencyRequesr() {
       color: '#721c24'
     }
   };
-  const { requestId } = useParams();
+  const { requestId: emergencyId } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
@@ -172,6 +172,7 @@ function ReponseEmergencyRequesr() {
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [modalDonor, setModalDonor] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [modalForm, setModalForm] = useState({
     donationDate: '',
     bloodTypeId: '',
@@ -192,19 +193,42 @@ function ReponseEmergencyRequesr() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileUserId, setProfileUserId] = useState(null);
 
+  const [donationHistories, setDonationHistories] = useState({});
+
+  // Lấy tất cả lịch sử hiến máu cho yêu cầu này
+  const fetchDonationHistories = async () => {
+    try {
+      const res = await api.get(`/DonationHistory/by-emergency/${emergencyId}`);
+      const histories = {};
+      if (Array.isArray(res.data)) {
+        res.data.forEach(history => {
+          histories[history.donorUserId] = history;
+        });
+      } else if (res.data) {
+        histories[res.data.donorUserId] = res.data;
+      }
+      setDonationHistories(histories);
+    } catch (error) {
+      console.log('Error fetching donation histories:', error);
+    }
+  };
+
   useEffect(() => {
-    if (!requestId) return;
+    if (!emergencyId) return;
     let timer = null;
     setLoading(true);
     setNoResponseAlert(false);
 
     // Lấy thông tin yêu cầu khẩn cấp để lấy nhóm máu và hạn cần máu
-    api.get(`/EmergencyRequest/${requestId}`)
+    api.get(`/EmergencyRequest/${emergencyId}`)
       .then(res => setEmergencyRequest(res.data))
       .catch(() => setEmergencyRequest(null));
+    
+    // Lấy lịch sử hiến máu
+    fetchDonationHistories();
 //
     // Lấy danh sách phản hồi cho yêu cầu khẩn cấp
-    api.get(`/EmergencyNotification/by-emergency/${requestId}`)
+    api.get(`/EmergencyNotification/by-emergency/${emergencyId}`)
       .then(async res => {
         let data = Array.isArray(res.data) ? res.data : [res.data];
         const updatedData = await Promise.all(
@@ -215,6 +239,39 @@ function ReponseEmergencyRequesr() {
               try {
                 const profileRes = await api.get(`/UserProfile/by-user/${resp.recipientUserId}`);
                 fullName = profileRes.data.fullName || '';
+                
+                // Nếu người dùng đồng ý, tạo lịch sử mặc định
+                if (resp.responseStatus === 'Interested') {
+                  try {
+                    // Kiểm tra xem đã có lịch sử chưa
+                    const historyRes = await api.get(`/DonationHistory/by-emergency/${emergencyId}`);
+                    const existingHistory = Array.isArray(historyRes.data) 
+                      ? historyRes.data.find(h => h.donorUserId === resp.recipientUserId)
+                      : (historyRes.data?.donorUserId === resp.recipientUserId ? historyRes.data : null);
+
+                    if (!existingHistory) {
+                      // Tạo lịch sử mới với trạng thái mặc định
+                      const defaultHistory = {
+                        donorUserId: resp.recipientUserId,
+                        emergencyId: emergencyId,
+                        donationDate: null,
+                        bloodTypeId: emergencyRequest?.bloodTypeId || '',
+                        componentId: 1,
+                        quantityMl: '',
+                        eligibilityStatus: '',
+                        reasonIneligible: '',
+                        testingResults: '',
+                        staffUserId: user?.userId,
+                        status: 'Pending',
+                        requestId: emergencyId,
+                        descriptions: ''
+                      };
+                      await api.post('/DonationHistory', defaultHistory);
+                    }
+                  } catch (error) {
+                    console.log('Error creating default history:', error);
+                  }
+                }
               } catch {}
               return { ...resp, fullName };
             })
@@ -242,43 +299,41 @@ function ReponseEmergencyRequesr() {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [requestId]);
+  }, [emergencyId]);
 
   // Khi mở modal, kiểm tra đã có history chưa
-  const handleOpenModal = async (donorUserId, fullName) => {
+  const handleOpenModal = (donorUserId, fullName) => {
+    // Reset tất cả state khi mở modal
     setModalDonor({ donorUserId, fullName });
     setModalMsg('');
     setModalErr('');
     setSaving(false);
-    setHistory(null);
+    setIsEditMode(false); // Luôn bắt đầu ở chế độ xem
 
-    try {
-      // Lấy tất cả lịch sử hiến máu thực tế cho yêu cầu này
-      const res = await api.get(`/DonationHistory/by-request/${requestId}`);
-      // Nếu đã có ghi nhận hiến máu thực tế cho người này thì không cho ghi nhận lại
-      if (Array.isArray(res.data)) {
-        const found = res.data.find(h => h.donorUserId === donorUserId);
-        if (found) {
-          setModalErr('Người này đã được ghi nhận hiến máu thực tế cho yêu cầu này. Không thể ghi nhận lại!');
-          return;
-        }
-      } else if (res.data && res.data.donorUserId === donorUserId) {
-        setModalErr('Người này đã được ghi nhận hiến máu thực tế cho yêu cầu này. Không thể ghi nhận lại!');
-        return;
-      }
+    const existingHistory = donationHistories[donorUserId];
+    if (existingHistory) {
+      setHistory(existingHistory);
+      setModalForm({
+        donationDate: existingHistory.donationDate || '',
+        bloodTypeId: existingHistory.bloodTypeId || emergencyRequest?.bloodTypeId || '',
+        componentId: existingHistory.componentId || 1,
+        quantityMl: existingHistory.quantityMl || '',
+        eligibilityStatus: existingHistory.eligibilityStatus || '',
+        reasonIneligible: existingHistory.reasonIneligible || '',
+        testingResults: existingHistory.testingResults || '',
+        descriptions: existingHistory.descriptions || '',
+        status: existingHistory.status || 'Complete'
+      });
+    } else {
+      // Nếu chưa có, lấy nhóm máu và ngày hiến mặc định từ yêu cầu khẩn cấp 
+      const defaultDate = emergencyRequest?.neededDate 
+        ? new Date(emergencyRequest.neededDate).toISOString().slice(0, 16)
+        : '';
+
       setHistory(null);
-      // Nếu chưa có, lấy nhóm máu và ngày hiến mặc định từ yêu cầu khẩn cấp
-      let defaultBloodTypeId = emergencyRequest?.bloodTypeId || '';
-      let defaultDate = '';
-      if (emergencyRequest?.neededDate) {
-        const date = new Date(emergencyRequest.neededDate);
-        if (!isNaN(date.getTime())) {
-          defaultDate = date.toISOString().slice(0, 16);
-        }
-      }
       setModalForm({
         donationDate: defaultDate,
-        bloodTypeId: defaultBloodTypeId,
+        bloodTypeId: emergencyRequest?.bloodTypeId || '',
         componentId: 1,
         quantityMl: '',
         eligibilityStatus: '',
@@ -287,39 +342,34 @@ function ReponseEmergencyRequesr() {
         descriptions: '',
         status: 'Complete'
       });
-      setShowModal(true);
-    } catch {
-      // Nếu chưa có, lấy nhóm máu và ngày hiến mặc định từ yêu cầu khẩn cấp
-      let defaultBloodTypeId = emergencyRequest?.bloodTypeId || '';
-      let defaultDate = '';
-      if (emergencyRequest?.neededDate) {
-        const date = new Date(emergencyRequest.neededDate);
-        if (!isNaN(date.getTime())) {
-          defaultDate = date.toISOString().slice(0, 16);
-        }
-      }
-      setModalForm({
-        donationDate: defaultDate,
-        bloodTypeId: defaultBloodTypeId,
-        componentId: 1,
-        quantityMl: '',
-        eligibilityStatus: '',
-        reasonIneligible: '',
-        testingResults: '',
-        descriptions: '',
-        status: 'Complete'
-      });
-      setShowModal(true);
+      setIsEditMode(true);
     }
+    
+    setShowModal(true);
   };
 
   // Đóng modal
   const handleCloseModal = () => {
+    // Reset tất cả state khi đóng modal
     setShowModal(false);
     setModalDonor(null);
     setModalMsg('');
     setModalErr('');
     setHistory(null);
+    setIsEditMode(false);
+    setModalForm({
+      donationDate: '',
+      bloodTypeId: '',
+      componentId: 1,
+      quantityMl: '',
+      eligibilityStatus: '',
+      reasonIneligible: '',
+      testingResults: '',
+      descriptions: '',
+      status: 'Complete'
+    });
+    // Cập nhật lại danh sách lịch sử hiến máu khi đóng modal
+    fetchDonationHistories();
   };
 
   // Xử lý thay đổi form modal
@@ -331,6 +381,12 @@ function ReponseEmergencyRequesr() {
   // Lưu ghi nhận thực tế
   const handleModalSave = async e => {
     e.preventDefault();
+
+    // Kiểm tra xác nhận trước khi lưu
+    if (!window.confirm('Bạn có chắc chắn muốn lưu các thay đổi này không?')) {
+      return;
+    }
+
     setSaving(true);
     setModalMsg('');
     setModalErr('');
@@ -347,23 +403,34 @@ function ReponseEmergencyRequesr() {
         staffUserId: user?.userId,
         status: modalForm.status,
         descriptions: modalForm.descriptions,
-        emergencyId: requestId
+        emergencyId: emergencyId
       };
 
+      let result;
       if (history && history.donationId) {
         // Cập nhật
-        await api.put(`/DonationHistory/${history.donationId}`, payload);
+        result = await api.put(`/DonationHistory/${history.donationId}`, payload);
+        // Sau khi cập nhật thành công
         setModalMsg('Cập nhật thành công!');
+        setHistory(result.data); // Cập nhật lại history với dữ liệu mới
+        setIsEditMode(false); // Chuyển về chế độ xem
       } else {
         // Tạo mới
-        await api.post('/DonationHistory', payload);
+        result = await api.post('/DonationHistory', {
+          ...payload,
+          requestId: emergencyId
+        });
         setModalMsg('Ghi nhận thành công!');
+        handleCloseModal(); // Đóng modal sau khi tạo mới thành công
       }
+
+      // Cập nhật lại danh sách lịch sử hiến máu
+      await fetchDonationHistories();
       
       // Cập nhật trạng thái emergency request nếu donation hoàn thành
       if (modalForm.status === 'Complete') {
         try {
-          await api.put(`/EmergencyRequest/${requestId}/status`, JSON.stringify('Approved'), {
+          await api.put(`/EmergencyRequest/${emergencyId}/status`, JSON.stringify('Approved'), {
             headers: { 'Content-Type': 'application/json' }
           });
         } catch (error) {
@@ -381,7 +448,7 @@ function ReponseEmergencyRequesr() {
       <div className="page-header">
         <h4 className="page-title">
           <i className="fa-solid fa-clock-rotate-left text-danger me-2"></i>
-          Danh sách phản hồi cho yêu cầu máu #{requestId}
+          Danh sách phản hồi cho yêu cầu máu #{emergencyId}
         </h4>
         <button className="btn btn-outline-danger" onClick={() => navigate(-1)}>
           <i className="fa-solid fa-arrow-left me-2"></i>
@@ -446,12 +513,21 @@ function ReponseEmergencyRequesr() {
                     Xem hồ sơ
                   </button>
                   {resp.responseStatus === 'Interested' ? (
-                    <button
-                      className="btn btn-sm btn-primary"
-                      onClick={() => handleOpenModal(resp.recipientUserId, resp.fullName)}
-                    >
-                      Ghi nhận thực tế
-                    </button>
+                    donationHistories[resp.recipientUserId] ? (
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => handleOpenModal(resp.recipientUserId, resp.fullName)}
+                      >
+                        Xem chi tiết ghi nhận
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => handleOpenModal(resp.recipientUserId, resp.fullName)}
+                      >
+                        Ghi nhận thực tế
+                      </button>
+                    )
                   ) : resp.responseStatus === 'Declined' ? (
                     <button
                       className="btn btn-sm btn-primary"
@@ -475,7 +551,7 @@ function ReponseEmergencyRequesr() {
             <div className="modal-content">
               <form onSubmit={handleModalSave}>
                 <div className="modal-header">
-                  <h5 className="modal-title">Ghi nhận thực tế hiến máu</h5>
+                  <h5 className="modal-title">{isEditMode ? "Cập nhật thực tế hiến máu" : "Chi tiết thực tế hiến máu"}</h5>
                   <button type="button" className="btn-close" onClick={handleCloseModal}></button>
                 </div>
                 <div className="modal-body">
@@ -492,6 +568,7 @@ function ReponseEmergencyRequesr() {
                       value={modalForm.donationDate}
                       onChange={handleModalChange}
                       required
+                      disabled={!isEditMode}
                     />
                   </div>
                   <div className="mb-2">
@@ -502,6 +579,7 @@ function ReponseEmergencyRequesr() {
                       value={modalForm.bloodTypeId}
                       onChange={handleModalChange}
                       required
+                      disabled={!isEditMode}
                     >
                       <option value="">Chọn nhóm máu</option>
                       {BLOOD_TYPES.map(bt => (
@@ -521,6 +599,7 @@ function ReponseEmergencyRequesr() {
                       min={1}
                       max={450}
                       required
+                      disabled={!isEditMode}
                     />
                   </div>
                   <div className="mb-2">
@@ -534,6 +613,7 @@ function ReponseEmergencyRequesr() {
                         setModalForm(f => ({ ...f, eligibilityStatus: value }));
                       }}
                       required
+                      disabled={!isEditMode}
                     >
                       <option value="">Chọn tình trạng</option>
                       <option value="Eligible">Đủ điều kiện</option>
@@ -548,6 +628,7 @@ function ReponseEmergencyRequesr() {
                       name="reasonIneligible"
                       value={modalForm.reasonIneligible}
                       onChange={handleModalChange}
+                      disabled={!isEditMode}
                     />
                   </div>
                   {/* Đổi "Kết quả xét nghiệm" thành "Kết quả đủ điều kiện" */}
@@ -559,11 +640,11 @@ function ReponseEmergencyRequesr() {
                       value={modalForm.testingResults}
                       onChange={handleModalChange}
                       required
+                      disabled={!isEditMode}
                     >
                       <option value="">Chọn kết quả</option>
                       <option value="Đủ điều kiện">Đủ điều kiện</option>
                       <option value="Không đủ điều kiện">Không đủ điều kiện</option>
-                      
                     </select>
                   </div>
                   <div className="mb-2">
@@ -573,6 +654,7 @@ function ReponseEmergencyRequesr() {
                       name="descriptions"
                       value={modalForm.descriptions}
                       onChange={handleModalChange}
+                      disabled={!isEditMode}
                     />
                   </div>
                   <div className="mb-2">
@@ -583,6 +665,7 @@ function ReponseEmergencyRequesr() {
                       value={modalForm.status}
                       onChange={handleModalChange}
                       required
+                      disabled={!isEditMode}
                     >
                       <option value="Complete">Hoàn thành</option>
                       <option value="Pending">Đang xử lý</option>
@@ -596,9 +679,56 @@ function ReponseEmergencyRequesr() {
                   <button type="button" className="btn btn-secondary" onClick={handleCloseModal} disabled={saving}>
                     Đóng
                   </button>
-                  <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? 'Đang lưu...' : 'Lưu ghi nhận'}
-                  </button>
+                  {history ? (
+                    isEditMode ? (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-warning"
+                          onClick={() => {
+                            if (window.confirm('Bạn có chắc muốn hủy thay đổi không?')) {
+                              setIsEditMode(false);
+                              setModalMsg('');
+                              // Khôi phục lại dữ liệu ban đầu
+                              if (history) {
+                                setModalForm({
+                                  donationDate: history.donationDate || '',
+                                  bloodTypeId: history.bloodTypeId || emergencyRequest?.bloodTypeId || '',
+                                  componentId: history.componentId || 1,
+                                  quantityMl: history.quantityMl || '',
+                                  eligibilityStatus: history.eligibilityStatus || '',
+                                  reasonIneligible: history.reasonIneligible || '',
+                                  testingResults: history.testingResults || '',
+                                  descriptions: history.descriptions || '',
+                                  status: history.status || 'Complete'
+                                });
+                              }
+                            }
+                          }}
+                        >
+                          Hủy
+                        </button>
+                        <button type="submit" className="btn btn-primary ms-2" disabled={saving}>
+                          {saving ? 'Đang lưu...' : 'Lưu ghi nhận'}
+                        </button>
+                      </>
+                    ) : (
+                      <button 
+                        type="button" 
+                        className="btn btn-primary" 
+                        onClick={() => {
+                          setIsEditMode(true);
+                          setModalMsg(''); // Xóa thông báo cũ khi chuyển sang chế độ edit
+                        }}
+                      >
+                        Cập nhật
+                      </button>
+                    )
+                  ) : (
+                    <button type="submit" className="btn btn-primary" disabled={saving}>
+                      {saving ? 'Đang lưu...' : 'Lưu ghi nhận'}
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
