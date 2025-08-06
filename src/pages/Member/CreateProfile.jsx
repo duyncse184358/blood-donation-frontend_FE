@@ -130,11 +130,22 @@ function CreateProfile({ onClose }) {
         }
       } catch {}
 
+      // Format dates to match backend's DateOnly format
+      const formatDateForBackend = (dateString) => {
+        if (!dateString) return null;
+        // If the date contains 'T', split and take only the date part
+        if (dateString.includes('T')) {
+          return dateString.split('T')[0];
+        }
+        // If it's already in YYYY-MM-DD format, return as is
+        return dateString;
+      };
+
       // 3. Luôn cập nhật lại profile bằng API PUT, lấy tất cả thông tin hiện tại + ngày hiến máu gần nhất
       const payload = {
         userId: user.userId,
         fullName: profile?.fullName || '',
-        dateOfBirth: profile?.dateOfBirth || '',
+        dateOfBirth: formatDateForBackend(profile?.dateOfBirth),
         gender:
           profile?.gender === 'Nam' || profile?.gender === 'Nữ' || profile?.gender === 'Khác'
             ? profile?.gender
@@ -151,7 +162,7 @@ function CreateProfile({ onClose }) {
         bloodTypeId: profile?.bloodTypeId ? profile.bloodTypeId : null,
         rhFactor: profile?.rhFactor === 'Positive' ? 'Positive' : profile?.rhFactor === 'Negative' ? 'Negative' : '',
         medicalHistory: profile?.medicalHistory || '',
-        lastBloodDonationDate: latestDonationDate,
+        lastBloodDonationDate: formatDateForBackend(latestDonationDate),
         cccd: profile?.cccd || '',
         phoneNumber: profile?.phoneNumber || '',
       };
@@ -312,6 +323,7 @@ function CreateProfile({ onClose }) {
       currentErrors.cccd = 'CCCD phải chứa đúng 12 chữ số.';
     }
 
+    // Format date string to match backend's expected DateOnly format
     const dateOfBirthCombined = (birthYear && birthMonth && birthDay)
         ? `${birthYear}-${birthMonth}-${birthDay}`
         : null; 
@@ -351,29 +363,51 @@ function CreateProfile({ onClose }) {
     const finalAddress = buildAddress();
     const { lat, lng } = await fetchLatLngFromAddress(finalAddress);
 
+    // Format dates to match backend's DateOnly format (YYYY-MM-DD)
+    const formatDateForBackend = (dateString) => {
+      if (!dateString) return null;
+      // If the date contains 'T', split and take only the date part
+      if (dateString.includes('T')) {
+        return dateString.split('T')[0];
+      }
+      // If it's already in YYYY-MM-DD format, return as is
+      return dateString;
+    };
+
     const payload = {
       userId: user.userId,
       fullName: formData.fullName.trim(),
-      dateOfBirth: dateOfBirthCombined,
-      gender: genderMap[formData.gender] || null, // Map FE value sang BE value
+      dateOfBirth: dateOfBirthCombined, // Already in YYYY-MM-DD format
+      gender: genderMap[formData.gender] || null,
       address: finalAddress || null,
       latitude: lat !== null ? parseFloat(lat) : null,
       longitude: lng !== null ? parseFloat(lng) : null,
       bloodTypeId: formData.bloodTypeId ? parseInt(formData.bloodTypeId) : null,
       rhFactor: formData.rhFactor || null,
       medicalHistory: formData.medicalHistory || null,
-      // lastBloodDonationDate bị bỏ qua - chỉ được cập nhật tự động từ hệ thống
+      lastBloodDonationDate: formatDateForBackend(formData.lastBloodDonationDate),
       cccd: formData.cccd.trim() || null,
       phoneNumber: formData.phoneNumber.trim() || null,
     };
 
     try {
-      if (isCreateMode) {
-        await api.post(`/UserProfile`, payload); // Tạo mới
-      } else {
-        await api.put(`/UserProfile/by-user/${user.userId}`, payload); // Cập nhật
+      // Always try to get existing profile first
+      try {
+        const existingProfile = await api.get(`/UserProfile/by-user/${user.userId}`);
+        if (existingProfile.data) {
+          // If profile exists, always update instead of create
+          await api.put(`/UserProfile/by-user/${user.userId}`, payload);
+          setMessage('Hồ sơ của bạn đã được cập nhật thành công!');
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          // Only create if we're sure no profile exists
+          await api.post(`/UserProfile`, payload);
+          setMessage('Hồ sơ của bạn đã được tạo thành công!');
+        } else {
+          throw error; // Re-throw other errors
+        }
       }
-      setMessage(isCreateMode ? 'Hồ sơ của bạn đã được tạo thành công!' : 'Hồ sơ của bạn đã được cập nhật thành công!');
       setIsCreateMode(false); 
 
       fetchProfile(); 

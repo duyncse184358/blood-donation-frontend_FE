@@ -38,6 +38,7 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory, onShow
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [message, setMessage] = useState('');
+  const [sortDirection, setSortDirection] = useState('desc'); // 'asc' or 'desc'
   // Thêm state cho filter
   const [filterBloodType, setFilterBloodType] = useState('');
   const [filterComponent, setFilterComponent] = useState('');
@@ -45,13 +46,19 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory, onShow
   // Already have onShowDetail from props
 
 
-  // Filter and paginate units
-  const filteredUnits = units.filter(u =>
-    (filterBloodType === '' || u.bloodTypeName === filterBloodType) &&
-    (filterComponent === '' || u.componentName === filterComponent) &&
-    (filterStatus === '' || u.status === filterStatus) &&
-    u.status !== 'Deleted'
-  );
+  // Filter, sort, and paginate units
+  const filteredUnits = units
+    .filter(u =>
+      (filterBloodType === '' || u.bloodTypeName === filterBloodType) &&
+      (filterComponent === '' || u.componentName === filterComponent) &&
+      (filterStatus === '' || u.status === filterStatus) &&
+      u.status !== 'Deleted'
+    )
+    .sort((a, b) => {
+      const dateA = new Date(a.collectionDate);
+      const dateB = new Date(b.collectionDate);
+      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+    });
   const totalPages = Math.max(1, Math.ceil(filteredUnits.length / PAGE_SIZE));
   const pagedUnits = filteredUnits.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -199,7 +206,16 @@ function BloodInventoryManager({ onEditUnit, reloadFlag, reloadInventory, onShow
                 <th>Nhóm máu</th>
                 <th>Thành phần</th>
                 <th>Thể tích (ml)</th>
-                <th>Ngày lấy</th>
+                <th>
+                  Ngày lấy
+                  <button 
+                    className="btn btn-sm btn-link ms-2 p-0"
+                    onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <i className={`bi bi-sort-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>
+                  </button>
+                </th>
                 <th>Trạng thái</th>
                 <th>Chức năng</th>
               </tr>
