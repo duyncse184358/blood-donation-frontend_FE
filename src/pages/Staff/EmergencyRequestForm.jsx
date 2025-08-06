@@ -23,7 +23,7 @@ function EmergencyRequestForm() {
   const { user } = useContext(AuthContext);
   const [form, setForm] = useState({
     bloodTypeId: '',
-    componentId: 1, // Luôn gửi 1, không cần cho user chọn
+    componentId: 1, 
     quantityNeededMl: '',
     priority: 'High',
     dueDate: '',

@@ -78,7 +78,7 @@ function EmergencyNotificationSend() {
       });
   }, [notification?.emergencyId]);
   
-// Hàm để lấy danh sách người hiến máu phù hợp
+// Hàm để lấy danh sách người hiến máu phù hợp .
   const handleDonorSearch = async (e) => {
     e.preventDefault();
     setDonorMessage('');

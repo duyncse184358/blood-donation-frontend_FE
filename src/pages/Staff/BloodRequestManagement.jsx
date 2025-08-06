@@ -94,6 +94,7 @@ function BloodRequestManagement() {
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [noResponseAlert, setNoResponseAlert] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
   const [pageByStatus, setPageByStatus] = useState({
     Pending: 1,
     Responded: 1,
@@ -257,7 +258,7 @@ function BloodRequestManagement() {
     setEditForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // Cập nhật trạng thái (chỉ status)
+  // Cập nhật trạng thái 
   const handleUpdateRequest = async () => {
     if (!editingRequest) return;
     setUpdating(true);

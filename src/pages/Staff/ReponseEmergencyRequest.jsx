@@ -411,17 +411,26 @@ function ReponseEmergencyRequesr() {
         // Cập nhật
         result = await api.put(`/DonationHistory/${history.donationId}`, payload);
         // Sau khi cập nhật thành công
-        setModalMsg('Cập nhật thành công!');
+        setModalMsg(' Cập nhật thành công! Dữ liệu đã được lưu.');
         setHistory(result.data); // Cập nhật lại history với dữ liệu mới
         setIsEditMode(false); // Chuyển về chế độ xem
+        
+        // Hiển thị thông báo trong 3 giây
+        setTimeout(() => {
+          setModalMsg('');
+        }, 3000);
       } else {
         // Tạo mới
         result = await api.post('/DonationHistory', {
           ...payload,
           requestId: emergencyId
         });
-        setModalMsg('Ghi nhận thành công!');
-        handleCloseModal(); // Đóng modal sau khi tạo mới thành công
+        setModalMsg(' Ghi nhận thành công! Dữ liệu đã được tạo mới.');
+        
+        // Hiển thị thông báo trước khi đóng modal
+        setTimeout(() => {
+          handleCloseModal(); // Đóng modal sau 2 giây
+        }, 2000);
       }
 
       // Cập nhật lại danh sách lịch sử hiến máu
@@ -435,10 +444,17 @@ function ReponseEmergencyRequesr() {
           });
         } catch (error) {
           console.log('Error updating emergency request status:', error);
+          setModalMsg(prevMsg => prevMsg + ' (Lưu ý: Không thể cập nhật trạng thái yêu cầu khẩn cấp)');
         }
       }
-    } catch {
-      setModalErr('Ghi nhận thất bại!');
+    } catch (error) {
+      console.error('Save error:', error);
+      setModalErr(` Ghi nhận thất bại! ${error.response?.data?.message || error.message || 'Vui lòng thử lại.'}`);
+      
+      // Hiển thị thông báo lỗi trong 5 giây
+      setTimeout(() => {
+        setModalErr('');
+      }, 5000);
     }
     setSaving(false);
   };
@@ -672,8 +688,38 @@ function ReponseEmergencyRequesr() {
                       <option value="Cancelled">Đã hủy</option>
                     </select>
                   </div>
-                  {modalMsg && <div className="alert alert-success">{modalMsg}</div>}
-                  {modalErr && <div className="alert alert-danger">{modalErr}</div>}
+                  {modalMsg && (
+                    <div className="alert alert-success d-flex align-items-center animate-fade-in" style={{
+                      border: '2px solid #28a745',
+                      borderRadius: '8px',
+                      backgroundColor: '#d4edda',
+                      color: '#155724',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      padding: '12px 16px',
+                      marginTop: '15px',
+                      boxShadow: '0 4px 12px rgba(40, 167, 69, 0.2)'
+                    }}>
+                      <i className="fas fa-check-circle me-2" style={{ fontSize: '18px', color: '#28a745' }}></i>
+                      {modalMsg}
+                    </div>
+                  )}
+                  {modalErr && (
+                    <div className="alert alert-danger d-flex align-items-center animate-shake" style={{
+                      border: '2px solid #dc3545',
+                      borderRadius: '8px',
+                      backgroundColor: '#f8d7da',
+                      color: '#721c24',
+                      fontWeight: '600',
+                      fontSize: '14px',
+                      padding: '12px 16px',
+                      marginTop: '15px',
+                      boxShadow: '0 4px 12px rgba(220, 53, 69, 0.2)'
+                    }}>
+                      <i className="fas fa-exclamation-triangle me-2" style={{ fontSize: '18px', color: '#dc3545' }}></i>
+                      {modalErr}
+                    </div>
+                  )}
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={handleCloseModal} disabled={saving}>
@@ -709,7 +755,17 @@ function ReponseEmergencyRequesr() {
                           Hủy
                         </button>
                         <button type="submit" className="btn btn-primary ms-2" disabled={saving}>
-                          {saving ? 'Đang lưu...' : 'Lưu ghi nhận'}
+                          {saving ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                              Đang lưu...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-save me-2"></i>
+                              Lưu ghi nhận
+                            </>
+                          )}
                         </button>
                       </>
                     ) : (
@@ -721,12 +777,23 @@ function ReponseEmergencyRequesr() {
                           setModalMsg(''); // Xóa thông báo cũ khi chuyển sang chế độ edit
                         }}
                       >
+                        <i className="fas fa-edit me-2"></i>
                         Cập nhật
                       </button>
                     )
                   ) : (
                     <button type="submit" className="btn btn-primary" disabled={saving}>
-                      {saving ? 'Đang lưu...' : 'Lưu ghi nhận'}
+                      {saving ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Đang lưu...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-plus-circle me-2"></i>
+                          Lưu ghi nhận
+                        </>
+                      )}
                     </button>
                   )}
                 </div>
@@ -757,6 +824,64 @@ function ReponseEmergencyRequesr() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { opacity: 0.6; }
+        }
+
+        .animate-fade-in {
+          animation: slideInSuccess 0.6s ease-out;
+        }
+
+        .animate-shake {
+          animation: shakeError 0.6s ease-in-out;
+        }
+
+        @keyframes slideInSuccess {
+          0% { 
+            opacity: 0; 
+            transform: translateY(-15px) scale(0.95); 
+            background-color: #c3e6cb;
+          }
+          50% { 
+            transform: translateY(3px) scale(1.02); 
+          }
+          100% { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+            background-color: #d4edda;
+          }
+        }
+
+        @keyframes shakeError {
+          0% { 
+            opacity: 0; 
+            transform: translateX(0) scale(0.95); 
+            background-color: #f5c6cb;
+          }
+          15% { 
+            transform: translateX(-5px) scale(1.02); 
+          }
+          30% { 
+            transform: translateX(5px) scale(1.02); 
+          }
+          45% { 
+            transform: translateX(-3px) scale(1.01); 
+          }
+          60% { 
+            transform: translateX(3px) scale(1.01); 
+          }
+          75% { 
+            transform: translateX(-1px) scale(1); 
+          }
+          100% { 
+            opacity: 1; 
+            transform: translateX(0) scale(1); 
+            background-color: #f8d7da;
+          }
         }
 
         .page-header {
@@ -857,12 +982,6 @@ function ReponseEmergencyRequesr() {
           color: #495057;
           text-align: center;
           animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-          0% { opacity: 0.6; }
-          50% { opacity: 1; }
-          100% { opacity: 0.6; }
         }
 
         .custom-alert-warning {
